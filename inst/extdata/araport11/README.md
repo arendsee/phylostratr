@@ -22,3 +22,7 @@ blastp \
 The columns `qseqid`, `evalue`, `bitscore`, and `staxid` have been extracted
 and a header has been added. A data were subset with the regular expression
 `AT.G..9`, which extracted 1/10 loci.
+
+## `araport11_subset99.tab`
+
+A further reduced subset of the data, reduced with `AT.G.99`, to 1/100 of the original.
