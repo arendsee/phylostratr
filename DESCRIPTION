@@ -8,8 +8,9 @@ Depends: R (>= 3.4.2)
 Imports:
     taxize,
     readr,
-    ggplot2,
-    dplyr
+    tidyr,
+    dplyr,
+    ggplot2
 License: GPL-3 + file LICENSE
 Encoding: UTF-8
 LazyData: true
