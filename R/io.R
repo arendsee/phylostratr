@@ -47,12 +47,8 @@ load_hittable <- function(filename, use_names=FALSE, na_str='N/A'){
     tidyr::unnest(staxid) %>%
     dplyr::mutate(staxid = as.integer(staxid))
 
-  if(any(is.na(d$staxid))){
-    msg <- "%s of %s rows is missing a taxon id"
-    warning(sprintf(msg, length(is.na(d$staxid)), nrow(d)))
-  }
-
   check_hit_table(d)
+  check_taxids(d$staxid)
 
   d
 }
