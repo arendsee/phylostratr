@@ -2,5 +2,6 @@
 
 export(load_hittable)
 export(uniprot_downstream_ids)
+export(uniprot_retrieve_genomes)
 importFrom(magrittr,"%>%")
 importFrom(rlang,.data)
