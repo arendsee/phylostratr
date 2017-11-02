@@ -2,3 +2,4 @@
 
 export(load_hittable)
 export(uniprot_downstream_ids)
+importFrom(magrittr,"%>%")

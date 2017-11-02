@@ -7,6 +7,7 @@ Description:
 Depends: R (>= 3.4.2)
 Imports:
     taxize,
+    magrittr,
     readr,
     tidyr,
     dplyr,
