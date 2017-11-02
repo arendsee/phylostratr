@@ -1,0 +1,85 @@
+---
+title: "*Arabidopsis thaliana* case study"
+author: "Zebulun Arendsee"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{*Arabidopsis thaliana* case study}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r}
+library(phylostratr)
+
+taxids <- taxize::get_ids(db='ncbi',
+  c(
+    "Acidilobus saccharovorans",
+    "Arabidopsis lyrata",
+    "Arabidopsis thaliana",
+    "Arthrospira platensis",
+    "Bacillus subtilis",
+    "Bigelowiella natans",
+    "Brachypodium distachyon",
+    "Brassica rapa",
+    "Camptotheca acuminata",
+    "Cannabis sativa",
+    "Capsella rubella",
+    "Carica papaya",
+    "Chlamydomonas reinhardtii",
+    "Citrus clementina",
+    "Citrus sinensis",
+    "Cyanidioschyzon merolae",
+    "Dictyostelium discoideum",
+    "Dioscorea villosa",
+    "Echinacea purpurea",
+    "Eucalyptus grandis",
+    "Ferroplasma acidarmanus",
+    "Giardia intestinalis",
+    "Ginkgo biloba",
+    "Gloeobacter violaceus",
+    "Glycine max",
+    "Gossypium raimondii",
+    "Haloquadratum walsbyi",
+    "Methanopyrus kandleri",
+    "Micromonas pusilla",
+    "Musa acuminata",
+    "Mus musculus",
+    "Nostoc punctiforme",
+    "Oryza sativa",
+    "Ostreococcus lucimarinus",
+    "Phaeodactylum tricornutum",
+    "Physcomitrella patens",
+    "Plasmodium falciparum",
+    "Populus trichocarpa",
+    "Prochlorococcus marinus",
+    "Pseudomonas aeruginosa",
+    "Pyrobaculum islandicum",
+    "Saccharomyces cerevisiae",
+    "Salinispora arenicola",
+    "Selaginella moellendorffii",
+    "Solanum lycopersicum",
+    "Sulfolobus islandicus",
+    "Thellungiella halophila",
+    "Theobroma cacao",
+    "Vitis vinifera",
+    "Zea mays"
+  )
+)
+
+shits <- system.file(
+    'extdata',
+    'araport11',
+    'araport11_subset9.tab',
+    package='phylostratr'
+) %>%
+  load_hittable %>%
+  get_max_hit
+
+shits %>%
+    dplyr::group_by(staxid) %>%
+    dplyr::summarize(n = n()) -> x
+
+  # subset(staxid %in% as.integer(taxids$ncbi)) %>%
+
+```

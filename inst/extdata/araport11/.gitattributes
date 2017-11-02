@@ -1,2 +1,4 @@
 araport11_subset9.tab filter=lfs diff=lfs merge=lfs -text
 araport11_subset99.tab filter=lfs diff=lfs merge=lfs -text
+at_ATxGxx9xx.faa filter=lfs diff=lfs merge=lfs -text
+at_reverse_ATxGxx9xx.faa filter=lfs diff=lfs merge=lfs -text

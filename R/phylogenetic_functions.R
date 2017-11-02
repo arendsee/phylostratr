@@ -1,3 +1,11 @@
+backbone <- function(taxid, byname=FALSE){
+  taxize::classification(taxid, db='ncbi')[[1]]$id 
+}
+
+cousins <- function(taxid){
+  taxize::downstream(backbone(taxid)[-1], downto='species', db='ncbi')
+}
+
 check_noise <- function(noise){
   # FIXME: stub
 }

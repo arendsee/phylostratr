@@ -10,10 +10,14 @@ Imports:
     readr,
     tidyr,
     dplyr,
-    ggplot2
+    ggplot2,
+    glue
 License: GPL-3 + file LICENSE
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 6.0.1
 Suggests: testthat,
-    covr
+    covr,
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
