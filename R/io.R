@@ -26,9 +26,6 @@
 #' @param filename Filename or URL. This will be read by
 #' \code{readr::read_tsv}, which understands URLs and will handle
 #' decompression.
-#' @param use_names Are the values in qtaxid scientific names, rather than ids.
-#' If TRUE, then these names will be checked and transformed into ids in the
-#' given database (see the \code{db} option).
 #' @param na_str The characters that indicate missing data. NCBI-blast uses
 #' 'N/A', so that is the default here.
 #' @return A data.frame
@@ -36,16 +33,16 @@
 #' @examples
 #' file <- system.file('extdata', 'araport11', 'araport11_subset9.tab', package='phylostratr')
 #' d <- load_hittable(file)
-load_hittable <- function(filename, use_names=FALSE, na_str='N/A'){
+load_hittable <- function(filename, na_str='N/A'){
   d <- readr::read_tsv(
     filename,
     col_names=c('qseqid', 'evalue', 'score', 'staxid'),
     na=na_str,
     col_types='cddc'
   ) %>%
-    transform(staxid = strsplit(staxid, ';')) %>%
-    tidyr::unnest(staxid) %>%
-    dplyr::mutate(staxid = as.integer(staxid))
+    dplyr::mutate(staxid = strsplit(.data$staxid, ';')) %>%
+    tidyr::unnest(.data$staxid) %>%
+    dplyr::mutate(staxid = as.integer(.data$staxid))
 
   check_hit_table(d)
   check_taxids(d$staxid)

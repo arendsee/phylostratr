@@ -8,6 +8,7 @@ Depends: R (>= 3.4.2)
 Imports:
     taxize,
     magrittr,
+    rlang (>= 0.1.2),
     readr,
     tidyr,
     dplyr,

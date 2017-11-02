@@ -6,6 +6,15 @@
 \usage{
 uniprot_downstream_ids(taxid, reference_only = FALSE)
 }
+\arguments{
+\item{taxid}{Ancestral node of clade of interest}
+
+\item{reference_only}{Should only reference proteomes be considered?}
+}
+\value{
+A numeric vector of NCBI taxon ids listing all species in this clade
+for which Uniprot has a complete proteome.
+}
 \description{
 Get the uniprot ids downstream of a node
 }

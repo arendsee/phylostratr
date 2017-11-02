@@ -4,16 +4,12 @@
 \alias{load_hittable}
 \title{Load a table of scored matches}
 \usage{
-load_hittable(filename, use_names = FALSE, na_str = "N/A")
+load_hittable(filename, na_str = "N/A")
 }
 \arguments{
 \item{filename}{Filename or URL. This will be read by
 \code{readr::read_tsv}, which understands URLs and will handle
 decompression.}
-
-\item{use_names}{Are the values in qtaxid scientific names, rather than ids.
-If TRUE, then these names will be checked and transformed into ids in the
-given database (see the \code{db} option).}
 
 \item{na_str}{The characters that indicate missing data. NCBI-blast uses
 'N/A', so that is the default here.}

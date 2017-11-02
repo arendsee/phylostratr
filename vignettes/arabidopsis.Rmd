@@ -9,8 +9,9 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r}
+```{r, eval=FALSE}
 library(phylostratr)
+library(magrittr)
 
 taxids <- taxize::get_ids(db='ncbi',
   c(
