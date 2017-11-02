@@ -11,6 +11,7 @@ Imports:
     tidyr,
     dplyr,
     ggplot2,
+    curl,
     glue
 License: GPL-3 + file LICENSE
 Encoding: UTF-8
