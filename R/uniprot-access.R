@@ -52,3 +52,40 @@ uniprot_retrieve_genomes <- function(taxa, keep_isoforms=FALSE, dir='uniprot-seq
     }
   }
 }
+
+#' Given a focal taxid, find the uniprot uncle representatives
+#'
+#' @param taxid The focal species NCBI taxon id
+#' @param ... Additional arguments sent to \code{uniprot_downstream_ids}
+#' @return list of lists of id vectors
+uniprot_uncle_ids <- function(taxid, ...){
+  us <- uncles(taxid)
+  for(ancestor in names(us)){
+    taxa <- us[[ancestor]]
+    us[[ancestor]] <- lapply(taxa, uniprot_downstream_ids)
+    names(us[[ancestor]]) <- taxa
+  }
+  us
+}
+
+#' Retrive the sequences from the uniprot uncle ids
+#'
+#' @param uncle_id The output of \code{uniprot_uncle_ids}
+#' @param dir Directory in which to write sequences
+#' @param prefix The phylostratum-level prefix
+uniprot_uncle_genomes <- function(uncle_list, dir='strata', prefix='ps_', ...){
+  strata <- names(uncle_id)
+  for(ps in seq_along(uncle_id)){
+    stratum_str <- strata[ps]
+    for(node_id in names(uncle_id[[ps]])){
+      psdir <- file.path(dir, paste0(prefix, ps), node_id)
+      if(!dir.exists(psdir)){
+        dir.create(psdir, recursive=TRUE)
+      }
+      message(sprintf("Retrieving descendents of '%s' ...", node_id))
+      for(taxid in uncle_id[[ps]][[node_id]]){
+        uniprot_retrieve_genome(node_id, dir=psdir, ...)
+      }
+    }
+  }
+}
