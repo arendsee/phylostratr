@@ -4,7 +4,8 @@
 \alias{uniprot_retrieve_genomes}
 \title{Download UniProt proteomes for given taxa}
 \usage{
-uniprot_retrieve_genomes(taxa, keep_isoforms = FALSE, dir = "uniprot-seqs")
+uniprot_retrieve_genomes(taxa, keep_isoforms = FALSE, dir = "uniprot-seqs",
+  dryrun = FALSE)
 }
 \arguments{
 \item{taxa}{Vector of NCBI taxonomy ids}
@@ -12,6 +13,8 @@ uniprot_retrieve_genomes(taxa, keep_isoforms = FALSE, dir = "uniprot-seqs")
 \item{keep_isoforms}{Should all isoforms of each protein be included?}
 
 \item{dir}{Directory in which to write all FASTA files}
+
+\item{dryrun}{If TRUE, do not download genomes, just print the URLs and destination files}
 }
 \description{
 Each proteom is written to a file with the name '<taxid>.faa', for example,

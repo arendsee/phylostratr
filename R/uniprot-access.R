@@ -28,13 +28,14 @@ uniprot_downstream_ids <- function(taxid, reference_only=FALSE){
 #' @param taxa Vector of NCBI taxonomy ids
 #' @param keep_isoforms Should all isoforms of each protein be included?
 #' @param dir Directory in which to write all FASTA files
+#' @param dryrun If TRUE, do not download genomes, just print the URLs and destination files
 #' @export
 #' @examples
 #' \dontrun{
 #' # uniprot_downstream_ids(3701) %>% uniprot_retrieve_genomes
 #' }
-uniprot_retrieve_genomes <- function(taxa, keep_isoforms=FALSE, dir='uniprot-seqs'){
-  if(!dir.exists(dir)){
+uniprot_retrieve_genomes <- function(taxa, keep_isoforms=FALSE, dir='uniprot-seqs', dryrun=FALSE){
+  if(!dir.exists(dir) && !dryrun){
     dir.create(dir, recursive=TRUE)
   }
   inc_str <- if(keep_isoforms){ 'include=yes' } else { 'include=no' }
@@ -44,21 +45,27 @@ uniprot_retrieve_genomes <- function(taxa, keep_isoforms=FALSE, dir='uniprot-seq
     if(file.exists(fastafile)){
       message(sprintf("Skipping %s - already retrieved", taxid))
     } else {
-      message(sprintf("Retrieving %s ...", taxid))
       url_str <- glue::glue(
         "http://www.uniprot.org/uniprot/?query=organism:{taxid}&{for_str}&{inc_str}"
       )
-      curl::curl_download(url_str, fastafile)
+      if(dryrun){
+        message(sprintf("Checking %s ...", taxid))
+        message(sprintf("  url: %s", url_str))
+        message(sprintf("  destination: %s", fastafile))
+      } else {
+        message(sprintf("Retrieving %s ...", taxid))
+        curl::curl_download(url_str, fastafile)
+      }
     }
   }
 }
 
-#' Given a focal taxid, find the uniprot uncle representatives
+#' Given a focal taxid, find the uniprot descendents of a taxon's uncles 
 #'
 #' @param taxid The focal species NCBI taxon id
 #' @param ... Additional arguments sent to \code{uniprot_downstream_ids}
 #' @return list of lists of id vectors
-uniprot_uncle_ids <- function(taxid, ...){
+uniprot_cousins <- function(taxid, ...){
   us <- uncles(taxid)
   for(ancestor in names(us)){
     taxa <- us[[ancestor]]
@@ -68,23 +75,35 @@ uniprot_uncle_ids <- function(taxid, ...){
   us
 }
 
-#' Retrive the sequences from the uniprot uncle ids
+#' Retrive the sequences from the uniprot cousins
 #'
-#' @param uncle_id The output of \code{uniprot_uncle_ids}
+#' @param cousins The output of \code{uniprot_cousins}
 #' @param dir Directory in which to write sequences
 #' @param prefix The phylostratum-level prefix
-uniprot_uncle_genomes <- function(uncle_list, dir='strata', prefix='ps_', ...){
-  strata <- names(uncle_id)
-  for(ps in seq_along(uncle_id)){
+#' @param dryrun If TRUE, do not download files or create directories
+#' @param ... Additional arguments passed to \code{uniprot_retrieve_genomes}
+#' @return Nothing, this function is run for its effects
+#' @examples
+#' \dontrun{
+#' # uniprot_cousins(3702) %>% uniprot_cousin_genomes
+#' }
+uniprot_cousin_genomes <- function(cousins, dir='strata', prefix='ps_', dryrun=FALSE, ...){
+  strata <- names(cousins)
+  for(ps in seq_along(cousins)){
     stratum_str <- strata[ps]
-    for(node_id in names(uncle_id[[ps]])){
+    for(node_id in names(cousins[[ps]])){
       psdir <- file.path(dir, paste0(prefix, ps), node_id)
-      if(!dir.exists(psdir)){
+      if(!dir.exists(psdir) && !dryrun){
         dir.create(psdir, recursive=TRUE)
       }
-      message(sprintf("Retrieving descendents of '%s' ...", node_id))
-      for(taxid in uncle_id[[ps]][[node_id]]){
-        uniprot_retrieve_genome(node_id, dir=psdir, ...)
+      if(dryrun){
+        message(sprintf("Retrieving descendents of '%s' ...", node_id))
+      } else {
+        message(sprintf("Checking descendents of '%s' ...", node_id))
+      }
+      for(taxid in cousins[[ps]][[node_id]]){
+        message(node_id)
+        uniprot_retrieve_genomes(node_id, dir=psdir, dryrun=dryrun, ...)
       }
     }
   }
