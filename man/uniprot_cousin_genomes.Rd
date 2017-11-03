@@ -5,7 +5,7 @@
 \title{Retrive the sequences from the uniprot cousins}
 \usage{
 uniprot_cousin_genomes(cousins, dir = "strata", prefix = "ps_",
-  filter = identity, dryrun = FALSE, ...)
+  dryrun = FALSE, ...)
 }
 \arguments{
 \item{cousins}{The output of \code{uniprot_cousins}}
@@ -13,8 +13,6 @@ uniprot_cousin_genomes(cousins, dir = "strata", prefix = "ps_",
 \item{dir}{Directory in which to write sequences}
 
 \item{prefix}{The phylostratum-level prefix}
-
-\item{filter}{A function to filter desired target species from the cousin list}
 
 \item{dryrun}{If TRUE, do not download files or create directories}
 
@@ -24,10 +22,20 @@ uniprot_cousin_genomes(cousins, dir = "strata", prefix = "ps_",
 Nothing, this function is run for its effects
 }
 \description{
-Retrive the sequences from the uniprot cousins
+cousin_sets A named list of vectors of species taxon ids. Each vector
+in the list bears the name of an uncle, all at the same level in the tree.
+There may be multiple uncles in multifurcating nodes of the tree (this is
+very common in the NCBI common tree).
 }
 \examples{
 \dontrun{
-# uniprot_cousins(3702) \%>\% uniprot_cousin_genomes(filter=takefirst)
+uniprot_cousins(3702) \%>\%
+  lapply(take_first) \%>\%
+  uniprot_cousin_genomes
+
+cfilter <- make_do_if_over(3, take_first)
+uniprot_cousins(3702) \%>\%
+  lapply(cfilter) \%>\%
+  uniprot_cousin_genomes
 }
 }

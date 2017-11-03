@@ -77,6 +77,11 @@ uniprot_cousins <- function(taxid, ...){
 
 #' Retrive the sequences from the uniprot cousins
 #'
+#' cousin_sets A named list of vectors of species taxon ids. Each vector
+#' in the list bears the name of an uncle, all at the same level in the tree.
+#' There may be multiple uncles in multifurcating nodes of the tree (this is
+#' very common in the NCBI common tree).
+#'
 #' @param cousins The output of \code{uniprot_cousins}
 #' @param dir Directory in which to write sequences
 #' @param prefix The phylostratum-level prefix
@@ -85,7 +90,14 @@ uniprot_cousins <- function(taxid, ...){
 #' @return Nothing, this function is run for its effects
 #' @examples
 #' \dontrun{
-#' # uniprot_cousins(3702) %>% uniprot_cousin_genomes
+#' uniprot_cousins(3702) %>%
+#'   lapply(take_first) %>%
+#'   uniprot_cousin_genomes
+#' 
+#' cfilter <- make_do_if_over(3, take_first)
+#' uniprot_cousins(3702) %>%
+#'   lapply(cfilter) %>%
+#'   uniprot_cousin_genomes
 #' }
 uniprot_cousin_genomes <- function(cousins, dir='strata', prefix='ps_', dryrun=FALSE, ...){
   strata <- names(cousins)
@@ -93,18 +105,44 @@ uniprot_cousin_genomes <- function(cousins, dir='strata', prefix='ps_', dryrun=F
     stratum_str <- strata[ps]
     for(node_id in names(cousins[[ps]])){
       psdir <- file.path(dir, paste0(prefix, ps), node_id)
-      if(!dir.exists(psdir) && !dryrun){
-        dir.create(psdir, recursive=TRUE)
-      }
       if(dryrun){
         message(sprintf("Retrieving descendents of '%s' ...", node_id))
       } else {
         message(sprintf("Checking descendents of '%s' ...", node_id))
+        if(!dir.exists(psdir) && length(cousins[[ps]][[node_id]] > 0)){
+          dir.create(psdir, recursive=TRUE)
+        }
       }
       for(taxid in cousins[[ps]][[node_id]]){
         message(node_id)
         uniprot_retrieve_genomes(node_id, dir=psdir, dryrun=dryrun, ...)
       }
+    }
+  }
+}
+
+#' Select representatives for a strata
+#'
+#' @export
+take_first <- function(cousin_sets){
+  lapply(cousin_sets, head, 1) 
+}
+
+#' Make a filter
+#'
+#' @param n The number of taxa that must be present before resorting to
+#' \code{fun}
+#' @param fun The filter function to use for strata with more than \code{n}
+#' representatives
+#' @export
+#' @return A filter that can be used in \code{uniprot_cousin_genomes}
+make_do_if_over <- function(n=3, fun=take_first){
+  function(cousin_sets){
+    ncousins <- sum(vapply(FUN.VALUE=integer(1), cousin_sets, length))
+    if(ncousins > n){
+      fun(cousin_sets)
+    } else {
+      cousin_sets
     }
   }
 }
