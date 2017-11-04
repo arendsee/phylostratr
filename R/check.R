@@ -36,3 +36,7 @@ check_taxids <- function(taxids){
     warning(sprintf(msg, sum(is.na(taxids)), length(taxids), deparse(substitute(taxids))))
   }
 }
+
+check_noise <- function(noise){
+  # FIXME: stub
+}
