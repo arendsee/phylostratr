@@ -9,7 +9,7 @@ taxid2summary(taxids, chunk_size = 250)
 \arguments{
 \item{taxids}{Vector of NCBI taxonomy ids}
 
-\item{number}{of records to retrive at a time (the default should be fine)}
+\item{chunk_size}{number of records to retrive at a time (the default should be fine)}
 }
 \description{
 Transform list of taxids to list of taxid summaries

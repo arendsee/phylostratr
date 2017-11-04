@@ -4,7 +4,11 @@
 \alias{take_first}
 \title{Select representatives for a strata}
 \usage{
-take_first(cousin_sets)
+take_first(x)
+}
+\arguments{
+\item{x}{A list of uncles at a specific stratum, each of which contains a
+list of descendent taxids}
 }
 \description{
 Select representatives for a strata

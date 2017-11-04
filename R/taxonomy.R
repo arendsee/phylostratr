@@ -37,7 +37,7 @@ uncles <- function(taxid){
 #' Transform list of taxids to list of taxid summaries
 #'
 #' @param taxids Vector of NCBI taxonomy ids
-#' @param number of records to retrive at a time (the default should be fine)
+#' @param chunk_size number of records to retrive at a time (the default should be fine)
 #' @export
 taxid2summary <- function(taxids, chunk_size=250){
   id_summaries <- as.list(taxids) %>% lapply(function(x) NULL)

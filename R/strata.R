@@ -1,8 +1,10 @@
 #' Select representatives for a strata
 #'
+#' @param x A list of uncles at a specific stratum, each of which contains a
+#' list of descendent taxids
 #' @export
-take_first <- function(cousin_sets){
-  lapply(cousin_sets, head, 1) 
+take_first <- function(x){
+  lapply(x, head, 1) 
 }
 
 #' Make a filter
