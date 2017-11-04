@@ -49,12 +49,13 @@ uniprot_retrieve_genomes <- function(taxa, keep_isoforms=FALSE, dir='uniprot-seq
         "http://www.uniprot.org/uniprot/?query=organism:{taxid}&{for_str}&{inc_str}"
       )
       if(dryrun){
-        message(sprintf("Checking %s ...", taxid))
+        message(sprintf("Checking %s ...\n", taxid))
         message(sprintf("  url: %s", url_str))
-        message(sprintf("  destination: %s", fastafile))
+        message(sprintf("  destination: %s\n", fastafile))
       } else {
-        message(sprintf("Retrieving %s ...", taxid))
+        message(sprintf("Retrieving %s ...\n", taxid))
         curl::curl_download(url_str, fastafile)
+        Sys.sleep(1) # for good manner
       }
     }
   }
