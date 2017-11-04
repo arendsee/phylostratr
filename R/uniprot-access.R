@@ -65,6 +65,7 @@ uniprot_retrieve_genomes <- function(taxa, keep_isoforms=FALSE, dir='uniprot-seq
 #' @param taxid The focal species NCBI taxon id
 #' @param ... Additional arguments sent to \code{uniprot_downstream_ids}
 #' @return list of lists of id vectors
+#' @export
 uniprot_cousins <- function(taxid, ...){
   us <- uncles(taxid)
   for(ancestor in names(us)){

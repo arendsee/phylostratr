@@ -1,6 +1,6 @@
 #' @importFrom magrittr "%>%"
 #' @importFrom rlang .data
-#' @importFrom utils head
+#' @importFrom utils head tail
 utils::globalVariables(c("%>%", "."))
 NULL
 

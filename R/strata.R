@@ -46,6 +46,79 @@ as_named_strata <- function(x){
   x
 }
 
+#' Map a function over a specific stratum
+#'
+#' @param cousin_sets A nested list of cousins
+#' @param stratum_id Stratum NCBI taxonomy id
+#' @param fun A function of the uncle list
+#' @export
+do_on <- function(cousin_sets, stratum_id, fun){
+  stratum_id <- as.character(stratum_id)
+  cousin_sets[[stratum_id]] <- fun(cousin_sets[[stratum_id]]) 
+  cousin_sets
+}
+
+#' Add an id to a representative list
+#'
+#' @param cousin_sets A nested list of cousins
+#' @param stratum_id Stratum NCBI taxonomy id
+#' @param uncle_id Uncle NCBI taxonomy id
+#' @param new_id The ID to be added
+#' @export
+add_to <- function(cousin_sets, stratum_id, uncle_id, new_id){
+  stratum_id <- as.character(stratum_id)
+  uncle_id <- as.character(uncle_id)
+  cousin_sets[[stratum_id]][[uncle_id]] <- append(cousin_sets[[stratum_id]][[uncle_id]], new_id)
+  cousin_sets
+}
+
+#' Clear all representatives of a given uncle
+#'
+#' @param cousin_sets A nested list of cousins
+#' @param stratum_id Stratum NCBI taxonomy id
+#' @param uncle_id Uncle NCBI taxonomy id
+#' @export
+clear_uncle <- function(cousin_sets, stratum_id, uncle_id){
+  stratum_id <- as.character(stratum_id)
+  uncle_id <- as.character(uncle_id)
+  cousin_sets[[stratum_id]][[uncle_id]] <- integer(0)
+  cousin_sets
+}
+
+#' Clear all representatives of a given stratum
+#'
+#' @param cousin_sets A nested list of cousins
+#' @param stratum_id Stratum NCBI taxonomy id
+#' @export
+clear_stratum <- function(cousin_sets, stratum_id){
+  cousin_sets[[as.character(stratum_id)]] <- vapply(FUN.VALUE=integer(0), function(x) integer(0))
+  cousin_sets
+}
+
+#' Add representatives to the strata
+#'
+#' @param cousin_sets A nested list of cousins
+#' @param scinames scientific names of representatives to add
+#' @param taxids NCBI ids of representatives to add
+#' @export
+add_representative <- function(cousin_sets, scinames=NULL, taxids=NULL){
+  if(!is.null(scinames)){
+    taxids <- taxize::get_uid(scinames, verbose=FALSE) %>% as.character
+  }
+  lineages <- taxize::classification(taxids, db='ncbi')
+
+  taxids <- as.character(taxids)
+
+  for(taxid in names(lineages)){
+    lineage <- lineages[[taxid]]
+    stratum <- lineage$id[lineage$id %in% names(cousin_sets)] %>% tail(1)
+    uncle <- lineage$id[which(lineage$id %in% stratum) + 1]
+    cousin_sets <- add_to(cousin_sets, stratum, uncle, taxid)
+  }
+
+  cousin_sets
+}
+
 #' Print a strata list
 #'
 #' @param x A named or unnamed strata
