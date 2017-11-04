@@ -45,3 +45,25 @@ as_named_strata <- function(x){
   names(x) <- backbone
   x
 }
+
+#' Print a strata list
+#'
+#' @param x A named or unnamed strata
+#' @export
+print_strata <- function(x){
+  for(stratum in names(x)){
+    cat(sprintf('%s\n', stratum))
+    if(length(unlist(x[[stratum]])) == 0){
+      cat("  NO REPRESENTATIVE\n")
+    } else {
+      for(uncle in names(x[[stratum]])){
+        # If the uncle has no included children, ignore it
+        if(length(x[[stratum]][[uncle]]) > 0)
+          cat(sprintf('  %s\n', uncle))
+        for(species in x[[stratum]][[uncle]]){
+          cat(sprintf('    %s\n', species))
+        }
+      }
+    }
+  }
+}
