@@ -25,3 +25,23 @@ make_do_if_over <- function(n=3, fun=take_first){
     }
   }
 }
+
+#' Substitute names for taxids in strata
+#'
+#' @param x strata list, as made by \code{uniprot_cousins}
+#' @export
+as_named_strata <- function(x){
+  scinames <- taxid2name(c(unname(unlist(x)), names(x), unlist(sapply(x, names))))
+  backbone <- unname(scinames[names(x)])
+  x <- lapply(x,
+        function(y) {
+          uncles <- unname(scinames[names(y)])
+          if(length(y) > 0)
+            y <- lapply(y, function(z) unname(scinames[as.character(z)]))
+          names(y) <- uncles
+          y
+        }
+      )
+  names(x) <- backbone
+  x
+}

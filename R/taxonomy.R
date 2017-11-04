@@ -66,5 +66,15 @@ taxid2summary <- function(taxids, chunk_size=250){
 #' @export
 taxid2name <- function(taxids, ...){
   id_summaries <- taxid2summary(taxids, ...)
-  vapply(FUN.VALUE=character(1), id_summaries, function(x) x$scientificname)
+  sapply(
+    # FUN.VALUE=character(1),
+    id_summaries,
+    function(x) {
+      if('scientificname' %in% names(x)){
+        x$scientificname
+      } else {
+        NA_character_
+      }
+    }
+  )
 }
