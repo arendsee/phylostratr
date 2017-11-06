@@ -10,10 +10,10 @@ uniprot_downstream_ids <- function(taxid, reference_only=FALSE, delay=FALSE){
   ref_str <- if(reference_only){
     'reference:yes'
   } else {
-    'complete:yes'
+    '*' 
   }
   url_str <- glue::glue(
-    'http://www.uniprot.org/taxonomy/?query=ancestor:{taxid}+{ref_str}&format=list'
+    'http://www.uniprot.org/taxonomy/?query=ancestor:{taxid}&format=list&fil=proteome:({ref_str})'
   )
   if(delay)
     Sys.sleep(0.3)
