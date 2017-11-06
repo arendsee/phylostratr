@@ -13,6 +13,7 @@ vignette: >
 
 ```{r}
 library(phylostratr)
+library(taxize)
 
 # Get stratified relatives represented in UniProt
 strata <- uniprot_cousins(3702)
@@ -51,8 +52,6 @@ archaea_taxids <- archaea_class_reps %>%
 strata4 <- append(list(`131567`=list(`2`=bacteria_taxids, `2157`=archaea_taxids)), strata2)
 strata5 <- as_named_strata(strata4)
 print_strata(strata5)
-
-
 ```
 
 ```{r, eval=FALSE}

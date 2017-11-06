@@ -6,7 +6,7 @@ Description:
     Analyze phylostratigraphic data. Details to come.
 Depends: R (>= 3.4.2)
 Imports:
-    taxize,
+    taxize (>= 0.9.0.9213),
     rentrez,
     magrittr,
     rlang (>= 0.1.2),
@@ -16,6 +16,8 @@ Imports:
     ggplot2,
     curl,
     glue
+Remotes:
+    ropensci/taxize
 License: GPL-3 + file LICENSE
 Encoding: UTF-8
 LazyData: true
