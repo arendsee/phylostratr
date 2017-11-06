@@ -2,10 +2,11 @@
 #'
 #' @param taxid Ancestral node of clade of interest
 #' @param reference_only Should only reference proteomes be considered?
+#' @param delay Sleep for 0.3 seconds before retrieving (polite in loops)
 #' @return A numeric vector of NCBI taxon ids listing all species in this clade
 #' for which Uniprot has a complete proteome.
 #' @export
-uniprot_downstream_ids <- function(taxid, reference_only=FALSE){
+uniprot_downstream_ids <- function(taxid, reference_only=FALSE, delay=FALSE){
   ref_str <- if(reference_only){
     'reference:yes'
   } else {
@@ -14,6 +15,8 @@ uniprot_downstream_ids <- function(taxid, reference_only=FALSE){
   url_str <- glue::glue(
     'http://www.uniprot.org/taxonomy/?query=ancestor:{taxid}+{ref_str}&format=list'
   )
+  if(delay)
+    Sys.sleep(0.3)
   con <- curl::curl(url_str)
   children <- readLines(con) %>% as.integer
   close(con)
@@ -71,7 +74,7 @@ uniprot_cousins <- function(taxid, ...){
   us <- uncles(taxid)
   for(ancestor in names(us)){
     taxa <- us[[ancestor]]
-    us[[ancestor]] <- lapply(taxa, uniprot_downstream_ids)
+    us[[ancestor]] <- lapply(taxa, uniprot_downstream_ids, delay=TRUE)
     names(us[[ancestor]]) <- taxa
   }
   us
