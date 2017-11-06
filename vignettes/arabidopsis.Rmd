@@ -34,20 +34,31 @@ bacteria_class_reps <- lapply(
     prokaryote_classes$Bacteria$childtaxa_id,
     uniprot_downstream_ids, reference_only=TRUE, delay=TRUE
   )
+names(bacteria_class_reps) <- prokaryote_classes$Bacteria$childtaxa_id
+
+
 # Get all uniprot reference genomes for each bacterial class
 archaea_class_reps <- lapply(
     prokaryote_classes$Archaea$childtaxa_id,
     uniprot_downstream_ids, reference_only=TRUE, delay=TRUE
   )
+names(archaea_class_reps) <- prokaryote_classes$Archaea$childtaxa_id
 
 # From each class, randomly select a single uniprot reference genome
+sample_taxids <- function(x, ...){
+    # This is required, because R is evil. If x is of length 1 and is numeric,
+    # then `sample` treats it as the upperbound of a discrete distribution
+    # between 1 and x. Otherwise it is treated as a set to be sampled from.
+    sample(as.character(x), ...) %>% as.integer
+}
 set.seed(42)
 bacteria_taxids <- bacteria_class_reps %>%
     Filter(f = function(x){ length(x) > 0}) %>%
-    lapply(sample, size=1) %>% unlist
+    lapply(sample_taxids, size=1) %>% unlist
 archaea_taxids <- archaea_class_reps %>%
     Filter(f = function(x){ length(x) > 0}) %>%
-    lapply(sample, size=1) %>% unlist
+    lapply(as.character) %>%
+    lapply(sample_taxids, size=1) %>% unlist
 
 strata4 <- append(list(`131567`=list(`2`=bacteria_taxids, `2157`=archaea_taxids)), strata2)
 strata5 <- as_named_strata(strata4)
@@ -55,9 +66,22 @@ print_strata(strata5)
 ```
 
 ```{r, eval=FALSE}
-uniprot_retrieve_genomes(unname(unlist(strata2)))
+uniprot_retrieve_genomes(unname(unlist(strata4)))
+query  <- system.file(
+    'extdata',
+    'araport11',
+    'at_ATxGxx9xx.faa',
+    package='phylostratr'
+)
+results <- lapply(unname(unlist(strata4)), function(taxid){
+  message(sprintf("%s: making blast database ...", taxid))
+  make_blast_database(taxid, 'uniprot-seqs', 'blastdb')
+  message(sprintf("%s: blasting ...", taxid))
+  blastresult <- paste0(taxid, ".tab")
+  run_blastp(query, taxid, 'blastdb', blastresult, nthreads=8)
+  blastresult
+})
 ```
-
 
 ```{r, eval=FALSE}
 library(phylostratr)
