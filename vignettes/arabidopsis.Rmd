@@ -17,13 +17,41 @@ library(phylostratr)
 # Get stratified relatives represented in UniProt
 strata <- uniprot_cousins(3702)
 
-cfilter <- make_do_if_over(3, take_first)
+cfilter <- make_do_if_over(5, take_first)
 strata2 <- clear_uncle(strata, 2759, 33154) %>%
     lapply(cfilter) %>%
     add_representative(scinames=c('Homo sapiens', 'Saccharomyces cerevisiae'))
 
 strata3 <- as_named_strata(strata2)
 print_strata(strata3)
+
+# Get all bacterial and Archael classes (class is one level below phylum)
+prokaryote_classes <- taxize::downstream(c('Bacteria', 'Archaea'), downto='class', db='ncbi')
+
+# Get all uniprot reference genomes for each bacterial class
+bacteria_class_reps <- lapply(
+    prokaryote_classes$Bacteria$childtaxa_id,
+    uniprot_downstream_ids, reference_only=TRUE, delay=TRUE
+  )
+# Get all uniprot reference genomes for each bacterial class
+archaea_class_reps <- lapply(
+    prokaryote_classes$Archaea$childtaxa_id,
+    uniprot_downstream_ids, reference_only=TRUE, delay=TRUE
+  )
+
+# From each class, randomly select a single uniprot reference genome
+set.seed(42)
+bacteria_taxids <- bacteria_class_reps %>%
+    Filter(f = function(x){ length(x) > 0}) %>%
+    lapply(sample, size=1) %>% unlist
+archaea_taxids <- archaea_class_reps %>%
+    Filter(f = function(x){ length(x) > 0}) %>%
+    lapply(sample, size=1) %>% unlist
+
+strata4 <- append(list(`131567`=list(`2`=bacteria_taxids, `2157`=archaea_taxids)), strata2)
+strata5 <- as_named_strata(strata4)
+print_strata(strata5)
+
 
 ```
 
