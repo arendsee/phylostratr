@@ -66,21 +66,19 @@ print_strata(strata5)
 ```
 
 ```{r, eval=FALSE}
+# Download genomes
 uniprot_retrieve_genomes(unname(unlist(strata4)))
+
+# Get a sample Arabidopsis thaliana protein FASTA file 
 query  <- system.file(
     'extdata',
     'araport11',
     'at_ATxGxx9xx.faa',
     package='phylostratr'
 )
-results <- lapply(unname(unlist(strata4)), function(taxid){
-  message(sprintf("%s: making blast database ...", taxid))
-  make_blast_database(taxid, 'uniprot-seqs', 'blastdb')
-  message(sprintf("%s: blasting ...", taxid))
-  blastresult <- paste0(taxid, ".tab")
-  run_blastp(query, taxid, 'blastdb', blastresult, nthreads=8)
-  blastresult
-})
+
+# BLAST against each target genome (this will take a few hours)
+results <- strata_blast(query, strata4, blast_args=list(nthreads=8))
 ```
 
 ```{r, eval=FALSE}
