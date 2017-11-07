@@ -4,7 +4,7 @@
 \alias{make_blast_database}
 \title{Build a blast database for one species}
 \usage{
-make_blast_database(taxid, indir, outdir)
+make_blast_database(taxid, indir = "uniprot-seqs", outdir = "blastdb")
 }
 \arguments{
 \item{taxid}{A single NCBI taxon id}
@@ -13,6 +13,9 @@ make_blast_database(taxid, indir, outdir)
 (should contain a file '<taxid>.faa')}
 
 \item{outdir}{The directory in which the blast database should be stored}
+}
+\value{
+path to blast database (without extension)
 }
 \description{
 Build a blast database for one species

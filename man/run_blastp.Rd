@@ -4,8 +4,8 @@
 \alias{run_blastp}
 \title{BLAST query protein FASTA file against a target species}
 \usage{
-run_blastp(query_fastafile, target_taxid, blastdb, blastresult, nthreads = 1,
-  seg = FALSE)
+run_blastp(query_fastafile, target_taxid, blastdb = "blastdb",
+  blastresult = paste0(target_taxid, ".tab"), nthreads = 1, seg = FALSE)
 }
 \arguments{
 \item{query_fastafile}{A protein FASTA file for the focal species}
@@ -19,6 +19,9 @@ run_blastp(query_fastafile, target_taxid, blastdb, blastresult, nthreads = 1,
 \item{nthreads}{Number of threads}
 
 \item{seg}{Whether to mask the query protein sequences}
+}
+\value{
+The path to the output file
 }
 \description{
 BLAST query protein FASTA file against a target species
