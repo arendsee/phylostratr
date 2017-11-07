@@ -32,3 +32,35 @@ run_blastp <- function(query_fastafile, target_taxid, blastdb, blastresult, nthr
   )
   blastresult
 }
+
+#' Blast uncle-level strata 
+#'
+#' Takes a uncle-level strata, blasts each leaf, returns a flat strata with blast result filenames
+#'
+#' @param query The protein FASTA file for the focal species
+#' @param strata Uncle level strata
+#' @param ... Additional arguments passed to \code{run_blastp}
+strata_blast <- function(query, strata, ...){
+  lapply(
+    strata,
+    function(uncles){
+      taxids <- unname(unlist(uncles))
+      vapply(
+        FUN.VALUE=character(1),
+        taxids,
+        function(taxid){
+          blastresult <- paste0(taxid, ".tab")
+          if(file.exists(blastresult)){
+            message(sprintf("Skipping %s", taxid))
+          } else {
+            message(sprintf("%s: making blast database ...", taxid))
+            make_blast_database(taxid, 'uniprot-seqs', 'blastdb')
+            message(sprintf("%s: blasting ...", taxid))
+            run_blastp(query, taxid, 'blastdb', blastresult, ...)
+          }
+          blastresult
+        }
+      )
+    }
+  )
+}
