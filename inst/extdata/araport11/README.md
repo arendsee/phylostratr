@@ -1,28 +1,12 @@
 # Araport11 blast results subset 
 
-## `araport11_subset9.tab`
+## `at_ATxGxx9xx.faa`
 
-This is a subset of the results of the following BLAST against the RefSeq release 84 database.
+A subset of the proteins in the Araport11 annotation of *Arabidopsis thaliana*.
 
-``` sh
-#!/bin/bash
-# perfomrs NR blast (blastp)
-infile="$1"
-outfile="$(basename "${infile%.*}").out"
-database="/work/GIF/databases/ncbi_nr/nr"
-module load ncbi-blast
-blastp \
- -query "${infile}" \
- -db "${database}" \
- -out "${outfile}" \
- -num_threads 16 \
- -outfmt "6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore staxids salltitles qcovs"
-```
+The models were filtered by matches of the pattern `AT.G..9` to TAIR IDs (This
+represents 1/10 of the full dataset).
 
-The columns `qseqid`, `evalue`, `bitscore`, and `staxid` have been extracted
-and a header has been added. A data were subset with the regular expression
-`AT.G..9`, which extracted 1/10 loci.
+## `at_reverse_ATxGxx9xx.faa`
 
-## `araport11_subset99.tab`
-
-A further reduced subset of the data, reduced with `AT.G.99`, to 1/100 of the original.
+The same sequences as the above, but with their protein sequences reversed.
