@@ -31,10 +31,10 @@ make_blast_database <- function(
 run_blastp <- function(
   query_fastafile,
   target_taxid,
-  blastdb     = 'blastdb',
-  blastresult = paste0(target_taxid, ".tab"),
-  nthreads    = 1,
-  seg         = FALSE
+  blastdb      = 'blastdb',
+  blastresult  = paste0(target_taxid, ".tab"),
+  nthreads     = 1,
+  seg          = FALSE
 ){
   if(file.exists(blastresult)){
     message(sprintf("Skipping %s", target_taxid))
@@ -51,6 +51,11 @@ run_blastp <- function(
         '-seg', if(seg) {'yes'} else {'no'}
       )
     )
+    # Add the subject taxon ID, name and order columns, write with header
+    readr::read_tsv(blastresult, col_names=c('qseqid', 'evalue', 'score')) %>%
+      dplyr::mutate(staxid = target_taxid) %>%
+      dplyr::select(qseqid, staxid, evalue, score) %>%
+      readr::write_tsv(blastresult)
   }
   blastresult
 }
