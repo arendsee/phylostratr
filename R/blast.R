@@ -23,7 +23,7 @@ make_blast_database <- function(
 #'
 #' @param query_fastafile A protein FASTA file for the focal species
 #' @param target_taxid The target NCBI taxon ID
-#' @param blastdb The directory in which the blast database should be made
+#' @param blastdb A path to a blast database (as returned from \code{make_blast_database})
 #' @param blastresult The output TAB-delimited result file
 #' @param nthreads Number of threads
 #' @param seg Whether to mask the query protein sequences
@@ -31,7 +31,7 @@ make_blast_database <- function(
 run_blastp <- function(
   query_fastafile,
   target_taxid,
-  blastdb      = 'blastdb',
+  blastdb,
   blastresult  = paste0(target_taxid, ".tab"),
   nthreads     = 1,
   seg          = FALSE
@@ -44,7 +44,7 @@ run_blastp <- function(
       'blastp',
       stdout=blastresult,
       args=c(
-        '-db', file.path(blastdb, target_taxid),
+        '-db', blastdb,
         '-query', query_fastafile,
         '-outfmt', '"6 qseqid evalue score"',
         '-num_threads', nthreads,

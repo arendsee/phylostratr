@@ -4,7 +4,7 @@
 \alias{run_blastp}
 \title{BLAST query protein FASTA file against a target species}
 \usage{
-run_blastp(query_fastafile, target_taxid, blastdb = "blastdb",
+run_blastp(query_fastafile, target_taxid, blastdb,
   blastresult = paste0(target_taxid, ".tab"), nthreads = 1, seg = FALSE)
 }
 \arguments{
@@ -12,7 +12,7 @@ run_blastp(query_fastafile, target_taxid, blastdb = "blastdb",
 
 \item{target_taxid}{The target NCBI taxon ID}
 
-\item{blastdb}{The directory in which the blast database should be made}
+\item{blastdb}{A path to a blast database (as returned from \code{make_blast_database})}
 
 \item{blastresult}{The output TAB-delimited result file}
 
