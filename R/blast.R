@@ -19,6 +19,16 @@ make_blast_database <- function(
   out
 }
 
+# produce an empty blast result
+empty_blast_result <- function(){
+  data.frame(
+    qseqid = character(0),
+    staxid = integer(0),
+    evalue = numeric(0),
+    score  = numeric(0)
+  )
+}
+
 #' BLAST query protein FASTA file against a target species 
 #'
 #' @param query_fastafile A protein FASTA file for the focal species
@@ -52,7 +62,11 @@ run_blastp <- function(
       )
     )
     # Add the subject taxon ID, name and order columns, write with header
-    readr::read_tsv(blastresult, col_names=c('qseqid', 'evalue', 'score')) %>%
+    readr::read_tsv(
+      blastresult,
+      col_names = c('qseqid', 'evalue', 'score'),
+      col_types = 'cdd'
+    ) %>%
       dplyr::mutate(staxid = target_taxid) %>%
       dplyr::select(qseqid, staxid, evalue, score) %>%
       readr::write_tsv(blastresult)
@@ -84,4 +98,52 @@ strata_blast <- function(query, strata, makedb_args=list(), blast_args=list()){
       )
     }
   )
+}
+
+#' Load each blast result and filter out the best hit against each query gene
+#'
+#' @param blast_strata The output of strata_blast
+#' @return A list of lists of filtered blast results
+strata_besthits <- function(blast_strata){
+  lapply(blast_strata,
+    function(blast_stratum) {
+      if(length(blast_stratum) == 0){
+        list(empty_blast_result())
+      } else {
+        lapply(
+          blast_stratum,         
+          function(blast_file){
+            if(length(blast_file) > 0){
+              readr::read_tsv(blast_file, col_types='cidd') %>% get_max_hit
+            } else {
+              empty_blast_result()
+            }
+          }
+        )
+      }
+    }
+  )
+}
+
+#' Build a single data.frame with an MRCA column from stratified blast results
+#'
+#' @param besthits_strata The output of \code{strata_besthits}
+merge_besthits <- function(besthits_strata){
+  strata <- names(besthits_strata)
+  ps <- 1:length(strata)
+  lapply(
+    ps,
+    function(i) {
+      do.call(rbind, besthits_strata[[i]]) %>% {
+        if(nrow(.) > 0){
+          .$mrca <- strata[i]
+          .$ps <- i
+        } else {
+          .$mrca <- integer(0)
+          .$ps <- integer(0)
+        }
+        as.data.frame(.)
+      }
+    }
+  ) %>% do.call(what=rbind) 
 }
