@@ -82,21 +82,3 @@ results <- strata_blast(query, strata4, blast_args=list(nthreads=8)) %>%
   strata_besthits %>%
   merge_besthits
 ```
-
-```{r, eval=FALSE}
-library(phylostratr)
-library(magrittr)
-
-shits <- system.file(
-    'extdata',
-    'araport11',
-    'araport11_subset9.tab',
-    package='phylostratr'
-) %>%
-  load_hittable %>%
-  get_max_hit
-
-shits %>%
-    dplyr::group_by(staxid) %>%
-    dplyr::summarize(n = n()) -> x
-```

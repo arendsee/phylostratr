@@ -140,3 +140,55 @@ print_strata <- function(x){
     }
   }
 }
+
+#' Infer homology inference based on a hard e-value threshold
+#'
+#' @param theshold An e-value threshold
+#' @return A function of a dataframe that has the column 'evalue', the function
+#' returns a logical vector
+classify_by_evalue <- function(threshold){
+  function(x){
+    x$evalue < threshold
+  }
+}
+
+#' Get an ordered factor mapping MRCA taxon IDs (as vector names) to names
+#'
+#' @param hittable A data.frame with the columns 'ps' and 'mrca'
+#' @export
+get_mrca_names <- function(hittable){
+  hittable %>%
+    dplyr::select(ps, mrca) %>%
+    dplyr::distinct() %>%
+    dplyr::arrange(ps) %>%
+    { .$mrca } %>%
+    taxid2name %>%
+    { factor(., levels=unname(.)) }
+}
+
+#' Get the phylostratum of each query gene
+#' 
+#' @param hittable data.frame with the columns 'qseqid', 'mrca', 'ps', and
+#' whichever columns arerequired by 'classifier'
+#' @param classifier A function to infer homology between the query gene and a specific subject
+#' @param strata_name A factor of MRCA names (scientific names by default, but
+#' you can set your own labels) with levels ordered by phylostrata. This must
+#' be a named factor, with names corresponding to taxon IDs. It is used to make
+#' the \code{mrca_name} column. It will be used mostly in plots and reports;
+#' internally the taxon ids are used.
+#' @export
+stratify <- function(
+    hittable,
+    classifier   = classify_by_evalue(1e-5),
+    strata_names = get_mrca_names(hittable)
+  ){
+  hittable %>%
+    dplyr::mutate(has_homolog = classifier(hittable)) %>%
+    dplyr::filter(has_homolog) %>%
+    dplyr::select(qseqid, mrca, ps) %>%
+    dplyr::group_by(qseqid) %>%
+    dplyr::filter(ps == min(ps)) %>%
+    dplyr::ungroup() %>%
+    dplyr::distinct() %>%
+    dplyr::mutate(mrca_name = strata_names[mrca])
+}
