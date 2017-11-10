@@ -73,12 +73,14 @@ uniprot_retrieve_genomes(unname(unlist(strata4)))
 query  <- system.file(
     'extdata',
     'araport11',
-    'at_ATxGxx9xx.faa',
+    'at_ATxGx99xx.faa',
     package='phylostratr'
 )
 
 # BLAST against each target genome (this will take a few hours)
-results <- strata_blast(query, strata4, blast_args=list(nthreads=8))
+results <- strata_blast(query, strata4, blast_args=list(nthreads=8)) %>%
+  strata_besthits %>%
+  merge_besthits
 ```
 
 ```{r, eval=FALSE}
