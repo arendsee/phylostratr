@@ -15,8 +15,10 @@ vignette: >
 library(phylostratr)
 library(taxize)
 
+focal_taxid <- 3702
+
 # Get stratified relatives represented in UniProt
-strata <- uniprot_cousins(3702)
+strata <- uniprot_cousins(focal_taxid)
 
 cfilter <- make_do_if_over(5, take_first)
 strata2 <- clear_uncle(strata, 2759, 33154) %>%
@@ -77,8 +79,37 @@ query  <- system.file(
     package='phylostratr'
 )
 
+# add the focal species to the blast set
+strata4[['3702']] <- list('3702'=focal_taxid)
+
+file.link(query, file.path('uniprot-seqs', paste0(focal_taxid, '.faa')))
+
 # BLAST against each target genome (this will take a few hours)
 results <- strata_blast(query, strata4, blast_args=list(nthreads=8)) %>%
   strata_besthits %>%
   merge_besthits
 ```
+
+The `results` variable is saved as a `phylostratr` dataset, and can be loaded
+as below:
+
+```{r}
+data(arabidopsis)
+head(arabidopsis)
+```
+
+You can get phylostrata:
+
+```{r}
+phylostrata <- stratify(arabidopsis)
+head(phylostrata)
+```
+
+And get the number of genes in each strata
+
+
+```{r}
+summary(phylostrata$mrca_name)
+```
+
+Note that this is a reduced dataset, with only 1/100 of the genes represented.
