@@ -145,5 +145,6 @@ merge_besthits <- function(besthits_strata){
         as.data.frame(.)
       }
     }
-  ) %>% do.call(what=rbind) 
+  ) %>% do.call(what=rbind) %>%
+    tidyr::complete(qseqid, staxid)
 }
