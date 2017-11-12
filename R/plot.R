@@ -9,19 +9,20 @@ eval_bins <- function(evalue){
 }
 
 plot_one_obo <- function(stats, qseqid, xlines){
+  stats$index = 1:nrow(stats)
   ggplot2::ggplot(stats) +
-    ggplot2::geom_point(aes(x=index, y=score, color=eval_bins), size=0.5) +
+    ggplot2::geom_point(ggplot2::aes(x=index, y=score, color=eval_bins), size=0.5) +
     ggplot2::scale_color_manual(values=c('darkred', 'red', 'orange', 'green', 'blue')) +
-    ggplot2::geom_vline(data=xlines, aes(xintercept=xlines), alpha=0.4) +
+    ggplot2::geom_vline(data=xlines, ggplot2::aes(xintercept=xlines), alpha=0.4) +
     ggplot2::xlim(1, nrow(stats)) +
     ggplot2::theme_minimal() +
     ggplot2::ggtitle(qseqid) +
     ggplot2::theme(
-      legend.position='none',
-      axis.title=element_blank(),
-      axis.ticks=element_blank(),
-      axis.text=element_blank(),
-      panel.grid=element_blank()
+      legend.position = 'none',
+      axis.title      = ggplot2::element_blank(),
+      axis.ticks      = ggplot2::element_blank(),
+      axis.text       = ggplot2::element_blank(),
+      panel.grid      = ggplot2::element_blank()
     )
 }
 
@@ -43,6 +44,10 @@ plot_obo <- function(d, lower.bound=0, upper.bound=100){
     dplyr::distinct() %>%
     dplyr::arrange(-ps)
 
+  # It is essential to turn the taxon IDs into ordered factors, otherwise they
+  # will be interpreted as numbers, and plotted accordingly.
+  d$staxid <- factor(as.character(d$staxid), levels=as.character(taxidmap$staxid))
+
   xlines <- taxidmap %>%
     dplyr::group_by(ps) %>%
     dplyr::summarize(n = n()) %>%
@@ -61,7 +66,8 @@ plot_obo <- function(d, lower.bound=0, upper.bound=100){
     dplyr::mutate(eval_bins=eval_bins(evalue)) %>%
     {
       base::split(., f=factor(.$qseqid))
-    }
+    } %>%
+    lapply(dplyr::arrange, -ps, staxid)
 
   lapply(
     names(stats), 
