@@ -1,4 +1,31 @@
-plot_obo <- function(d, title='obo.pdf', lower.bound=NULL, upper.bound=NULL){
+eval_bins <- function(evalue){
+  bins <- c("e >= 1", "e < 1", "e < 1e-3", "e < 1e-5", "e < 1e-20")
+  bin <- ifelse(evalue >= 1e-20, bins[4], bins[5])
+  bin <- ifelse(evalue >= 1e-5,  bins[3], bin)
+  bin <- ifelse(evalue >= 1e-3,  bins[2], bin)
+  bin <- ifelse(evalue >= 1,     bins[1], bin)
+  bin <- factor(bin, levels=bins)
+  bin
+}
+
+plot_one_obo <- function(stats, qseqid, xlines){
+  ggplot2::ggplot(stats) +
+    ggplot2::geom_point(aes(x=index, y=score, color=eval_bins), size=0.5) +
+    ggplot2::scale_color_manual(values=c('darkred', 'red', 'orange', 'green', 'blue')) +
+    ggplot2::geom_vline(data=xlines, aes(xintercept=xlines), alpha=0.4) +
+    ggplot2::xlim(1, nrow(stats)) +
+    ggplot2::theme_minimal() +
+    ggplot2::ggtitle(qseqid) +
+    ggplot2::theme(
+      legend.position='none',
+      axis.title=element_blank(),
+      axis.ticks=element_blank(),
+      axis.text=element_blank(),
+      panel.grid=element_blank()
+    )
+}
+
+plot_obo <- function(d, lower.bound=0, upper.bound=100){
 
   d <- dplyr::arrange(d, -ps, staxid)
 
@@ -11,19 +38,6 @@ plot_obo <- function(d, title='obo.pdf', lower.bound=NULL, upper.bound=NULL){
 
   nspecies <- length(unique(d$staxid))
 
-  # blue      |  e < 1e-20  |  safe
-  # green     |  e < 1e-5   |  under the default threshold
-  # orange    |  e < 0.001  |  maybe something?
-  # red       |  e < 1      |  nothing
-  # dark red  |  e > 1      |  really nothing
-  choose.colors <- function(evalue){
-    colors <- ifelse(evalue >= 1e-20, "green",    "blue")
-    colors <- ifelse(evalue >= 1e-5,  "orange",   colors)
-    colors <- ifelse(evalue >= 1e-3,  "red",      colors)
-    colors <- ifelse(evalue >= 1,     "dark red", colors)
-    colors
-  }
-
   taxidmap <- d %>%
     dplyr::select(staxid, ps) %>%
     dplyr::distinct() %>%
@@ -34,41 +48,38 @@ plot_obo <- function(d, title='obo.pdf', lower.bound=NULL, upper.bound=NULL){
     dplyr::summarize(n = n()) %>%
     dplyr::arrange(-ps) %>%
     { Reduce(sum, .$n, accumulate=TRUE) } %>%
-    { .[-length(.)] }
+    { .[-length(.)] } %>%
+    { . + 0.5 } %>%
+    as.data.frame
 
-  nw = 1
-  nh = 5
-
-  qseqids <- unique(d$qseqid)
-
-  pdf(title_)
-  for(page.num in 0:((nloci - 1) %/% (nw * nh))){
-    par(mfrow=c(nw,nh), mar=c(0,0,1,0))
-    for(j in 1:(nw*nh)){
-      index <- nw * nh * page.num + j
-      if(index > nloci) next
-      qseqid <- qseqids[index]
-
-      staxid_scores <- d[which(d$qseqid == qseqid), ] %>%
-        dplyr::select(score, evalue, staxid) %>%
-        merge(taxidmap, by='staxid')
-
-      plot(
-        1:nspecies,
-        scores,
-        col  = choose.colors(scores),
-        tck  = 0,
-        xaxt = "n",
-        yaxt = "n",
-        main = qseqid
-      )
-      # Phylostrata delimiting lines
-      abline(v=(xlines + 0.5), col=rgb(0, 0, 0, 75, maxColorValue=255))
-
+  stats <- d %>%
+    dplyr::select(qseqid, score, evalue, staxid) %>%
+    merge(taxidmap, by='staxid') %>%
+    dplyr::group_by(qseqid) %>%
+    dplyr::mutate(index=1:n()) %>%
+    dplyr::ungroup() %>%
+    dplyr::mutate(eval_bins=eval_bins(evalue)) %>%
+    {
+      base::split(., f=factor(.$qseqid))
     }
+
+  lapply(
+    names(stats), 
+    function(qseqid) {
+      plot_one_obo(stats[[qseqid]], qseqid, xlines)
+    }
+  )
+}
+
+make_obo_pdf <- function(d, title='obo.pdf', width=1, height=5, ...){
+  plots <- plot_obo(d, ...)
+  pdf(title)
+  for(page.num in 0:((nloci - 1) %/% (width * height))){
+    i <- width * height * page.num + 1
+    j <- min(width * height * page.num + (width*height), length(plots))
+    gridExtra::grid.arrange(grobs=plots[i:j], ncol=width)
   }
   dev.off()
-
 }
 
 plot_revenant <- function(
