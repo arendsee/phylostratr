@@ -145,6 +145,18 @@ merge_besthits <- function(besthits_strata){
         as.data.frame(.)
       }
     }
-  ) %>% do.call(what=rbind) %>%
-    tidyr::complete(qseqid, staxid)
+  ) %>%
+    do.call(what=rbind) %>%
+    {
+      d <- .
+
+      mrca_map <- d %>%
+        dplyr::select(staxid, mrca, ps) %>%
+        dplyr::distinct()
+
+      d %>%
+        dplyr::select(-mrca, -ps) %>%
+        tidyr::complete(qseqid, staxid) %>%
+        merge(mrca_map, by='staxid')
+    }
 }

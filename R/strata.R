@@ -141,6 +141,28 @@ print_strata <- function(x){
   }
 }
 
+#' Get a map from taxid id to MRCA and stratum level
+#'
+#' @param strata A three-level list. The first level has one element for each
+#' node in the focal species lineage (and is named accordingly). The second
+#' level has one element for each 'uncle'. The third level is a possibly empty
+#' vector of taxon IDs.
+#' @export
+strata2mrca <- function(strata){
+  lapply(
+    seq_along(strata),
+    function(i) {
+      taxa <- unlist(strata[[i]])
+      data.frame(
+        taxid = taxa,
+        mrca  = rep(names(strata)[i], length(taxa)),
+        ps    = rep(i, length(taxa))
+      )
+    }
+  ) %>% do.call(what=rbind) %>% { rownames(.) <- NULL; . }
+}
+
+
 #' Infer homology inference based on a hard e-value threshold
 #'
 #' @param theshold An e-value threshold
