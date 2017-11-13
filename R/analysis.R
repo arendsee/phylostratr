@@ -1,11 +1,20 @@
-add_mrca_and_ps <- function(d, qtaxid){
-  check_hit_table(d)
-  # FIXME: stub
-}
-
-find_revenants <- function(d){
+find_revenants <- function(d, classifier=classify_by_evalue(1e-5)){
   check_hit_table(d, has_mrca=TRUE, has_ps=TRUE)
-  # FIXME: stub
+  ds <- split(d, d$qseqid)
+  is_revenant <- vapply(
+    ds,
+    FUN.VALUE=TRUE,
+    function(x){
+      x$has_hit <- classifier(x)
+      ps_has_hit <- x %>%
+        dplyr::filter(has_hit) %$% ps %>% min
+      ps_no_hit <- x %>%
+        dplyr::group_by(ps) %>%
+        dplyr::filter(!any(has_hit)) %$% ps %>% max
+      ps_no_hit > ps_has_hit
+    }
+  )
+  names(ds)[is_revenant]
 }
 
 find_strange <- function(d){
@@ -34,4 +43,3 @@ add_pvalue <- function(d, noise){
 predict_phylostrata <- function(d, noise){
   # FIXME: stub
 }
-

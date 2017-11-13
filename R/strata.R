@@ -170,7 +170,7 @@ strata2mrca <- function(strata){
 #' returns a logical vector
 classify_by_evalue <- function(threshold){
   function(x){
-    x$evalue < threshold
+    !is.na(x$evalue) & (x$evalue < threshold)
   }
 }
 
