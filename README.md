@@ -4,3 +4,20 @@
 # phylostratr
 
 I'll fill this out after I submit the paper. In the meantime, see the vignette.
+
+
+## TODO
+
+ - [ ] Add handling for custom trees (not just the NCBI common tree)
+
+ - [ ] Resurrect the noise analysis
+
+ - [ ] Add reverse protein analysis
+
+ - [ ] Resurrect the revenant hunters and plotters
+
+ - [ ] Use datadr for execution
+
+ - [ ] Use SQLite for storing BLAST results
+
+ - [ ] Generate a report (both archive and excel)
