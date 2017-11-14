@@ -35,8 +35,6 @@ plot_obo <- function(d, lower.bound=0, upper.bound=100){
   if(!is.null(lower.bound))
     d$score <- ifelse(d$score < lower.bound, lower.bound, d$score)
 
-  nloci <- length(unique(d$qseqid))
-
   nspecies <- length(unique(d$staxid))
 
   taxidmap <- d %>%
@@ -79,6 +77,7 @@ plot_obo <- function(d, lower.bound=0, upper.bound=100){
 
 make_obo_pdf <- function(d, title='obo.pdf', width=1, height=5, ...){
   plots <- plot_obo(d, ...)
+  nloci <- length(unique(d$qseqid))
   pdf(title)
   for(page.num in 0:((nloci - 1) %/% (width * height))){
     i <- width * height * page.num + 1
