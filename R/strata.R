@@ -211,6 +211,18 @@ stratify <- function(
     dplyr::group_by(qseqid) %>%
     dplyr::filter(ps == min(ps)) %>%
     dplyr::ungroup() %>%
+    {
+      strata <- .
+      rbind(
+        strata,
+        hittable[!(hittable$qseqid %in% strata$qseqid), ] %>%
+        dplyr::select(qseqid, mrca, ps) %>%
+        dplyr::group_by(qseqid) %>%
+        dplyr::filter(ps == max(ps)) %>%
+        dplyr::ungroup()
+      )
+    } %>%
     dplyr::distinct() %>%
     dplyr::mutate(mrca_name = strata_names[mrca])
 }
+

@@ -6,26 +6,27 @@ Description:
     Analyze phylostratigraphic data. Details to come.
 Depends: R (>= 3.4.2)
 Imports:
-    taxize (>= 0.9.0.9213),
-    rentrez,
-    magrittr,
-    rlang (>= 0.1.2),
-    ggplot2,
-    gridExtra,
-    readr,
-    tidyr,
+    curl,
+    data.tree,
     dplyr,
     ggplot2,
-    curl,
-    glue
+    glue,
+    gridExtra,
+    magrittr,
+    readr,
+    rentrez,
+    rlang (>= 0.1.2),
+    taxize (>= 0.9.0.9213),
+    tidyr
 Remotes:
     ropensci/taxize
 License: GPL-3 + file LICENSE
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 6.0.1
-Suggests: testthat,
+Suggests:
     covr,
     knitr,
-    rmarkdown
+    rmarkdown,
+    testthat
 VignetteBuilder: knitr
