@@ -12,3 +12,8 @@ get_max_hit <- function(d){
     # one, so have to pass through distinct
     dplyr::distinct(qseqid, staxid, .keep_all=TRUE)
 }
+
+maybe_message <- function(msg, verbose=TRUE, ...){
+  if(verbose)
+    message(sprintf(msg, ...))
+}
