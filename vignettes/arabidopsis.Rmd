@@ -16,60 +16,22 @@ library(phylostratr)
 library(taxize)
 
 focal_taxid <- 3702
-
-# Get stratified relatives represented in UniProt
-strata <- uniprot_cousins(focal_taxid)
-
-cfilter <- make_do_if_over(5, take_first)
-strata2 <- clear_uncle(strata, 2759, 33154) %>%
-    lapply(cfilter) %>%
-    add_representative(scinames=c('Homo sapiens', 'Saccharomyces cerevisiae'))
-
-strata3 <- as_named_strata(strata2)
-print_strata(strata3)
-
-# Get all bacterial and Archael classes (class is one level below phylum)
-prokaryote_classes <- taxize::downstream(c('Bacteria', 'Archaea'), downto='class', db='ncbi')
-
-# Get all uniprot reference genomes for each bacterial class
-bacteria_class_reps <- lapply(
-    prokaryote_classes$Bacteria$childtaxa_id,
-    uniprot_downstream_ids, reference_only=TRUE, delay=TRUE
-  )
-names(bacteria_class_reps) <- prokaryote_classes$Bacteria$childtaxa_id
-
-
-# Get all uniprot reference genomes for each bacterial class
-archaea_class_reps <- lapply(
-    prokaryote_classes$Archaea$childtaxa_id,
-    uniprot_downstream_ids, reference_only=TRUE, delay=TRUE
-  )
-names(archaea_class_reps) <- prokaryote_classes$Archaea$childtaxa_id
-
-# From each class, randomly select a single uniprot reference genome
-sample_taxids <- function(x, ...){
-    # This is required, because R is evil. If x is of length 1 and is numeric,
-    # then `sample` treats it as the upperbound of a discrete distribution
-    # between 1 and x. Otherwise it is treated as a set to be sampled from.
-    sample(as.character(x), ...) %>% as.integer
-}
-set.seed(42)
-bacteria_taxids <- bacteria_class_reps %>%
-    Filter(f = function(x){ length(x) > 0}) %>%
-    lapply(sample_taxids, size=1) %>% unlist
-archaea_taxids <- archaea_class_reps %>%
-    Filter(f = function(x){ length(x) > 0}) %>%
-    lapply(as.character) %>%
-    lapply(sample_taxids, size=1) %>% unlist
-
-strata4 <- append(list(`131567`=list(`2`=bacteria_taxids, `2157`=archaea_taxids)), strata2)
-strata5 <- as_named_strata(strata4)
-print_strata(strata5)
+strata <- focal_taxid %>%
+  # Get stratified relatives represented in UniProt
+  uniprot_cousins %>%
+  # If there are more than 5 species in a stratum, take just the first from every uncle
+  lapply(make_do_if_over(5, take_first)) %>%
+  # Empty the ancestor of animals and fungi 
+  clear_uncle(2759, 33154) %>%
+  # Replace the representatives with humans and yeast
+  add_representative(scinames=c('Homo sapiens', 'Saccharomyces cerevisiae')) %>%
+  # Use a prebuilt set of prokaryotic species
+  use_recommended_prokaryotes
 ```
 
 ```{r, eval=FALSE}
 # Download genomes
-uniprot_retrieve_genomes(unname(unlist(strata4)))
+strata_fasta <- uniprot_retrieve_genomes(strata)
 
 # Get a sample Arabidopsis thaliana protein FASTA file 
 query  <- system.file(
@@ -80,12 +42,10 @@ query  <- system.file(
 )
 
 # add the focal species to the blast set
-strata4[['3702']] <- list('3702'=focal_taxid)
-
-file.link(query, file.path('uniprot-seqs', paste0(focal_taxid, '.faa')))
+strata_fasta[['3702']] <- list('3702'=query)
 
 # BLAST against each target genome (this will take a few hours)
-results <- strata_blast(query, strata4, blast_args=list(nthreads=8)) %>%
+results <- strata_blast(query, strata_fasta, blast_args=list(nthreads=8)) %>%
   strata_besthits %>%
   merge_besthits
 ```
