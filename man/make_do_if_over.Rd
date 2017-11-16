@@ -14,7 +14,7 @@ make_do_if_over(n = 3, fun = take_first)
 representatives}
 }
 \value{
-A filter that can be used in \code{uniprot_cousin_genomes}
+A filter that can be used in \code{uniprot_cousin_proteomes}
 }
 \description{
 Make a filter

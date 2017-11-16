@@ -36,9 +36,9 @@ uniprot_downstream_ids <- function(taxid, reference_only=FALSE, delay=FALSE){
 #' @export
 #' @examples
 #' \dontrun{
-#' # uniprot_retrieve_genome(3702)
+#' # uniprot_retrieve_proteome(3702)
 #' }
-uniprot_retrieve_genome <- function(
+uniprot_retrieve_proteome <- function(
   taxid,
   keep_isoforms = FALSE,
   dir           = 'uniprot-seqs',
@@ -73,14 +73,14 @@ uniprot_retrieve_genome <- function(
 #' Download sequence data for each species in a UniProt-based strata
 #'
 #' @param strata List of lists of taxon IDs
-#' @param ... Additional arguments for \code{uniprot_retrieve_genome}
+#' @param ... Additional arguments for \code{uniprot_retrieve_proteome}
 #' @return A named list of filename vectors
 #' @export
 uniprot_fill_strata <- function(strata, ...){
   lapply(strata, unlist) %>%
     lapply(function(taxids){
       taxid_names <- as.character(taxids)
-      fastafiles <- lapply(taxids, uniprot_retrieve_genome, ...)
+      fastafiles <- lapply(taxids, uniprot_retrieve_proteome, ...)
       names(fastafiles) <- taxid_names
       fastafiles
     })
@@ -114,20 +114,20 @@ uniprot_cousins <- function(taxid, ...){
 #' @param prefix The phylostratum-level prefix
 #' @param dryrun If TRUE, do not download files or create directories
 #' @param verbose Print progress messages
-#' @param ... Additional arguments passed to \code{uniprot_retrieve_genome}
+#' @param ... Additional arguments passed to \code{uniprot_retrieve_proteome}
 #' @return Nothing, this function is run for its effects
 #' @examples
 #' \dontrun{
 #' uniprot_cousins(3702) %>%
 #'   lapply(take_first) %>%
-#'   uniprot_cousin_genomes
+#'   uniprot_cousin_proteomes
 #' 
 #' cfilter <- make_do_if_over(3, take_first)
 #' uniprot_cousins(3702) %>%
 #'   lapply(cfilter) %>%
-#'   uniprot_cousin_genomes
+#'   uniprot_cousin_proteomes
 #' }
-uniprot_cousin_genomes <- function(
+uniprot_cousin_proteomes <- function(
   cousins,
   dir     = 'strata',
   prefix  = 'ps_',
@@ -150,7 +150,7 @@ uniprot_cousin_genomes <- function(
       }
       for(taxid in cousins[[ps]][[node_id]]){
         maybe_message(node_id, verbose)
-        uniprot_retrieve_genome(node_id, dir=psdir, dryrun=dryrun, verbose=verbose, ...)
+        uniprot_retrieve_proteome(node_id, dir=psdir, dryrun=dryrun, verbose=verbose, ...)
       }
     }
   }

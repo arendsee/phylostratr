@@ -14,7 +14,7 @@ take_first <- function(x){
 #' @param fun The filter function to use for strata with more than \code{n}
 #' representatives
 #' @export
-#' @return A filter that can be used in \code{uniprot_cousin_genomes}
+#' @return A filter that can be used in \code{uniprot_cousin_proteomes}
 make_do_if_over <- function(n=3, fun=take_first){
   function(cousin_sets){
     ncousins <- sum(vapply(FUN.VALUE=integer(1), cousin_sets, length))

@@ -9,7 +9,7 @@ uniprot_fill_strata(strata, ...)
 \arguments{
 \item{strata}{List of lists of taxon IDs}
 
-\item{...}{Additional arguments for \code{uniprot_retrieve_genome}}
+\item{...}{Additional arguments for \code{uniprot_retrieve_proteome}}
 }
 \value{
 A named list of filename vectors
