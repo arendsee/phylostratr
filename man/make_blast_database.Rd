@@ -10,6 +10,8 @@ make_blast_database(fastafile, blastdb = "blastdb", verbose = FALSE)
 \item{fastafile}{The path to a protein FASTA file}
 
 \item{blastdb}{The directory in which the blast database should be stored}
+
+\item{verbose}{Print progress messages}
 }
 \value{
 path to blast database (without extension)

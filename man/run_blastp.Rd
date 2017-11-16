@@ -20,6 +20,8 @@ run_blastp(query_fastafile, subject_taxid, blastdb,
 \item{nthreads}{Number of threads}
 
 \item{seg}{Whether to mask the query protein sequences}
+
+\item{verbose}{Print progress messages}
 }
 \value{
 The path to the tabular BLAST result output

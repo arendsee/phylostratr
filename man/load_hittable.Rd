@@ -44,7 +44,3 @@ missing, then you probably need to reformat your BLAST database with a taxon
 table.
 }
 
-\examples{
-file <- system.file('extdata', 'araport11', 'araport11_subset9.tab', package='phylostratr')
-d <- load_hittable(file)
-}

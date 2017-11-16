@@ -13,7 +13,7 @@ whichever columns arerequired by 'classifier'}
 
 \item{classifier}{A function to infer homology between the query gene and a specific subject}
 
-\item{strata_name}{A factor of MRCA names (scientific names by default, but
+\item{strata_names}{A factor of MRCA names (scientific names by default, but
 you can set your own labels) with levels ordered by phylostrata. This must
 be a named factor, with names corresponding to taxon IDs. It is used to make
 the \code{mrca_name} column. It will be used mostly in plots and reports;

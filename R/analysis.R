@@ -7,10 +7,12 @@ find_revenants <- function(d, classifier=classify_by_evalue(1e-5)){
     function(x){
       x$has_hit <- classifier(x)
       ps_has_hit <- x %>%
-        dplyr::filter(has_hit) %$% ps %>% min
+        dplyr::filter(.data$has_hit) %>%
+        { min(.$ps) }
       ps_no_hit <- x %>%
-        dplyr::group_by(ps) %>%
-        dplyr::filter(!any(has_hit)) %$% ps %>% max
+        dplyr::group_by(.data$ps) %>%
+        dplyr::filter(!any(.data$has_hit)) %>%
+        { max(.$ps) }
       ps_no_hit > ps_has_hit
     }
   )

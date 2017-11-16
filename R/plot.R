@@ -11,7 +11,7 @@ eval_bins <- function(evalue){
 plot_one_obo <- function(stats, qseqid, xlines){
   stats$index = 1:nrow(stats)
   ggplot2::ggplot(stats) +
-    ggplot2::geom_point(ggplot2::aes(x=index, y=score, color=eval_bins), size=0.5) +
+    ggplot2::geom_point(ggplot2::aes(x=.data$index, y=.data$score, color=eval_bins), size=0.5) +
     ggplot2::scale_color_manual(values=c('darkred', 'red', 'orange', 'green', 'blue')) +
     ggplot2::geom_vline(data=xlines, ggplot2::aes(xintercept=xlines), alpha=0.4) +
     ggplot2::xlim(1, nrow(stats)) +
@@ -28,7 +28,7 @@ plot_one_obo <- function(stats, qseqid, xlines){
 
 plot_obo <- function(d, lower.bound=0, upper.bound=100){
 
-  d <- dplyr::arrange(d, -ps, staxid)
+  d <- dplyr::arrange(d, -.data$ps, .data$staxid)
 
   if(!is.null(upper.bound))
     d$score <- ifelse(d$score > upper.bound, upper.bound, d$score)
@@ -38,34 +38,34 @@ plot_obo <- function(d, lower.bound=0, upper.bound=100){
   nspecies <- length(unique(d$staxid))
 
   taxidmap <- d %>%
-    dplyr::select(staxid, ps) %>%
+    dplyr::select(.data$staxid, .data$ps) %>%
     dplyr::distinct() %>%
-    dplyr::arrange(-ps)
+    dplyr::arrange(-.data$ps)
 
   # It is essential to turn the taxon IDs into ordered factors, otherwise they
   # will be interpreted as numbers, and plotted accordingly.
   d$staxid <- factor(as.character(d$staxid), levels=as.character(taxidmap$staxid))
 
   xlines <- taxidmap %>%
-    dplyr::group_by(ps) %>%
-    dplyr::summarize(n = n()) %>%
-    dplyr::arrange(-ps) %>%
+    dplyr::group_by(.data$ps) %>%
+    dplyr::summarize(n = dplyr::n()) %>%
+    dplyr::arrange(-.data$ps) %>%
     { Reduce(sum, .$n, accumulate=TRUE) } %>%
     { .[-length(.)] } %>%
     { . + 0.5 } %>%
     as.data.frame
 
   stats <- d %>%
-    dplyr::select(qseqid, score, evalue, staxid) %>%
+    dplyr::select(.data$qseqid, .data$score, .data$evalue, .data$staxid) %>%
     merge(taxidmap, by='staxid') %>%
-    dplyr::group_by(qseqid) %>%
-    dplyr::mutate(index=1:n()) %>%
+    dplyr::group_by(.data$qseqid) %>%
+    dplyr::mutate(index=1:dplyr::n()) %>%
     dplyr::ungroup() %>%
-    dplyr::mutate(eval_bins=eval_bins(evalue)) %>%
+    dplyr::mutate(eval_bins=eval_bins(.data$evalue)) %>%
     {
       base::split(., f=factor(.$qseqid))
     } %>%
-    lapply(dplyr::arrange, -ps, staxid)
+    lapply(dplyr::arrange, -.data$ps, .data$staxid)
 
   lapply(
     names(stats), 

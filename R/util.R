@@ -10,7 +10,8 @@ get_max_hit <- function(d){
     dplyr::filter(.data$score == max(.data$score)) %>%
     # the filter step can lead to multiple hits with equal score, I want just
     # one, so have to pass through distinct
-    dplyr::distinct(qseqid, staxid, .keep_all=TRUE)
+    dplyr::ungroup() %>%
+    dplyr::distinct(.data$qseqid, .data$staxid, .keep_all=TRUE)
 }
 
 maybe_message <- function(msg, verbose=TRUE, ...){

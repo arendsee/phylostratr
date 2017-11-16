@@ -11,7 +11,7 @@ vignette: >
 
 ## Select relatives to search
 
-```{r}
+```{r, eval=FALSE}
 library(phylostratr)
 library(taxize)
 
@@ -93,14 +93,14 @@ results <- strata_blast(query, strata4, blast_args=list(nthreads=8)) %>%
 The `results` variable is saved as a `phylostratr` dataset, and can be loaded
 as below:
 
-```{r}
+```{r, eval=FALSE}
 data(arabidopsis)
 head(arabidopsis)
 ```
 
 You can get phylostrata:
 
-```{r}
+```{r, eval=FALSE}
 phylostrata <- stratify(arabidopsis)
 head(phylostrata)
 ```
@@ -108,7 +108,7 @@ head(phylostrata)
 And get the number of genes in each strata
 
 
-```{r}
+```{r, eval=FALSE}
 summary(phylostrata$mrca_name)
 ```
 

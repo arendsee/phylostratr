@@ -30,9 +30,6 @@
 #' 'N/A', so that is the default here.
 #' @return A data.frame
 #' @export
-#' @examples
-#' file <- system.file('extdata', 'araport11', 'araport11_subset9.tab', package='phylostratr')
-#' d <- load_hittable(file)
 load_hittable <- function(filename, na_str='N/A'){
   d <- readr::read_tsv(
     filename,

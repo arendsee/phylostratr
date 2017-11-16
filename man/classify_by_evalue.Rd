@@ -7,7 +7,7 @@
 classify_by_evalue(threshold)
 }
 \arguments{
-\item{theshold}{An e-value threshold}
+\item{threshold}{An e-value threshold}
 }
 \value{
 A function of a dataframe that has the column 'evalue', the function

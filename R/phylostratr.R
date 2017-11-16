@@ -1,7 +1,8 @@
 #' @importFrom magrittr "%>%"
 #' @importFrom rlang .data
 #' @importFrom utils head tail
-utils::globalVariables(c("%>%", "."))
+#' @importFrom grDevices dev.off pdf
+utils::globalVariables(c("%>%", "%$%", "."))
 NULL
 
 #' phylostratr: Phylostratigraphy execution and analysis

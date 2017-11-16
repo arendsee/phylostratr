@@ -32,6 +32,7 @@
 #'
 #' @param fastafile The path to a protein FASTA file
 #' @param blastdb The directory in which the blast database should be stored
+#' @param verbose Print progress messages
 #' @return path to blast database (without extension)
 make_blast_database <- function(
   fastafile,
@@ -63,6 +64,7 @@ make_blast_database <- function(
 #' @param blastresult The output TAB-delimited result file
 #' @param nthreads Number of threads
 #' @param seg Whether to mask the query protein sequences
+#' @param verbose Print progress messages
 #' @return The path to the tabular BLAST result output 
 run_blastp <- function(
   query_fastafile,
@@ -95,8 +97,8 @@ run_blastp <- function(
       col_types = 'cdd'
     ) %>%
       dplyr::mutate(staxid = subject_taxid) %>%
-      dplyr::select(qseqid, staxid, evalue, score) %>%
-      readr::write_tsv(blastresult)
+      dplyr::select(.data$qseqid, .data$staxid, .data$evalue, .data$score) %>%
+      readr::write_tsv(path=blastresult)
   }
   blastresult
 }
@@ -187,11 +189,11 @@ merge_besthits <- function(besthits_strata){
     {
       d <- .
       mrca_map <- d %>%
-        dplyr::select(staxid, mrca, ps) %>%
+        dplyr::select(.data$staxid, .data$mrca, .data$ps) %>%
         dplyr::distinct()
       d %>%
-        dplyr::select(-mrca, -ps) %>%
-        tidyr::complete(qseqid, staxid) %>%
+        dplyr::select(-.data$mrca, -.data$ps) %>%
+        tidyr::complete_(c('qseqid', 'staxid')) %>%
         merge(mrca_map, by='staxid')
     }
 }
