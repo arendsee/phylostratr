@@ -3,5 +3,7 @@
 language: R
 sudo: false
 cache: packages
+before_install:
+    sudo apt-get install -y ncbi-blast+
 after_success:
   - Rscript -e 'covr::codecov()'
