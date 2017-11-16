@@ -1,0 +1,75 @@
+---
+title: "*Saccharomyces cerevisiae* case study"
+author: "Zebulun Arendsee"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{*Saccharomyces cerevisiae* case study}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+The main practical difference between this vignette and the Arabidopsis
+vignette is that for *S. cerevisiae* the NCBI common tree is not high enough
+resolution. The *Saccharomyces* genera includes many species disant species, so
+we cannot just find the NCBI taxonomy backbone nodes and then download the
+needed sequences from uniprot (indeed, UniProt doesn't even have all the
+species we want).
+
+The most general way to customize a sequence dataset is to simply write the
+FASTA filenames into a list:
+
+```{r}
+saccharomyces <- list(
+    s6 = list(Saccharomyces_eubayanus='yeast/eubayanus.faa',
+         Saccharomyces_uvarum='yeast/uvarum.faa'),
+    s5 = list(Saccharomyces_arboricola='yeast/arboricola.faa'),
+    s4 = list(Saccharomyces_kudriavzevii='yeast/kudriavzevii.faa'),
+    s3 = list(Saccharomyces_mikatae='yeast/mikatae.faa'),
+    s2 = list(Saccharomyces_paradoxus='yeast/paradoxus.faa'),
+    s1 = list(Saccharomyces_cerevisiae='yeast/cerevisiae.faa')
+)
+```
+
+Where we assume the folder `yeast` holds the respective protein sequences. The
+phylostrata names (s1-6) are arbitrary. It is important to include the focal
+species, cerevisiae.
+
+To get deeper phylostrata, we may just use the UniProt genomes and the NCBI
+taxonomy tree.
+
+```{r, eval=FALSE}
+# Get all UniProt proteomes
+deep_strata <- uniprot_cousins(4932) %>%
+  # Make filter, if there are more than 5 species in a stratum, take just the
+  # first species in each uncle. I am not really happy with this solution ...
+  lapply(make_do_if_over(5, take_first)) %>%
+  # add prokaryte stratum
+  use_recommended_prokaryotes %>%
+  # remove the youngest strata (Saccharomyces)
+  head(-1) %>%
+  # download UniProt sequences 
+  uniprot_fill_strata %>%
+  # replace taxon ids with names
+  as_named_strata(depth=2)
+```
+
+As in the *Arabidopsis* vignette, we don't want to use all the UniProt sequences.
+
+Now the *Saccharomyces* strata can replace the youngest NCBI strata
+
+```{r, eval=FALSE}
+strata <- append(deep_strata, saccharomyces)
+```
+
+Next we run BLAST
+
+```{r, eval=FALSE}
+results <- strata_blast(
+    query      = saccharomyces$s1[[1]],
+    strata     = strata,
+    blast_args = list(nthreads=8)
+) %>%
+  strata_besthits %>%
+  merge_besthits
+```
