@@ -30,8 +30,8 @@ strata <- focal_taxid %>%
 ```
 
 ```{r, eval=FALSE}
-# Download genomes
-strata_fasta <- uniprot_retrieve_proteomes(strata)
+# Download genomes, storing the filenames
+strata_fasta <- uniprot_fill_strata(strata)
 
 # Get a sample Arabidopsis thaliana protein FASTA file 
 query  <- system.file(

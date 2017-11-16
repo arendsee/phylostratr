@@ -1,22 +1,25 @@
+#' Find genes that with matches that skip strata
+#'
+#' @param d data.frame of maximal hits
+#' @param classifier function of a blast result that infers whether each
+#' subject species contains a homolog
+#' @return data.frame with columns qseqid and ps, where ps represents the
+#' strata that are skipped
 find_revenants <- function(d, classifier=classify_by_evalue(1e-5)){
   check_hit_table(d, has_mrca=TRUE, has_ps=TRUE)
-  ds <- split(d, d$qseqid)
-  is_revenant <- vapply(
-    ds,
-    FUN.VALUE=TRUE,
-    function(x){
-      x$has_hit <- classifier(x)
-      ps_has_hit <- x %>%
-        dplyr::filter(.data$has_hit) %>%
-        { min(.$ps) }
-      ps_no_hit <- x %>%
-        dplyr::group_by(.data$ps) %>%
-        dplyr::filter(!any(.data$has_hit)) %>%
-        { max(.$ps) }
-      ps_no_hit > ps_has_hit
-    }
-  )
-  names(ds)[is_revenant]
+  focal_ps <- max(d$ps)
+  d %>%
+    dplyr::mutate(has_hit = classifier(d)) %>%
+    dplyr::select(staxid, qseqid, ps, has_hit) %>%
+    dplyr::group_by(qseqid) %>%
+    dplyr::mutate(basal_ps = min(c(focal_ps, ps[has_hit]))) %>%
+    dplyr::group_by(qseqid, ps) %>%
+    dplyr::mutate(mrca_has_hit = any(has_hit)) %>%
+    dplyr::group_by(qseqid) %>%
+    dplyr::filter((ps > basal_ps) & (!mrca_has_hit)) %>%
+    dplyr::ungroup() %>%
+    dplyr::select(qseqid, ps, basal_ps) %>%
+    dplyr::distinct()
 }
 
 find_strange <- function(d){
