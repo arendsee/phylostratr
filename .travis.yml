@@ -4,6 +4,8 @@ language: R
 sudo: false
 cache: packages
 before_install:
-    sudo apt-get install -y ncbi-blast+
+  - wget -O blast.rpm ftp://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/2.6.0/ncbi-blast-2.6.0+-1.x86_64.rpm
+  - sudo apt-get install alien
+  - sudo alien -i blast.rpm
 after_success:
   - Rscript -e 'covr::codecov()'
