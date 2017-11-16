@@ -73,7 +73,8 @@ uniprot_retrieve_genome <- function(
 #' Download sequence data for each species in a UniProt-based strata
 #'
 #' @param strata List of lists of taxon IDs
-#' @param A named list of filename vectors
+#' @param ... Additional arguments for \code{uniprot_retrieve_genome}
+#' @return A named list of filename vectors
 #' @export
 uniprot_fill_strata <- function(strata, ...){
   lapply(strata, unlist) %>%
@@ -113,7 +114,7 @@ uniprot_cousins <- function(taxid, ...){
 #' @param prefix The phylostratum-level prefix
 #' @param dryrun If TRUE, do not download files or create directories
 #' @param verbose Print progress messages
-#' @param ... Additional arguments passed to \code{uniprot_retrieve_genomes}
+#' @param ... Additional arguments passed to \code{uniprot_retrieve_genome}
 #' @return Nothing, this function is run for its effects
 #' @examples
 #' \dontrun{
@@ -149,7 +150,7 @@ uniprot_cousin_genomes <- function(
       }
       for(taxid in cousins[[ps]][[node_id]]){
         maybe_message(node_id, verbose)
-        uniprot_retrieve_genomes(node_id, dir=psdir, dryrun=dryrun, verbose=verbose, ...)
+        uniprot_retrieve_genome(node_id, dir=psdir, dryrun=dryrun, verbose=verbose, ...)
       }
     }
   }

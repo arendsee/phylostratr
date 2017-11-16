@@ -18,7 +18,7 @@ uniprot_cousin_genomes(cousins, dir = "strata", prefix = "ps_",
 
 \item{verbose}{Print progress messages}
 
-\item{...}{Additional arguments passed to \code{uniprot_retrieve_genomes}}
+\item{...}{Additional arguments passed to \code{uniprot_retrieve_genome}}
 }
 \value{
 Nothing, this function is run for its effects

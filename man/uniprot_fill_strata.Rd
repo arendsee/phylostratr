@@ -9,7 +9,10 @@ uniprot_fill_strata(strata, ...)
 \arguments{
 \item{strata}{List of lists of taxon IDs}
 
-\item{A}{named list of filename vectors}
+\item{...}{Additional arguments for \code{uniprot_retrieve_genome}}
+}
+\value{
+A named list of filename vectors
 }
 \description{
 Download sequence data for each species in a UniProt-based strata
