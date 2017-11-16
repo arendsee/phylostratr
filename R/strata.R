@@ -26,23 +26,37 @@ make_do_if_over <- function(n=3, fun=take_first){
   }
 }
 
+.make_taxidmap <- function(x, depth=1){
+  taxa <- character(0)
+  for(i in 1:depth){
+    taxa <- append(taxa, names(x))
+    names(x) <- NULL
+    x <- unlist(x, recursive=FALSE)
+  }
+  taxid2name(taxa)
+}
+
 #' Substitute names for taxids in strata
 #'
-#' @param x strata list, as made by \code{uniprot_cousins}
+#' @param x named list, where all names are NCBI taxon IDs
+#' @param scinames named character vector, where names are NCBI taxon IDs and
+#' elements are scientific names
+#' @param depth nest depth of lists with NCBI taxon ID names
+#' @return named list, where all names are scientific names
 #' @export
-as_named_strata <- function(x){
-  scinames <- taxid2name(c(unname(unlist(x)), names(x), unlist(sapply(x, names))))
-  backbone <- unname(scinames[names(x)])
-  x <- lapply(x,
-        function(y) {
-          uncles <- unname(scinames[names(y)])
-          if(length(y) > 0)
-            y <- lapply(y, function(z) unname(scinames[as.character(z)]))
-          names(y) <- uncles
-          y
-        }
-      )
-  names(x) <- backbone
+as_named_strata <- function(x, scinames=NULL, depth=1){
+  if(is.null(scinames)){
+    scinames <- .make_taxidmap(x, depth)
+  } else {
+    stopifnot()
+  }
+
+  if(depth > 1){
+    x <- lapply(x, as_named_strata, scinames=scinames, depth=depth-1)
+  }
+
+  names(x) <- scinames[names(x)]
+
   x
 }
 

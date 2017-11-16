@@ -5,7 +5,7 @@
 \title{Retrive the sequences from the uniprot cousins}
 \usage{
 uniprot_cousin_genomes(cousins, dir = "strata", prefix = "ps_",
-  dryrun = FALSE, ...)
+  dryrun = FALSE, verbose = TRUE, ...)
 }
 \arguments{
 \item{cousins}{The output of \code{uniprot_cousins}}
@@ -15,6 +15,8 @@ uniprot_cousin_genomes(cousins, dir = "strata", prefix = "ps_",
 \item{prefix}{The phylostratum-level prefix}
 
 \item{dryrun}{If TRUE, do not download files or create directories}
+
+\item{verbose}{Print progress messages}
 
 \item{...}{Additional arguments passed to \code{uniprot_retrieve_genomes}}
 }
