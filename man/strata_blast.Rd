@@ -2,19 +2,22 @@
 % Please edit documentation in R/blast.R
 \name{strata_blast}
 \alias{strata_blast}
-\title{Blast uncle-level strata}
+\title{Blast strata}
 \usage{
 strata_blast(query, strata, makedb_args = list(), blast_args = list())
 }
 \arguments{
 \item{query}{The protein FASTA file for the focal species}
 
-\item{strata}{Uncle level strata}
+\item{strata}{named list of phylostrata, where each element is a vector of cousin protein FASTA filenames}
 
 \item{makedb_args}{Additional arguments passed to \code{make_blast_database}}
 
 \item{blast_args}{Additional arguments passed to \code{run_blastp}}
 }
+\value{
+named list of phylostrata, where each element is a vector of blast result filenames
+}
 \description{
-Takes a uncle-level strata, blasts each leaf, returns a flat strata with blast result filenames
+Blast strata
 }

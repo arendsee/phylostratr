@@ -17,7 +17,7 @@ uniprot_retrieve_genomes(taxa, keep_isoforms = FALSE, dir = "uniprot-seqs",
 \item{dryrun}{If TRUE, do not download genomes, just print the URLs and destination files}
 }
 \description{
-Each proteom is written to a file with the name '<taxid>.faa', for example,
+Each proteome is written to a file with the name '<taxid>.faa', for example,
 Arabidopsis thaliana, which has the id 3702, will be written the '3702.faa'.
 }
 \examples{

@@ -25,7 +25,7 @@ uniprot_downstream_ids <- function(taxid, reference_only=FALSE, delay=FALSE){
 
 #' Download UniProt proteomes for given taxa
 #'
-#' Each proteom is written to a file with the name '<taxid>.faa', for example,
+#' Each proteome is written to a file with the name '<taxid>.faa', for example,
 #' Arabidopsis thaliana, which has the id 3702, will be written the '3702.faa'.
 #'
 #' @param taxa Vector of NCBI taxonomy ids

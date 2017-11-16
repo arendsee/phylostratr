@@ -7,10 +7,11 @@
 strata_besthits(blast_strata)
 }
 \arguments{
-\item{blast_strata}{The output of strata_blast}
+\item{blast_strata}{A named list of phylostrata where each element consists
+of a possibly empty list of filenames. The filenames are raw BLAST results.}
 }
 \value{
-A list of lists of filtered blast results
+A list of lists of data.frames, where each data.frame is a filtered blast result
 }
 \description{
 Load each blast result and filter out the best hit against each query gene

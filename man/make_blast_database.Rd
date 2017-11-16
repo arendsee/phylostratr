@@ -4,15 +4,12 @@
 \alias{make_blast_database}
 \title{Build a blast database for one species}
 \usage{
-make_blast_database(taxid, indir = "uniprot-seqs", outdir = "blastdb")
+make_blast_database(fastafile, blastdb = "blastdb", verbose = FALSE)
 }
 \arguments{
-\item{taxid}{A single NCBI taxon id}
+\item{fastafile}{The path to a protein FASTA file}
 
-\item{indir}{The directory in which to find the protein FASTA sequence
-(should contain a file '<taxid>.faa')}
-
-\item{outdir}{The directory in which the blast database should be stored}
+\item{blastdb}{The directory in which the blast database should be stored}
 }
 \value{
 path to blast database (without extension)

@@ -2,15 +2,16 @@
 % Please edit documentation in R/blast.R
 \name{run_blastp}
 \alias{run_blastp}
-\title{BLAST query protein FASTA file against a target species}
+\title{BLAST query protein FASTA file against a subject species}
 \usage{
-run_blastp(query_fastafile, target_taxid, blastdb,
-  blastresult = paste0(target_taxid, ".tab"), nthreads = 1, seg = FALSE)
+run_blastp(query_fastafile, subject_taxid, blastdb,
+  blastresult = paste0(subject_taxid, ".tab"), nthreads = 1, seg = FALSE,
+  verbose = TRUE)
 }
 \arguments{
 \item{query_fastafile}{A protein FASTA file for the focal species}
 
-\item{target_taxid}{The target NCBI taxon ID}
+\item{subject_taxid}{The subject NCBI taxon ID}
 
 \item{blastdb}{A path to a blast database (as returned from \code{make_blast_database})}
 
@@ -21,8 +22,8 @@ run_blastp(query_fastafile, target_taxid, blastdb,
 \item{seg}{Whether to mask the query protein sequences}
 }
 \value{
-The path to the output file
+The path to the tabular BLAST result output
 }
 \description{
-BLAST query protein FASTA file against a target species
+BLAST query protein FASTA file against a subject species
 }
