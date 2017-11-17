@@ -13,8 +13,11 @@ find_revenants(d, classifier = classify_by_evalue(1e-05))
 subject species contains a homolog}
 }
 \value{
-data.frame with columns qseqid and ps, where ps represents the
-strata that are skipped
+data.frame with columns [qseqid, ps, mrca, basal_ps, n].  Where
+qseqid is the focal species taxond IDs, ps is the phylostratum level (where
+1 is generally cellular_organisms) of strata that are skipped, mrca is the
+taxon ID of the ancestor, basal_ps is the oldest stratum with a match to
+qseqid, and n is the total number of revenants for seqid.
 }
 \description{
 Find genes that with matches that skip strata

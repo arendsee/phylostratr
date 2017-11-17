@@ -42,6 +42,7 @@ plot_one_obo <- function(stats, qseqid, xlines){
 #' @param lower.bound A lower bound at which to truncate scores
 #' @param upper.bound An upper bound at which to truncate scores
 #' @return A named list of ggplot2 objects, with names being the qseqid
+#' @export
 plot_obo <- function(d, lower.bound=0, upper.bound=100){
 
   d <- dplyr::arrange(d, -.data$ps, .data$staxid)
@@ -92,10 +93,18 @@ plot_obo <- function(d, lower.bound=0, upper.bound=100){
   ) %>% magrittr::set_names(stats$qseqid)
 }
 
-make_obo_pdf <- function(d, title='obo.pdf', width=1, height=5, ...){
+#' Make PDf with multiple obo plots per page
+#'
+#' @param d Besthits table
+#' @param file Filename for output PDF
+#' @param width Integer number of plots per row
+#' @param height Integer number of plots per column
+#' @param ... Additional arguments for \code{plot_obo}
+#' @export
+make_obo_pdf <- function(d, file='obo.pdf', width=1, height=5, ...){
   plots <- plot_obo(d, ...)
   nloci <- length(unique(d$qseqid))
-  pdf(title)
+  pdf(file)
   for(page.num in 0:((nloci - 1) %/% (width * height))){
     i <- width * height * page.num + 1
     j <- min(width * height * page.num + (width*height), length(plots))
