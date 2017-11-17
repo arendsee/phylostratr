@@ -124,9 +124,15 @@ plot_revenant <- function(
   # FIXME: STUB
 }
 
-plot_constriction <- function(d){
-  # FIXME: STUB
-}
+# plot_constriction <- function(d, max_score=100, min_score=0, ...){
+#   m <- constrict(d, ...)
+#   m$mrca_name <- get_mrca_names(m)[m$ps] %>% unname
+#   m$score <- ifelse(m$score > max_score, max_score, m$score)
+#   m$score <- ifelse(m$score > min_score, min_score, m$score)
+#   m$species <-
+#   ggplot(m) +
+#     geom_line(aes(x=species, y=score, group=qseqid, color=mrca))
+# }
 
 plot_noise <- function(){
   # FIXME: STUB
