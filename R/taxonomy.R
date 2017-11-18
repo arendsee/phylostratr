@@ -3,7 +3,7 @@
 #' @param taxid a single NCBI taxon
 #' @param byname Get ancestor names, instead of NCBI ids
 #' @export
-ancestors <- function(taxid, byname=FALSE){
+ncbi_ancestors <- function(taxid, byname=FALSE){
   taxize::classification(taxid, db='ncbi')[[1]]$id 
 }
 
@@ -11,15 +11,15 @@ ancestors <- function(taxid, byname=FALSE){
 #'
 #' @param taxid a single NCBI taxon
 #' @export
-cousins <- function(taxid){
-  taxize::downstream(ancestors(taxid)[-1], downto='species', db='ncbi')
+ncbi_cousins <- function(taxid){
+  taxize::downstream(ncbi_ancestors(taxid)[-1], downto='species', db='ncbi')
 }
 
 #' Get all uncles of a species
 #'
 #' @param taxid a single NCBI taxon
 #' @export
-uncles <- function(taxid){
+ncbi_uncles <- function(taxid){
 
   # turn a flat list into a nested tree, with one element per level
   .unflatten <- function(x){
@@ -37,7 +37,7 @@ uncles <- function(taxid){
 
   # FIXME: cannot find root (taxize issue #639)
   #        so I remove the first index (root)
-  tree <- ancestors(taxid)[-1] %>%
+  tree <- ncbi_ancestors(taxid)[-1] %>%
     .unflatten %>%
     data.tree::FromListSimple()
 
