@@ -48,7 +48,7 @@ deep_strata <- uniprot_cousins(4932) %>%
   lapply(make_do_if_over(5, take_first)) %>%
   # add prokaryote stratum
   use_recommended_prokaryotes %>%
-  # download UniProt sequences (this might take 10+ minutes)
+  # download UniProt sequences (this may take 10+ minutes)
   uniprot_fill_strata %>%
   # replace taxon ids with taxon names
   as_named_strata(depth=2)
