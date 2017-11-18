@@ -20,18 +20,38 @@ cousins <- function(taxid){
 #' @param taxid a single NCBI taxon
 #' @export
 uncles <- function(taxid){
+
+  # turn a flat list into a nested tree, with one element per level
+  .unflatten <- function(x){
+    if(length(x) == 1){
+      list(
+        name = x[1]
+      )
+    } else if(length(x) > 0){
+      list(
+        name = x[1],
+        nest(x[-1])
+      )
+    }
+  }
+
   # FIXME: cannot find root (taxize issue #639)
   #        so I remove the first index (root)
-  lineage <- ancestors(taxid)[-1]
-  children <- taxize::children(lineage, db='ncbi') %>% {.[-length(.)]}
-  lineage <- lineage[-1]
-  lapply(
-    seq_along(children),
-    function(i) {
-      setdiff(children[[i]]$childtaxa_id, lineage[i]) %>% as.integer
+  tree <- ancestors(taxid)[-1] %>%
+    .unflatten %>%
+    data.tree::FromListSimple()
+
+  tree$Do(function(node) {
+    children <- setdiff(
+      taxize::children(node$name, db='ncbi')[[1]]$childtaxa_id,
+      sapply(node$children, function(n) n$name)
+    )
+    for(child in children){
+      node$AddChild(child)
     }
-  ) %>%
-    magrittr::set_names(names(children))
+  })
+
+  tree
 }
 
 #' Transform list of taxids to list of taxid summaries
