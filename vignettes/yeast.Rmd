@@ -17,23 +17,44 @@ needed sequences from uniprot (indeed, UniProt doesn't even have all the
 species we want).
 
 The most general way to customize a sequence dataset is to simply write the
-FASTA filenames into a list:
+FASTA filenames into a list and convert it to a tree:
 
 ```{r}
 saccharomyces <- list(
-    s6 = list(Saccharomyces_eubayanus='yeast/eubayanus.faa',
-         Saccharomyces_uvarum='yeast/uvarum.faa'),
-    s5 = list(Saccharomyces_arboricola='yeast/arboricola.faa'),
-    s4 = list(Saccharomyces_kudriavzevii='yeast/kudriavzevii.faa'),
-    s3 = list(Saccharomyces_mikatae='yeast/mikatae.faa'),
-    s2 = list(Saccharomyces_paradoxus='yeast/paradoxus.faa'),
-    s1 = list(Saccharomyces_cerevisiae='yeast/cerevisiae.faa')
-)
+  list(
+    name='s6',
+    list(name='Saccharomyces_eubayanus', seq='yeast/eubayanus.faa'),
+    list(name='Saccharomyces_uvarum', prot='yeast/uvarum.faa'),
+    list(
+      name='s5',
+      list(name='Saccharomyces_arboricola', prot='yeast/arboricola.faa'),
+      list(
+        name='s4',
+        list(name='Saccharomyces_kudriavzevii', prot='yeast/kudriavzevii.faa'),
+        list(
+          name='s3',
+          list(name='Saccharomyces_mikatae', prot='yeast/mikatae.faa'),
+          list(
+            name='s2',
+            list(name='Saccharomyces_paradoxus', prot='yeast/paradoxus.faa'),
+            list(
+              name='s1',
+              list(name='Saccharomyces_cerevisiae', prot='yeast/cerevisiae.faa')
+            )
+          )
+        )
+      )
+    )
+  )
+) %>% data.tree::FromListSimple()
+saccharomyces
 ```
 
 Where we assume the folder `yeast` holds the respective protein sequences. The
 phylostrata names (s1-6) are arbitrary. It is important to include the focal
-species, cerevisiae.
+species, cerevisiae. This tree could also be loaded from a YAML, JSON, or
+NEWICK file. For more information on loading trees, see the documentation for
+the `data.tree` R package.
 
 To get deeper phylostrata, we will use the UniProt genomes and the NCBI taxonomy
 tree. As in the *Arabidopsis* vignette, we don't want to use all the UniProt
