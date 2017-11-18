@@ -35,31 +35,32 @@ Where we assume the folder `yeast` holds the respective protein sequences. The
 phylostrata names (s1-6) are arbitrary. It is important to include the focal
 species, cerevisiae.
 
-To get deeper phylostrata, we may just use the UniProt genomes and the NCBI
-taxonomy tree.
+To get deeper phylostrata, we will use the UniProt genomes and the NCBI taxonomy
+tree. As in the *Arabidopsis* vignette, we don't want to use all the UniProt
+sequences, so we will filter for diverse species. 
 
 ```{r, eval=FALSE}
 # Get all UniProt proteomes
 deep_strata <- uniprot_cousins(4932) %>%
   # Make filter, if there are more than 5 species in a stratum, take just the
   # first species in each uncle. I am not really happy with this solution ...
+  # TODO: add filter for reference species
   lapply(make_do_if_over(5, take_first)) %>%
-  # add prokaryte stratum
+  # add prokaryote stratum
   use_recommended_prokaryotes %>%
-  # remove the youngest strata (Saccharomyces)
-  head(-1) %>%
-  # download UniProt sequences 
+  # download UniProt sequences (this might take 10+ minutes)
   uniprot_fill_strata %>%
-  # replace taxon ids with names
+  # replace taxon ids with taxon names
   as_named_strata(depth=2)
 ```
 
-As in the *Arabidopsis* vignette, we don't want to use all the UniProt sequences.
-
-Now the *Saccharomyces* strata can replace the youngest NCBI strata
+Now we will use the *Saccharomyces* tree we defined above to resolve
+phylogenetic relationships among the species in the *Saccharomyces* genus,
+this allows for finer phylostratigraphic analysis.
 
 ```{r, eval=FALSE}
-strata <- append(deep_strata, saccharomyces)
+# remove the youngest strata (Saccharomyces)
+strata <- append(head(deep_strata, -1), saccharomyces)
 ```
 
 Next we run BLAST
@@ -68,7 +69,7 @@ Next we run BLAST
 results <- strata_blast(
     query      = saccharomyces$s1[[1]],
     strata     = strata,
-    blast_args = list(nthreads=8)
+    blast_args = list(nthreads=8) # TODO: don't hardcode the threads
 ) %>%
   strata_besthits %>%
   merge_besthits

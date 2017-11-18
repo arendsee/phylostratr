@@ -15,6 +15,8 @@ vignette: >
 library(phylostratr)
 library(taxize)
 
+# TODO: use TOL instead of NCBI common tree
+
 focal_taxid <- 3702
 strata <- focal_taxid %>%
   # Get stratified relatives represented in UniProt
@@ -27,24 +29,24 @@ strata <- focal_taxid %>%
   add_representative(scinames=c('Homo sapiens', 'Saccharomyces cerevisiae')) %>%
   # Use a prebuilt set of prokaryotic species
   use_recommended_prokaryotes
+
+  # TODO: add archaeplastida (viridiplantae, red algae, glaucophytes)
 ```
 
 ```{r, eval=FALSE}
+# TODO: wrap this up neatly internally yadayada
+
+# add the focal species to the blast set
+strata[[focal_taxid]][[focal_taxid]] <- focal_taxid
+
 # Download genomes, storing the filenames
 strata_fasta <- uniprot_fill_strata(strata)
 
-# Get a sample Arabidopsis thaliana protein FASTA file 
-query  <- system.file(
-    'extdata',
-    'araport11',
-    'at_ATxGx99xx.faa',
-    package='phylostratr'
-)
-
-# add the focal species to the blast set
-strata_fasta[['3702']] <- list('3702'=query)
+# extract the FASTA file for the focal species
+query <- strata_fasta[[focal_taxid]][[focal_taxid]]
 
 # BLAST against each target genome (this will take a few hours)
+# TODO: don't hard code the threads
 results <- strata_blast(query, strata_fasta, blast_args=list(nthreads=8)) %>%
   strata_besthits %>%
   merge_besthits
@@ -58,15 +60,15 @@ data(arabidopsis)
 head(arabidopsis)
 ```
 
-You can get phylostrata:
+To get gene list according to phylostrata:
 
 ```{r, eval=FALSE}
+# TODO: add locus mrca
 phylostrata <- stratify(arabidopsis)
 head(phylostrata)
 ```
 
-And get the number of genes in each strata
-
+And get the number of genes in each phylostrata
 
 ```{r, eval=FALSE}
 summary(phylostrata$mrca_name)
