@@ -10,7 +10,7 @@ uniprot_downstream_ids <- function(taxid, reference_only=FALSE, delay=FALSE){
   ref_str <- if(reference_only){
     'reference:yes'
   } else {
-    '*' 
+    '*'
   }
   url_str <- glue::glue(
     'http://www.uniprot.org/taxonomy/?query=ancestor:{taxid}&format=list&fil=proteome:({ref_str})'
@@ -63,6 +63,8 @@ uniprot_retrieve_proteome <- function(
       message(sprintf("  destination: %s", fastafile))
     } else {
       maybe_message("Retrieving %s ...", verbose, taxid)
+      # FIXME: if the ID is not in UniProt, no warning is emitted and an empty
+      # file is created
       curl::curl_download(url_str, fastafile)
       Sys.sleep(1) # for good manner
     }
@@ -72,34 +74,53 @@ uniprot_retrieve_proteome <- function(
 
 #' Download sequence data for each species in a UniProt-based strata
 #'
-#' @param strata List of lists of taxon IDs
+#' @param strata data.tree where leaves are named by NCBI taxon ID. These IDs
+#' are expected to be in UniProt.
 #' @param ... Additional arguments for \code{uniprot_retrieve_proteome}
-#' @return A named list of filename vectors
+#' @return A data.tree with the additional field 'protein_file'
 #' @export
 uniprot_fill_strata <- function(strata, ...){
-  lapply(strata, unlist) %>%
-    lapply(function(taxids){
-      taxid_names <- as.character(taxids)
-      fastafiles <- lapply(taxids, uniprot_retrieve_proteome, ...)
-      names(fastafiles) <- taxid_names
-      fastafiles
-    })
+  data.tree::Do(
+    data.tree::Traverse(strata, filterFun=isLeaf),
+    function(node){
+      node$protein_file <- uniprot_retrieve_proteome(node$name, ...)
+    }
+  )
+  # Since data.tree uses reference semantics, this return is not strictly
+  # necessary. But by returning here we can at pretend we aren't sinning.
+  strata
 }
 
-#' Given a focal taxid, find the uniprot descendents of a taxon's uncles 
+#' Given a focal taxid, find the uniprot descendents of a taxon's uncles
 #'
 #' @param taxid The focal species NCBI taxon id
 #' @param ... Additional arguments sent to \code{uniprot_downstream_ids}
-#' @return list of lists of id vectors
+#' @return data.tree with strata from the NCBI lineage. Each stratum has one or
+#' more representative clades, which are the immediate, outgroup children of
+#' the stratum's mose recent common ancestor. For each of the 'uncles', all
+#' descendent species that are represented in UniProt are added included. Note
+#' this is a flat tree, the topology between uncle and descendent is lost.
 #' @export
-uniprot_cousins <- function(taxid, ...){
-  us <- uncles(taxid)
-  for(ancestor in names(us)){
-    taxa <- us[[ancestor]]
-    us[[ancestor]] <- lapply(taxa, uniprot_downstream_ids, delay=TRUE)
-    names(us[[ancestor]]) <- taxa
+uniprot_cousins <- function(taxid, filter){
+  tree <- ncbi_uncles(taxid)
+  data.tree::Do(
+    data.tree::Traverse(tree, filterFun=data.tree::isLeaf),
+    function(node){
+      children <- uniprot_downstream_ids(taxid)[-1]
+      for(child in children){
+        node$AddChild(child)
+      }
+      node$type = 'uncle'
+  })
+
+  is_stratum <- function(node) {
+    child_types <- unlist(sapply(node$children, function(n) n$type))
+    all(!is.null(child_types) & (child_types == "uncle"))
   }
-  us
+
+  Do(Traverse(tree, filterFun=is_stratum), filter)
+
+  tree
 }
 
 #' Retrive the sequences from the uniprot cousins
@@ -121,7 +142,7 @@ uniprot_cousins <- function(taxid, ...){
 #' uniprot_cousins(3702) %>%
 #'   lapply(take_first) %>%
 #'   uniprot_cousin_proteomes
-#' 
+#'
 #' cfilter <- make_do_if_over(3, take_first)
 #' uniprot_cousins(3702) %>%
 #'   lapply(cfilter) %>%
@@ -211,7 +232,7 @@ use_recommended_prokaryotes <- function(x){
 
   # If the basal stratum is already cellular organisms, replace it
   if(as.integer(names(x)[1]) == 131567L){
-    x[[1]] <- prokaryote_sample  
+    x[[1]] <- prokaryote_sample
   # if not, prepend it
   } else {
     x <- append(list(`131567`=prokaryote_sample), x)

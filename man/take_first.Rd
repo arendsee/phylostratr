@@ -7,8 +7,12 @@
 take_first(x)
 }
 \arguments{
-\item{x}{A list of uncles at a specific stratum, each of which contains a
-list of descendent taxids}
+\item{x}{data.tree containing one stratum, especially in the NCBI common
+tree case, this may contain many children.}
+}
+\value{
+data.tree where all but the first child of each immediate child of
+the stratum root is culled.
 }
 \description{
 Select representatives for a strata

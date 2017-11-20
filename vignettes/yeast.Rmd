@@ -23,23 +23,23 @@ FASTA filenames into a list and convert it to a tree:
 saccharomyces <- list(
   list(
     name='s6',
-    list(name='Saccharomyces_eubayanus', seq='yeast/eubayanus.faa'),
-    list(name='Saccharomyces_uvarum', prot='yeast/uvarum.faa'),
+    list(name='Saccharomyces_eubayanus', protein_file='yeast/eubayanus.faa'),
+    list(name='Saccharomyces_uvarum', protein_file='yeast/uvarum.faa'),
     list(
       name='s5',
-      list(name='Saccharomyces_arboricola', prot='yeast/arboricola.faa'),
+      list(name='Saccharomyces_arboricola', protein_file='yeast/arboricola.faa'),
       list(
         name='s4',
-        list(name='Saccharomyces_kudriavzevii', prot='yeast/kudriavzevii.faa'),
+        list(name='Saccharomyces_kudriavzevii', protein_file='yeast/kudriavzevii.faa'),
         list(
           name='s3',
-          list(name='Saccharomyces_mikatae', prot='yeast/mikatae.faa'),
+          list(name='Saccharomyces_mikatae', protein_file='yeast/mikatae.faa'),
           list(
             name='s2',
-            list(name='Saccharomyces_paradoxus', prot='yeast/paradoxus.faa'),
+            list(name='Saccharomyces_paradoxus', protein_file='yeast/paradoxus.faa'),
             list(
               name='s1',
-              list(name='Saccharomyces_cerevisiae', prot='yeast/cerevisiae.faa')
+              list(name='Saccharomyces_cerevisiae', protein_file='yeast/cerevisiae.faa')
             )
           )
         )
@@ -61,12 +61,13 @@ tree. As in the *Arabidopsis* vignette, we don't want to use all the UniProt
 sequences, so we will filter for diverse species. 
 
 ```{r, eval=FALSE}
+# Make filter, if there are more than 5 species in a stratum, take just the
+# first species in each uncle. I am not really happy with this solution ...
+# TODO: add filter for reference species
+uniprot_filter <- make_do_if_over(5, take_first)
+
 # Get all UniProt proteomes
-deep_strata <- uniprot_cousins(4932) %>%
-  # Make filter, if there are more than 5 species in a stratum, take just the
-  # first species in each uncle. I am not really happy with this solution ...
-  # TODO: add filter for reference species
-  lapply(make_do_if_over(5, take_first)) %>%
+deep_strata <- uniprot_cousins(4932, filter=uniprot_filter) %>%
   # add prokaryote stratum
   use_recommended_prokaryotes %>%
   # download UniProt sequences (this may take 10+ minutes)

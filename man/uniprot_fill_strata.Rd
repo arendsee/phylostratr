@@ -7,12 +7,13 @@
 uniprot_fill_strata(strata, ...)
 }
 \arguments{
-\item{strata}{List of lists of taxon IDs}
+\item{strata}{data.tree where leaves are named by NCBI taxon ID. These IDs
+are expected to be in UniProt.}
 
 \item{...}{Additional arguments for \code{uniprot_retrieve_proteome}}
 }
 \value{
-A named list of filename vectors
+A data.tree with the additional field 'protein_file'
 }
 \description{
 Download sequence data for each species in a UniProt-based strata

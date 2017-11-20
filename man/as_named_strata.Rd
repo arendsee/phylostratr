@@ -4,19 +4,18 @@
 \alias{as_named_strata}
 \title{Substitute names for taxids in strata}
 \usage{
-as_named_strata(x, scinames = NULL, depth = 1)
+as_named_strata(x, scinames = NULL)
 }
 \arguments{
-\item{x}{named list, where all names are NCBI taxon IDs}
+\item{x}{data.tree, where node names are NCBI taxon IDs}
 
 \item{scinames}{named character vector, where names are NCBI taxon IDs and
 elements are scientific names}
-
-\item{depth}{nest depth of lists with NCBI taxon ID names}
 }
 \value{
-named list, where all names are scientific names
+data.tree, where all names are scientific names
 }
 \description{
-Substitute names for taxids in strata
+Be careful with this function; data.tree uses reference semantics so this
+function can have unintended side-effects.
 }

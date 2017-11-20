@@ -4,7 +4,7 @@
 \alias{uniprot_cousins}
 \title{Given a focal taxid, find the uniprot descendents of a taxon's uncles}
 \usage{
-uniprot_cousins(taxid, ...)
+uniprot_cousins(taxid, filter)
 }
 \arguments{
 \item{taxid}{The focal species NCBI taxon id}
@@ -12,7 +12,11 @@ uniprot_cousins(taxid, ...)
 \item{...}{Additional arguments sent to \code{uniprot_downstream_ids}}
 }
 \value{
-list of lists of id vectors
+data.tree with strata from the NCBI lineage. Each stratum has one or
+more representative clades, which are the immediate, outgroup children of
+the stratum's mose recent common ancestor. For each of the 'uncles', all
+descendent species that are represented in UniProt are added included. Note
+this is a flat tree, the topology between uncle and descendent is lost.
 }
 \description{
 Given a focal taxid, find the uniprot descendents of a taxon's uncles

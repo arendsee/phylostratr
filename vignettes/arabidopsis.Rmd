@@ -9,7 +9,58 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-## Select relatives to search
+`phylostratr` divides a phylostratigraphy analysis into 5 steps:
+
+ 1. Acquire a species tree with species identifiers (e.g. NCBI taxon ids or
+    species names) as leafs.
+
+ 2. Replace leafs with the data required for homology inference. `phylostratr`
+    supports retrieval of proteomes from UniProt.
+
+ 3. Run the homology inference algorithm (e.g. BLAST), producing a tree with
+    raw results as leaves.
+
+ 4. From the raw results, produce p-values for homology of each species against
+    each target.
+
+ 5. infer taxonomic specificity of each gene
+
+Currently `phylostratr` supports using either custom trees or the NCBI common
+tree. For homology inference, a simple protein BLAST is offered. However,
+`phylostratr` is designed to be extendable to additional tools.
+
+In this vignette, we will show how to stratify the genes of *Arabidopsis
+thaliana* as follows:
+
+ 1. Trace the lineage of *Arabidopsis thaliana* as defined by the NCBI common
+    tree. For each ancestral node, find species with proteomes available in
+    UniProt. For over-represented strata, we select a diverse subset of species
+    (for example, of the thousands of bacterial proteomes in uniprot, we select
+    just one from each class). 
+
+ 2. Retrieve the proteome for each species in the tree, replacing the leaves
+    with proteome file names. This allows us to access all the protein data
+    needed for a protein BLAST (next step) while also storing the phylogenetic
+    relationship between the species.
+
+ 3. BLAST the focal proteome (*Arabidopsis thaliana*) against each species in
+    the tree, replacing leaves with the filenames of BLAST results.  We build a
+    unique BLAST database for each species. Doing this makes the BLAST
+    statistics against each individual species to be independent of the other
+    species in the tree. Later we will calculate a cumulative p-value for
+    existence of a homolog in a particular stratum.
+
+ 4. Next, for each BLAST result, find the best hit against each focal gene. The
+    resulting tables (small enough to be easily stored in memory now) are
+    recorded as the new leaves of the tree.
+
+ 5. Finally, the best hit tables are merged, and the genes are stratified. In
+    this vignette, we use a simple classifier for homology: a subject species
+    is inferred to have a homolog to a focal gene if BLAST reports an evalue of
+    less than 1e-5. This is a fairly arbitrary criterion and does not attempt
+    to adjust for multiple testing across a stratum.
+
+## 1. Select relatives to search
 
 ```{r, eval=FALSE}
 library(phylostratr)

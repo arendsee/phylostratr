@@ -1,10 +1,14 @@
 #' Select representatives for a strata
 #'
-#' @param x A list of uncles at a specific stratum, each of which contains a
-#' list of descendent taxids
+#' @param x data.tree containing one stratum, especially in the NCBI common
+#' tree case, this may contain many children.
+#' @return data.tree where all but the first child of each immediate child of
+#' the stratum root is culled.
 #' @export
 take_first <- function(x){
-  lapply(x, head, 1) 
+  if(!is.null(x$children))
+    Do(x$children, function(node) node$children <- head(node$children, 1))
+  x
 }
 
 #' Make a filter
@@ -16,47 +20,37 @@ take_first <- function(x){
 #' @export
 #' @return A filter that can be used in \code{uniprot_cousin_proteomes}
 make_do_if_over <- function(n=3, fun=take_first){
-  function(cousin_sets){
-    ncousins <- sum(vapply(FUN.VALUE=integer(1), cousin_sets, length))
-    if(ncousins > n){
-      fun(cousin_sets)
+  function(node){
+    if(n > length(node$leaves)){
+      fun(node)
     } else {
-      cousin_sets
+      node 
     }
   }
 }
 
-.make_taxidmap <- function(x, depth=1){
-  taxa <- character(0)
-  for(i in 1:depth){
-    taxa <- append(taxa, names(x))
-    names(x) <- NULL
-    x <- unlist(x, recursive=FALSE)
-  }
-  taxid2name(taxa)
+.make_taxidmap <- function(x){
+  data.tree::Get(Traverse(x), 'name') %>% names %>% taxid2name
 }
 
 #' Substitute names for taxids in strata
 #'
-#' @param x named list, where all names are NCBI taxon IDs
+#' Be careful with this function; data.tree uses reference semantics so this
+#' function can have unintended side-effects.
+#'
+#' @param x data.tree, where node names are NCBI taxon IDs
 #' @param scinames named character vector, where names are NCBI taxon IDs and
 #' elements are scientific names
-#' @param depth nest depth of lists with NCBI taxon ID names
-#' @return named list, where all names are scientific names
+#' @return data.tree, where all names are scientific names
 #' @export
-as_named_strata <- function(x, scinames=NULL, depth=1){
-  if(is.null(scinames)){
-    scinames <- .make_taxidmap(x, depth)
-  } else {
-    stopifnot()
-  }
-
-  if(depth > 1){
-    x <- lapply(x, as_named_strata, scinames=scinames, depth=depth-1)
-  }
-
-  names(x) <- scinames[names(x)]
-
+as_named_strata <- function(x, scinames=NULL){
+  scinames <- .make_taxidmap(x, depth)
+  x$Do(
+    data.tree::Traverse(x),
+    function(x){
+      x$name <- scinames[names(x)]
+    }
+  )
   x
 }
 

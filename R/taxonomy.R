@@ -15,25 +15,25 @@ ncbi_cousins <- function(taxid){
   taxize::downstream(ncbi_ancestors(taxid)[-1], downto='species', db='ncbi')
 }
 
+# turn a flat list into a nested tree, with one element per level
+.unflatten <- function(x){
+  if(length(x) == 1){
+    list(
+      name = x[1]
+    )
+  } else if(length(x) > 0){
+    list(
+      name = x[1],
+      .unflatten(x[-1])
+    )
+  }
+}
+
 #' Get all uncles of a species
 #'
 #' @param taxid a single NCBI taxon
 #' @export
 ncbi_uncles <- function(taxid){
-
-  # turn a flat list into a nested tree, with one element per level
-  .unflatten <- function(x){
-    if(length(x) == 1){
-      list(
-        name = x[1]
-      )
-    } else if(length(x) > 0){
-      list(
-        name = x[1],
-        nest(x[-1])
-      )
-    }
-  }
 
   # FIXME: cannot find root (taxize issue #639)
   #        so I remove the first index (root)
