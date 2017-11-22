@@ -20,6 +20,9 @@ The most general way to customize a sequence dataset is to simply write the
 FASTA filenames into a list and convert it to a tree:
 
 ```{r}
+library(phylostratr)
+library(data.tree)
+library(magrittr)
 saccharomyces <- list(
   list(
     name='s6',
