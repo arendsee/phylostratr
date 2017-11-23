@@ -10,8 +10,12 @@
 ncbi_tree <- function(taxa){
   # This returns a 'classtree' object, which is a wrapper for a 'phylo' object.
   classtree <- taxa %>%
-    taxize::classification(db='ncbi') %>%
-    taxize::class2tree(check=FALSE)
+    taxizedb::classification(db='ncbi') %>%
+    Filter(f=function(x){
+      # Only keep the taxa that represent species
+      tail(x$rank, 1) == "species"
+    }) %>%
+    taxize::class2tree(varstep=FALSE, check=FALSE)
   # If no branch lengths are provided (which they never are for NCBI taxa), the
   # lengths default to 0, with a warning. Zero lengths have a meaning: the taxa
   # speciated at the same time, e.g. by rapid adaptive radiation. This is not

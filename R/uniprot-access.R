@@ -118,7 +118,7 @@ uniprot_cousins <- function(taxid, filter){
     all(!is.null(child_types) & (child_types == "uncle"))
   }
 
-  Do(Traverse(tree, filterFun=is_stratum), filter)
+  data.tree::Do(data.tree::Traverse(tree, filterFun=is_stratum), filter)
 
   tree
 }
