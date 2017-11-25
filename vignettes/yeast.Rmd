@@ -23,41 +23,26 @@ FASTA filenames into a list and convert it to a tree:
 library(phylostratr)
 library(data.tree)
 library(magrittr)
-saccharomyces <- list(
-  list(
-    name='s6',
-    list(name='Saccharomyces_eubayanus', protein_file='yeast/eubayanus.faa'),
-    list(name='Saccharomyces_uvarum', protein_file='yeast/uvarum.faa'),
-    list(
-      name='s5',
-      list(name='Saccharomyces_arboricola', protein_file='yeast/arboricola.faa'),
-      list(
-        name='s4',
-        list(name='Saccharomyces_kudriavzevii', protein_file='yeast/kudriavzevii.faa'),
-        list(
-          name='s3',
-          list(name='Saccharomyces_mikatae', protein_file='yeast/mikatae.faa'),
-          list(
-            name='s2',
-            list(name='Saccharomyces_paradoxus', protein_file='yeast/paradoxus.faa'),
-            list(
-              name='s1',
-              list(name='Saccharomyces_cerevisiae', protein_file='yeast/cerevisiae.faa')
-            )
-          )
-        )
-      )
-    )
-  )
-) %>% data.tree::FromListSimple()
-saccharomyces
+library(ape)
+saccharomyces <- Strata(
+    tree = ape::read.tree(system.file('extdata', 'yeast', 'tree', package='phylostratr')),
+    data = list(faa=list(
+             Saccharomyces_cerevisiae   = 'yeast/cerevisiae.faa',
+             Saccharomyces_paradoxus    = 'yeast/paradoxus.faa',
+             Saccharomyces_mikatae      = 'yeast/mikatae.faa',
+             Saccharomyces_kudriavzevii = 'yeast/kudriavzevii.faa',
+             Saccharomyces_arboricola   = 'yeast/arboricola.faa',
+             Saccharomyces_eubayanus    = 'yeast/eubayanus.faa',
+             Saccharomyces_uvarum       = 'yeast/uvarum.faa'
+           )),
+    focal_species = 'Saccharomyces_cerevisiae'
+)
 ```
 
-Where we assume the folder `yeast` holds the respective protein sequences. The
-phylostrata names (s1-6) are arbitrary. It is important to include the focal
-species, cerevisiae. This tree could also be loaded from a YAML, JSON, or
-NEWICK file. For more information on loading trees, see the documentation for
-the `data.tree` R package.
+Where we assume the folder `yeast` holds the respective protein sequences. It
+is important to include the focal species, cerevisiae. This tree could also be
+loaded from a YAML, JSON, or NEWICK file. For more information on loading
+trees, see the documentation for the `data.tree` R package.
 
 To get deeper phylostrata, we will use the UniProt genomes and the NCBI taxonomy
 tree. As in the *Arabidopsis* vignette, we don't want to use all the UniProt
