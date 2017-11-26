@@ -50,7 +50,7 @@ sequences, so we will filter for diverse species.
 
 ```{r, eval=FALSE}
 # Make filter, if there are more than 5 species in a stratum, take just the
-# first species in each uncle. I am not really happy with this solution ...
+# first species in each aunt. I am not really happy with this solution ...
 # TODO: add filter for reference species
 uniprot_filter <- make_do_if_over(5, take_first)
 

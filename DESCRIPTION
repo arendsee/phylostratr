@@ -6,13 +6,16 @@ Description:
     Analyze phylostratigraphic data. Details to come.
 Depends: R (>= 3.4.2)
 Imports:
+    ape,
     curl,
     data.tree,
     dplyr,
+    geiger,
     ggplot2,
     glue,
     gridExtra,
     magrittr,
+    phytools,
     readr,
     rentrez,
     rlang (>= 0.1.2),

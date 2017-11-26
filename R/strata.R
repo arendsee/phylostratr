@@ -58,7 +58,7 @@ as_named_strata <- function(x, scinames=NULL){
 #'
 #' @param cousin_sets A nested list of cousins
 #' @param stratum_id Stratum NCBI taxonomy id
-#' @param fun A function of the uncle list
+#' @param fun A function of the aunt list
 #' @export
 do_on <- function(cousin_sets, stratum_id, fun){
   stratum_id <- as.character(stratum_id)
@@ -70,26 +70,26 @@ do_on <- function(cousin_sets, stratum_id, fun){
 #'
 #' @param cousin_sets A nested list of cousins
 #' @param stratum_id Stratum NCBI taxonomy id
-#' @param uncle_id Uncle NCBI taxonomy id
+#' @param aunt_id aunt NCBI taxonomy id
 #' @param new_id The ID to be added
 #' @export
-add_to <- function(cousin_sets, stratum_id, uncle_id, new_id){
+add_to <- function(cousin_sets, stratum_id, aunt_id, new_id){
   stratum_id <- as.character(stratum_id)
-  uncle_id <- as.character(uncle_id)
-  cousin_sets[[stratum_id]][[uncle_id]] <- append(cousin_sets[[stratum_id]][[uncle_id]], new_id)
+  aunt_id <- as.character(aunt_id)
+  cousin_sets[[stratum_id]][[aunt_id]] <- append(cousin_sets[[stratum_id]][[aunt_id]], new_id)
   cousin_sets
 }
 
-#' Clear all representatives of a given uncle
+#' Clear all representatives of a given aunt
 #'
 #' @param cousin_sets A nested list of cousins
 #' @param stratum_id Stratum NCBI taxonomy id
-#' @param uncle_id Uncle NCBI taxonomy id
+#' @param aunt_id aunt NCBI taxonomy id
 #' @export
-clear_uncle <- function(cousin_sets, stratum_id, uncle_id){
+clear_aunt <- function(cousin_sets, stratum_id, aunt_id){
   stratum_id <- as.character(stratum_id)
-  uncle_id <- as.character(uncle_id)
-  cousin_sets[[stratum_id]][[uncle_id]] <- integer(0)
+  aunt_id <- as.character(aunt_id)
+  cousin_sets[[stratum_id]][[aunt_id]] <- integer(0)
   cousin_sets
 }
 
@@ -120,8 +120,8 @@ add_representative <- function(cousin_sets, scinames=NULL, taxids=NULL){
   for(taxid in names(lineages)){
     lineage <- lineages[[taxid]]
     stratum <- lineage$id[lineage$id %in% names(cousin_sets)] %>% tail(1)
-    uncle <- lineage$id[which(lineage$id %in% stratum) + 1]
-    cousin_sets <- add_to(cousin_sets, stratum, uncle, taxid)
+    aunt <- lineage$id[which(lineage$id %in% stratum) + 1]
+    cousin_sets <- add_to(cousin_sets, stratum, aunt, taxid)
   }
 
   cousin_sets
@@ -137,11 +137,11 @@ print_strata <- function(x){
     if(length(unlist(x[[stratum]])) == 0){
       cat("  NO REPRESENTATIVE\n")
     } else {
-      for(uncle in names(x[[stratum]])){
-        # If the uncle has no included children, ignore it
-        if(length(x[[stratum]][[uncle]]) > 0)
-          cat(sprintf('  %s\n', uncle))
-        for(species in x[[stratum]][[uncle]]){
+      for(aunt in names(x[[stratum]])){
+        # If the aunt has no included children, ignore it
+        if(length(x[[stratum]][[aunt]]) > 0)
+          cat(sprintf('  %s\n', aunt))
+        for(species in x[[stratum]][[aunt]]){
           cat(sprintf('    %s\n', species))
         }
       }
@@ -153,7 +153,7 @@ print_strata <- function(x){
 #'
 #' @param strata A three-level list. The first level has one element for each
 #' node in the focal species lineage (and is named accordingly). The second
-#' level has one element for each 'uncle'. The third level is a possibly empty
+#' level has one element for each 'aunt'. The third level is a possibly empty
 #' vector of taxon IDs.
 #' @export
 strata2mrca <- function(strata){

@@ -25,8 +25,8 @@ Nothing, this function is run for its effects
 }
 \description{
 cousin_sets A named list of vectors of species taxon ids. Each vector
-in the list bears the name of an uncle, all at the same level in the tree.
-There may be multiple uncles in multifurcating nodes of the tree (this is
+in the list bears the name of an aunt, all at the same level in the tree.
+There may be multiple aunts in multifurcating nodes of the tree (this is
 very common in the NCBI common tree).
 }
 \examples{

@@ -17,7 +17,6 @@ Build a phylogenetic tree from a list of NCBI taxon IDs
 }
 \examples{
 \dontrun{
-# raises warning about distances equaling zero, don't worry about it
 ncbi_tree(c(9606, 9598, 9593))
 }
 }

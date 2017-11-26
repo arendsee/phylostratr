@@ -2,7 +2,7 @@
 % Please edit documentation in R/uniprot-access.R
 \name{uniprot_cousins}
 \alias{uniprot_cousins}
-\title{Given a focal taxid, find the uniprot descendents of a taxon's uncles}
+\title{Given a focal taxid, find the uniprot descendents of a taxon's aunts}
 \usage{
 uniprot_cousins(taxid, filter)
 }
@@ -14,10 +14,10 @@ uniprot_cousins(taxid, filter)
 \value{
 data.tree with strata from the NCBI lineage. Each stratum has one or
 more representative clades, which are the immediate, outgroup children of
-the stratum's mose recent common ancestor. For each of the 'uncles', all
+the stratum's mose recent common ancestor. For each of the 'aunts', all
 descendent species that are represented in UniProt are added included. Note
-this is a flat tree, the topology between uncle and descendent is lost.
+this is a flat tree, the topology between aunt and descendent is lost.
 }
 \description{
-Given a focal taxid, find the uniprot descendents of a taxon's uncles
+Given a focal taxid, find the uniprot descendents of a taxon's aunts
 }

@@ -74,35 +74,28 @@ uniprot_retrieve_proteome <- function(
 
 #' Download sequence data for each species in a UniProt-based strata
 #'
-#' @param strata data.tree where leaves are named by NCBI taxon ID. These IDs
-#' are expected to be in UniProt.
+#' @param strata Strata object where all species are represented in UniProt.
 #' @param ... Additional arguments for \code{uniprot_retrieve_proteome}
-#' @return A data.tree with the additional field 'protein_file'
+#' @return Strata object where 'data' slot is filled with protein FASTA files
 #' @export
 uniprot_fill_strata <- function(strata, ...){
-  data.tree::Do(
-    data.tree::Traverse(strata, filterFun=isLeaf),
-    function(node){
-      node$protein_file <- uniprot_retrieve_proteome(node$name, ...)
-    }
-  )
-  # Since data.tree uses reference semantics, this return is not strictly
-  # necessary. But by returning here we can at pretend we aren't sinning.
+  species <- strata@tree$tip.label
+  strata@data$faa <- lapply(strata@tree$tip.label, uniprot_retrieve_proteome, ...)
   strata
 }
 
-#' Given a focal taxid, find the uniprot descendents of a taxon's uncles
+#' Given a focal taxid, find the uniprot descendents of a taxon's aunts
 #'
 #' @param taxid The focal species NCBI taxon id
 #' @param ... Additional arguments sent to \code{uniprot_downstream_ids}
 #' @return data.tree with strata from the NCBI lineage. Each stratum has one or
 #' more representative clades, which are the immediate, outgroup children of
-#' the stratum's mose recent common ancestor. For each of the 'uncles', all
+#' the stratum's mose recent common ancestor. For each of the 'aunts', all
 #' descendent species that are represented in UniProt are added included. Note
-#' this is a flat tree, the topology between uncle and descendent is lost.
+#' this is a flat tree, the topology between aunt and descendent is lost.
 #' @export
 uniprot_cousins <- function(taxid, filter){
-  tree <- ncbi_uncles(taxid)
+  tree <- ncbi_aunts(taxid)
   data.tree::Do(
     data.tree::Traverse(tree, filterFun=data.tree::isLeaf),
     function(node){
@@ -110,12 +103,12 @@ uniprot_cousins <- function(taxid, filter){
       for(child in children){
         node$AddChild(child)
       }
-      node$type = 'uncle'
+      node$type = 'aunt'
   })
 
   is_stratum <- function(node) {
     child_types <- unlist(sapply(node$children, function(n) n$type))
-    all(!is.null(child_types) & (child_types == "uncle"))
+    all(!is.null(child_types) & (child_types == "aunt"))
   }
 
   data.tree::Do(data.tree::Traverse(tree, filterFun=is_stratum), filter)
@@ -126,8 +119,8 @@ uniprot_cousins <- function(taxid, filter){
 #' Retrive the sequences from the uniprot cousins
 #'
 #' cousin_sets A named list of vectors of species taxon ids. Each vector
-#' in the list bears the name of an uncle, all at the same level in the tree.
-#' There may be multiple uncles in multifurcating nodes of the tree (this is
+#' in the list bears the name of an aunt, all at the same level in the tree.
+#' There may be multiple aunts in multifurcating nodes of the tree (this is
 #' very common in the NCBI common tree).
 #'
 #' @param cousins The output of \code{uniprot_cousins}

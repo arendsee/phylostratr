@@ -11,7 +11,7 @@ do_on(cousin_sets, stratum_id, fun)
 
 \item{stratum_id}{Stratum NCBI taxonomy id}
 
-\item{fun}{A function of the uncle list}
+\item{fun}{A function of the aunt list}
 }
 \description{
 Map a function over a specific stratum

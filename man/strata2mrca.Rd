@@ -9,7 +9,7 @@ strata2mrca(strata)
 \arguments{
 \item{strata}{A three-level list. The first level has one element for each
 node in the focal species lineage (and is named accordingly). The second
-level has one element for each 'uncle'. The third level is a possibly empty
+level has one element for each 'aunt'. The third level is a possibly empty
 vector of taxon IDs.}
 }
 \description{

@@ -2,29 +2,13 @@
 #'
 #' @param taxa vactor of NCBI taxon IDs
 #' @return phylo object
+#' @export
 #' @examples
 #' \dontrun{
-#' # raises warning about distances equaling zero, don't worry about it
 #' ncbi_tree(c(9606, 9598, 9593))
 #' }
 ncbi_tree <- function(taxa){
-  # This returns a 'classtree' object, which is a wrapper for a 'phylo' object.
-  classtree <- taxa %>%
-    taxizedb::classification(db='ncbi') %>%
-    Filter(f=function(x){
-      # Only keep the taxa that represent species
-      tail(x$rank, 1) == "species"
-    }) %>%
-    taxize::class2tree(varstep=FALSE, check=FALSE)
-  # If no branch lengths are provided (which they never are for NCBI taxa), the
-  # lengths default to 0, with a warning. Zero lengths have a meaning: the taxa
-  # speciated at the same time, e.g. by rapid adaptive radiation. This is not
-  # what NCBI is expressing (usually), so I set the edge.length to NULL,
-  # meaning branch lengths are missing, not zero.
-  classtree$phylo$edge.length <- NULL
-  # I don't care about the extra information provided by the 'classtree'
-  # object, so I just return the wrapped 'phylo' object.
-  classtree$phylo
+  lineages_to_phylo(taxizedb::classification(taxa, db='ncbi'))
 }
 
 #' Get the lineage of a given species
@@ -44,40 +28,21 @@ ncbi_cousins <- function(taxid){
   taxize::downstream(ncbi_ancestors(taxid)[-1], downto='species', db='ncbi')
 }
 
-# turn a flat list into a nested tree, with one element per level
-.unflatten <- function(x){
-  if(length(x) == 1){
-    list(
-      name = x[1]
-    )
-  } else if(length(x) > 0){
-    list(
-      name = x[1],
-      .unflatten(x[-1])
-    )
-  }
-}
-
-#' Get all uncles of a species
+#' Get all ancestral sisters of a taxon
 #'
 #' @param taxid a single NCBI taxon
+#' @return phylo object with all NCBI sisters of all ancestors
 #' @export
-ncbi_uncles <- function(taxid){
+ncbi_aunts <- function(taxid){
   # FIXME: cannot find root (taxize issue #639)
   #        so I remove the first index (root)
-  tree <- ncbi_ancestors(taxid)[-1] %>%
-    .unflatten %>%
-    data.tree::FromListSimple()
-  tree$Do(function(node) {
-    children <- setdiff(
-      taxize::children(node$name, db='ncbi')[[1]]$childtaxa_id,
-      sapply(node$children, function(n) n$name)
-    )
-    for(child in children){
-      node$AddChild(child)
-    }
-  })
-  tree
+  ncbi_ancestors(taxid)[-1] %>%
+    lapply(function(x){
+      kids <- taxize::children(x, db='ncbi')[[1]]$childtaxa_id
+      matrix(c(rep(x, length(kids)), kids), ncol=2)
+    }) %>%
+    do.call(what=rbind) %>%
+    edgelist_to_phylo
 }
 
 #' Transform list of taxids to list of taxid summaries

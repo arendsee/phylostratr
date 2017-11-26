@@ -72,10 +72,10 @@ focal_taxid <- 3702
 strata <- focal_taxid %>%
   # Get stratified relatives represented in UniProt
   uniprot_cousins %>%
-  # If there are more than 5 species in a stratum, take just the first from every uncle
+  # If there are more than 5 species in a stratum, take just the first from every aunt
   lapply(make_do_if_over(5, take_first)) %>%
   # Empty the ancestor of animals and fungi 
-  clear_uncle(2759, 33154) %>%
+  clear_aunt(2759, 33154) %>%
   # Replace the representatives with humans and yeast
   add_representative(scinames=c('Homo sapiens', 'Saccharomyces cerevisiae')) %>%
   # Use a prebuilt set of prokaryotic species
