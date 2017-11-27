@@ -18,5 +18,7 @@ Make a phylo object from an edgelist
 \examples{
 edgelist <- matrix(c('A', 'A', 'B', 'B', 'B', 'C', 'D', 'E', 'A', 'F'), ncol=2)
 tree <- edgelist_to_phylo(edgelist)
-plot(tree, show.node.label=TRUE)
+# A bug in ape causes a segfault here, but the French bastards in charge don't
+# seem to take the issues seriously
+# plot(tree, show.node.label=TRUE)
 }
