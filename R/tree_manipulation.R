@@ -70,7 +70,7 @@ leafs <- function(tree){
 #' @param tree phylo object
 #' @export
 nodes <- function(tree){
-  (length(tree$tip.label)+1):tree_size(tree)
+  (length(tree$tip.label)+1):(nleafs(tree) + tree$Nnode)
 }
 
 #' Get the number of leafs
@@ -103,7 +103,7 @@ lineage <- function(tree, id){
 #' @return integer
 #' @export
 tree_size <- function(tree){
-  max(node_ids(tree))
+  max(nodes(tree))
 }
 
 #' Vectorized node parent getter
