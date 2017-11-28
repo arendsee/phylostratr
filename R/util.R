@@ -18,3 +18,22 @@ maybe_message <- function(msg, verbose=TRUE, ...){
   if(verbose)
     message(sprintf(msg, ...))
 }
+
+.check_type <- function(
+  m,
+  type,
+  test   = function(x) { setequal(class(x), type) },
+  nframe = sys.nframe()-1,
+  place  = if(nframe > 0) { deparse(sys.calls()[[nframe]]) } else { 'global' }
+){
+  if(!test(m)){
+    varname <- deparse(substitute(m)) # NOTE: this has to be outside of glue
+    stop(glue::glue(
+      "In 'phylostratr::{place}', expected '{name}' to be of class {exp_type} but got '{obs_type}'",
+      obs_type = class(m),
+      name     = varname,
+      place    = place,
+      exp_type = type
+    ))
+  }
+}

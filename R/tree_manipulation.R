@@ -1,3 +1,26 @@
+#' If nodes are not named, give them default names
+#'
+#' In phylostratr, all nodes in a tree need to be named, since the names are
+#' used to merge trees.
+#'
+#' @param tree phylo object
+#' @param default_names node names to use if they are missing. Must be a vector
+#' with a number of elements equal to the number of nodes in the tree.
+#' @return phylo object
+#' @export
+set_node_names <- function(tree, default_names=paste0("n", nodes(tree))){
+  if(is.null(tree$node.label)){
+    tree$node.label <- default_node_names
+  } else {
+    tree$node.label <- ifelse(
+      is.na(tree$node.label),
+      default_node_names,
+      tree$node.label
+    )
+  }
+  tree
+}
+
 #' Convert node/tip name to id, check size
 #'
 #' @param tree phylo object
@@ -24,29 +47,6 @@ clean_phyid <- function(tree, id, len=NULL){
   if(min(id, na.rm=TRUE) < 1)
     stop("Invalid id, node ids must be greater than 0")
   id
-}
-
-#' If nodes are not named, give them default names
-#'
-#' In phylostratr, all nodes in a tree need to be named, since the names are
-#' used to merge trees.
-#'
-#' @param tree phylo object
-#' @param default_names node names to use if they are missing. Must be a vector
-#' with a number of elements equal to the number of nodes in the tree.
-#' @return phylo object
-#' @export
-set_node_names <- function(tree, default_names=paste0("n", nodes(tree))){
-  if(is.null(tree$node.label)){
-    tree$node.label <- default_node_names
-  } else {
-    tree$node.label <- ifelse(
-      is.na(tree$node.label),
-      default_node_names,
-      tree$node.label
-    )
-  }
-  tree
 }
 
 #' Get the names of all leafs and nodes in a tree
@@ -283,4 +283,63 @@ prune <- function(tree, id){
 merge_phylo <- function(tree, subtrees){
   lapply(subtrees, tree_names) %>% do.call(what='c') %>% unique %>%
     subset_phylo(tree=tree)
+}
+
+
+
+#' Map indices from a to b based off tip labels
+#'
+#' @param a phylo object
+#' @param b phylo object
+#' @return matrix mapping indices from `a` to `b`
+map_ids <- function(a, b){
+  # TODO: assert a and b have the same topology
+  # start with map from the tips of `a` to those of `b`
+  idmaps <- list(matrix(
+      c(
+        clean_phyid(a, a$tip.label),
+        clean_phyid(b, a$tip.label)
+      ), ncol=2))
+  # iteratively find the parents of nodes, until root is reached
+  while(TRUE){
+    last_a <- tail(idmaps, n=1)[[1]][, 1]
+    last_b <- tail(idmaps, n=1)[[1]][, 2]
+    if(!all(is_root(a, last_a))){
+      idmaps <- append(
+        idmaps,
+        list(unique(matrix(c(
+            parent(a, last_a),
+            parent(b, last_b)
+          ), ncol=2)))
+      )
+    } else {
+      break
+    }
+  }
+  # merge the tables
+  idmap <- do.call(rbind, idmaps)
+  # get the unique rows that are not at root
+  idmap <- unique(idmap[!is.na(idmap[, 1]), ])
+  idmap
+}
+
+#' Map nodes names from a to b
+#'
+#' The trees a and by must have the same topology and same tip labels.
+#'
+#' @param a phylo object with node labels
+#' @param b phylo object
+map_node_label <- function(a, b){
+  # get map of indices from a to b
+  idmap <- map_ids(a, b)
+  # get the number of tips
+  offset <- length(a$tip.label)
+  # get the node indices, these are above the tip indices
+  idmap <- idmap[idmap[, 1] > offset, ]
+  # rebase
+  idmap[, 1] <- idmap[, 1] - offset
+  idmap[, 2] <- idmap[, 2] - offset
+  # map names from a to b
+  b$node.label[idmap[, 2]] <- a$node.label[idmap[, 1]]
+  b
 }

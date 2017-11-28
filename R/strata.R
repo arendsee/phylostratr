@@ -11,6 +11,33 @@ take_first <- function(x){
   x
 }
 
+# #' Get a diverse subset of species from tree
+# #'
+# #' @param tree phylo object
+# #' @param n number of species to keep (if greater then the number of species in
+# #' the tree, the tree is returned unchanged)
+# #' @param weights Numeric vector with length equal to the number of species in the tree
+# #' @return phylo object
+# diverse_subtree <- function(tree, n, weights=rep(0, nleafs(tree))){
+#   if(n < 1){
+#     stop('Must select at least one species')
+#   }
+#   if(length(weights) != nleafs(tree)){
+#     stop('The number of weights must equal the number of species')
+#   }
+#
+#   if(is.null(tree$edge.length)){
+#
+#   }
+#
+#   # start by taking the species with the highest phylogeny independent weight
+#   chosen <- head(which.max(weights), 1)
+#
+#   # then scale weights to penalize species that are close to the chosen species
+#   scaled.weights <- weights -
+#
+# }
+
 #' Make a filter
 #'
 #' @param n The number of taxa that must be present before resorting to
