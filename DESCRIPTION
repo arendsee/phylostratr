@@ -15,6 +15,7 @@ Imports:
     glue,
     gridExtra,
     magrittr,
+    methods,
     phytools,
     readr,
     rentrez,

@@ -10,11 +10,11 @@
 #' @export
 set_node_names <- function(tree, default_names=paste0("n", nodes(tree))){
   if(is.null(tree$node.label)){
-    tree$node.label <- default_node_names
+    tree$node.label <- default_names
   } else {
     tree$node.label <- ifelse(
       is.na(tree$node.label),
-      default_node_names,
+      default_names,
       tree$node.label
     )
   }
@@ -101,6 +101,8 @@ nleafs <- function(tree){
 
 #' Find the ancestors of a node
 #'
+#' @param tree phylo object
+#' @param id A single name or index
 #' @examples
 #' data(atree)
 #' lineage(atree, 't1')

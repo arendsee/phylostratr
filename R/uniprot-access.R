@@ -105,7 +105,7 @@ uniprot_cousins <- function(taxid){
       lapply(Filter, f=is.data.frame) %>%
       lapply(lineages_to_phylo, remove_subspecies=TRUE) %>%
       Filter(f=function(x) length(x$tip.label) > 0) %>%
-      Reduce(f=function(a,b){bind.tree(a,b,where='root')})
+      Reduce(f=function(a,b){ape::bind.tree(a,b,where='root')})
   })
   names(aunts) <- tree_names(tree)[lin]
   aunts <- aunts[!sapply(aunts, is.null)]
@@ -114,7 +114,7 @@ uniprot_cousins <- function(taxid){
   final <- subset_phylo(tree, names(aunts), collapse=FALSE, descend=FALSE)
   # Bind each stratum onto the final tree
   for(i in names(aunts)){
-    final <- bind.tree(final, aunts[[i]], where=clean_phyid(final, i))
+    final <- ape::bind.tree(final, aunts[[i]], where=clean_phyid(final, i))
   }
 
   final

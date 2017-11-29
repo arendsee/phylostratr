@@ -6,6 +6,11 @@
 \usage{
 lineage(tree, id)
 }
+\arguments{
+\item{tree}{phylo object}
+
+\item{id}{A single name or index}
+}
 \description{
 Find the ancestors of a node
 }

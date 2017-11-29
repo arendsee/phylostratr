@@ -29,5 +29,5 @@ data(atree)
 diverse_subtree(atree, 4)
 
 # do not to include the 't1' species
-diverse_subtree(atree, 4, weights=c(0,1,1,1,1,1,1,1,1,1,1))
+diverse_subtree(atree, 4, weights=c(0,1,1,1,1,1,1,1,1,1))
 }

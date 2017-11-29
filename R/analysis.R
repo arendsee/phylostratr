@@ -14,18 +14,18 @@ find_revenants <- function(d, classifier=classify_by_evalue(1e-5)){
   focal_ps <- max(d$ps)
   d %>%
     dplyr::mutate(has_hit = classifier(d)) %>%
-    dplyr::select(staxid, qseqid, ps, mrca, has_hit) %>%
-    dplyr::group_by(qseqid) %>%
-    dplyr::mutate(basal_ps = min(c(focal_ps, ps[has_hit]))) %>%
-    dplyr::group_by(qseqid, ps) %>%
-    dplyr::mutate(mrca_has_hit = any(has_hit)) %>%
-    dplyr::group_by(qseqid) %>%
-    dplyr::filter((ps > basal_ps) & (!mrca_has_hit)) %>%
+    dplyr::select(.data$staxid, .data$qseqid, .data$ps, .data$mrca, .data$has_hit) %>%
+    dplyr::group_by(.data$qseqid) %>%
+    dplyr::mutate(basal_ps = min(c(.data$focal_ps, .data$ps[.data$has_hit]))) %>%
+    dplyr::group_by(.data$qseqid, .data$ps) %>%
+    dplyr::mutate(mrca_has_hit = any(.data$has_hit)) %>%
+    dplyr::group_by(.data$qseqid) %>%
+    dplyr::filter((.data$ps > .data$basal_ps) & (!.data$mrca_has_hit)) %>%
     dplyr::ungroup() %>%
-    dplyr::select(qseqid, ps, mrca, basal_ps) %>%
+    dplyr::select(.data$qseqid, .data$ps, .data$mrca, .data$basal_ps) %>%
     dplyr::distinct() %>%
-    dplyr::add_count(qseqid) %>%
-    dplyr::arrange(qseqid, ps)
+    dplyr::add_count(.data$qseqid) %>%
+    dplyr::arrange(.data$qseqid, .data$ps)
 }
 
 #' Find the focal sequences that are not represented in the given strata
@@ -43,10 +43,10 @@ constrict <- function(d, on, revenants=NULL, ...){
     revenants <- find_revenants(d, ...)
   }
   seqids <- revenants %>%
-    dplyr::group_by(qseqid) %>%
-    dplyr::mutate(constrict = all(on %in% ps)) %>%
+    dplyr::group_by(.data$qseqid) %>%
+    dplyr::mutate(constrict = all(on %in% .data$ps)) %>%
     dplyr::ungroup() %>%
-    dplyr::filter(constrict) %$% qseqid %>% unique
+    dplyr::filter(.data$constrict)$qseqid %>% unique
   d[d$qseqid %in% seqids, ]
 }
 

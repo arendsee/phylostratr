@@ -1,6 +1,7 @@
 #' @importFrom magrittr "%>%"
 #' @importFrom rlang .data
 #' @importFrom utils head tail
+#' @importFrom methods new
 #' @importFrom grDevices dev.off pdf
 utils::globalVariables(c("%>%", "%$%", "."))
 NULL

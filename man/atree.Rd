@@ -13,9 +13,10 @@ A simple, bifurcating tree for use in util examples
 }
 \examples{
 # Here is the code used to generate this tree
+require(ape)
 set.seed(42)
-atree <- rtree(10)
-atree$tip.label <- paste0("t", 1:ntip(atree))
-atree$node.label <- paste0("n", 1:a$Nnode + ntip(atree))
+atree <- ape::rtree(10)
+atree$tip.label <- paste0("t", 1:nleafs(atree))
+atree$node.label <- paste0("n", 1:atree$Nnode + nleafs(atree))
 }
 \keyword{datasets}
