@@ -10,11 +10,7 @@ uniprot_cousins(taxid)
 \item{taxid}{The focal species NCBI taxon id}
 }
 \value{
-data.tree with strata from the NCBI lineage. Each stratum has one or
-more representative clades, which are the immediate, outgroup children of
-the stratum's mose recent common ancestor. For each of the 'aunts', all
-descendent species that are represented in UniProt are added included. Note
-this is a flat tree, the topology between aunt and descendent is lost.
+Strata object
 }
 \description{
 Given a focal taxid, build a tree of

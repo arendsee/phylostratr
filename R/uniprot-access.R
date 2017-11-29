@@ -87,11 +87,7 @@ uniprot_fill_strata <- function(strata, ...){
 #' Given a focal taxid, build a tree of 
 #'
 #' @param taxid The focal species NCBI taxon id
-#' @return data.tree with strata from the NCBI lineage. Each stratum has one or
-#' more representative clades, which are the immediate, outgroup children of
-#' the stratum's mose recent common ancestor. For each of the 'aunts', all
-#' descendent species that are represented in UniProt are added included. Note
-#' this is a flat tree, the topology between aunt and descendent is lost.
+#' @return Strata object
 #' @export
 uniprot_cousins <- function(taxid){
   tree <- ncbi_aunts(taxid)
@@ -117,7 +113,10 @@ uniprot_cousins <- function(taxid){
     final <- ape::bind.tree(final, aunts[[i]], where=clean_phyid(final, i))
   }
 
-  final
+  Strata(
+    focal_species = as.character(taxid),         
+    tree = final
+  )
 }
 
 #' Retrive the sequences from the uniprot cousins

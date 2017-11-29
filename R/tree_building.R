@@ -18,7 +18,7 @@ lineages_to_phylo <- function(lineages, remove_subspecies=FALSE){
       (
         sum(
           x[x$rank == 'species', 'id'] == 
-          lapply(lineages, function(y) y$id) %>% unlist %>% unname
+          (lapply(lineages, function(y) y$id) %>% unlist %>% unname)
         ) == 1
       )
     }, lineages)

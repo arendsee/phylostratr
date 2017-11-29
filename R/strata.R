@@ -49,6 +49,41 @@ diverse_subtree <- function(tree, n, weights=rep(1, nleafs(tree))){
   subset_phylo(tree, chosen_taxa)
 }
 
+#' Apply f to each outgroup branch ascending node id
+#'
+#' @param strata Strata object
+#' @param f A function of a phylo object that return a phylo object
+#' @param id A name or index
+#' @param ... Additional arguments passed to f
+#' @return Strata object
+strata_apply <- function(strata, f, id=strata@focal_species, ...){
+  lin <- lineage(strata@tree, id)
+
+  outgroups <- lapply(lin, function(ancestor){
+    outgroup <- tree_names(strata@tree)[sisters(strata@tree, ancestor)] %>%
+      subset_phylo(tree=strata@tree, collapse=FALSE, descend=TRUE) %>%
+      f(...)
+  })
+  names(outgroups) <- tree_names(tree)[lin]
+  outgroups <- outgroups[!sapply(outgroups, is.null)]
+
+  # Get backbone of final tree (losing any unrepresented nodes)
+  final <- lineage_to_ancestor_tree(names(aunts))
+  # Bind each stratum onto the final tree
+  for(i in names(aunts)){
+    final <- ape::bind.tree(final, aunts[[i]], where=clean_phyid(final, i))
+  }
+
+  new_data <- list(rep(NA, nleafs(final)))
+  names(new_data) <- final$tip.label
+  common <- intersect(final$tip.label, tree$tip.label)
+  new_data[common] <- strata@data[common]
+  strata@data <- new_data
+  strata@tree <- final
+
+  strata
+}
+
 ### FIXME: nahhh, just kill me
 # .make_taxidmap <- function(x){
 #   data.tree::Get(Traverse(x), 'name') %>% names %>% taxid2name
