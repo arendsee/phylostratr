@@ -2,14 +2,12 @@
 % Please edit documentation in R/uniprot-access.R
 \name{uniprot_cousins}
 \alias{uniprot_cousins}
-\title{Given a focal taxid, find the uniprot descendents of a taxon's aunts}
+\title{Given a focal taxid, build a tree of}
 \usage{
-uniprot_cousins(taxid, filter)
+uniprot_cousins(taxid)
 }
 \arguments{
 \item{taxid}{The focal species NCBI taxon id}
-
-\item{...}{Additional arguments sent to \code{uniprot_downstream_ids}}
 }
 \value{
 data.tree with strata from the NCBI lineage. Each stratum has one or
@@ -19,5 +17,5 @@ descendent species that are represented in UniProt are added included. Note
 this is a flat tree, the topology between aunt and descendent is lost.
 }
 \description{
-Given a focal taxid, find the uniprot descendents of a taxon's aunts
+Given a focal taxid, build a tree of
 }

@@ -49,9 +49,10 @@ diverse_subtree <- function(tree, n, weights=rep(1, nleafs(tree))){
   subset_phylo(tree, chosen_taxa)
 }
 
-.make_taxidmap <- function(x){
-  data.tree::Get(Traverse(x), 'name') %>% names %>% taxid2name
-}
+### FIXME: nahhh, just kill me
+# .make_taxidmap <- function(x){
+#   data.tree::Get(Traverse(x), 'name') %>% names %>% taxid2name
+# }
 
 #' Substitute names for taxids in strata
 #'
@@ -64,14 +65,15 @@ diverse_subtree <- function(tree, n, weights=rep(1, nleafs(tree))){
 #' @return data.tree, where all names are scientific names
 #' @export
 as_named_strata <- function(x, scinames=NULL){
-  scinames <- .make_taxidmap(x, depth)
-  x$Do(
-    data.tree::Traverse(x),
-    function(x){
-      x$name <- scinames[names(x)]
-    }
-  )
-  x
+  ### FIXME: convert to tree
+  # scinames <- .make_taxidmap(x, depth)
+  # x$Do(
+  #   data.tree::Traverse(x),
+  #   function(x){
+  #     x$name <- scinames[names(x)]
+  #   }
+  # )
+  # x
 }
 
 #' Map a function over a specific stratum
@@ -81,9 +83,10 @@ as_named_strata <- function(x, scinames=NULL){
 #' @param fun A function of the aunt list
 #' @export
 do_on <- function(cousin_sets, stratum_id, fun){
-  stratum_id <- as.character(stratum_id)
-  cousin_sets[[stratum_id]] <- fun(cousin_sets[[stratum_id]]) 
-  cousin_sets
+  ### FIXME: convert to tree
+  # stratum_id <- as.character(stratum_id)
+  # cousin_sets[[stratum_id]] <- fun(cousin_sets[[stratum_id]])
+  # cousin_sets
 }
 
 #' Add an id to a representative list
@@ -94,10 +97,11 @@ do_on <- function(cousin_sets, stratum_id, fun){
 #' @param new_id The ID to be added
 #' @export
 add_to <- function(cousin_sets, stratum_id, aunt_id, new_id){
-  stratum_id <- as.character(stratum_id)
-  aunt_id <- as.character(aunt_id)
-  cousin_sets[[stratum_id]][[aunt_id]] <- append(cousin_sets[[stratum_id]][[aunt_id]], new_id)
-  cousin_sets
+  ### FIXME: convert to tree
+  # stratum_id <- as.character(stratum_id)
+  # aunt_id <- as.character(aunt_id)
+  # cousin_sets[[stratum_id]][[aunt_id]] <- append(cousin_sets[[stratum_id]][[aunt_id]], new_id)
+  # cousin_sets
 }
 
 #' Clear all representatives of a given aunt
@@ -107,10 +111,11 @@ add_to <- function(cousin_sets, stratum_id, aunt_id, new_id){
 #' @param aunt_id aunt NCBI taxonomy id
 #' @export
 clear_aunt <- function(cousin_sets, stratum_id, aunt_id){
-  stratum_id <- as.character(stratum_id)
-  aunt_id <- as.character(aunt_id)
-  cousin_sets[[stratum_id]][[aunt_id]] <- integer(0)
-  cousin_sets
+  ### FIXME: convert to tree
+  # stratum_id <- as.character(stratum_id)
+  # aunt_id <- as.character(aunt_id)
+  # cousin_sets[[stratum_id]][[aunt_id]] <- integer(0)
+  # cousin_sets
 }
 
 #' Clear all representatives of a given stratum
@@ -119,8 +124,9 @@ clear_aunt <- function(cousin_sets, stratum_id, aunt_id){
 #' @param stratum_id Stratum NCBI taxonomy id
 #' @export
 clear_stratum <- function(cousin_sets, stratum_id){
-  cousin_sets[[as.character(stratum_id)]] <- vapply(FUN.VALUE=integer(0), function(x) integer(0))
-  cousin_sets
+  ### FIXME: convert to tree
+  # cousin_sets[[as.character(stratum_id)]] <- vapply(FUN.VALUE=integer(0), function(x) integer(0))
+  # cousin_sets
 }
 
 #' Add representatives to the strata
@@ -130,21 +136,22 @@ clear_stratum <- function(cousin_sets, stratum_id){
 #' @param taxids NCBI ids of representatives to add
 #' @export
 add_representative <- function(cousin_sets, scinames=NULL, taxids=NULL){
-  if(!is.null(scinames)){
-    taxids <- taxize::get_uid(scinames, verbose=FALSE) %>% as.character
-  }
-  lineages <- taxize::classification(taxids, db='ncbi')
-
-  taxids <- as.character(taxids)
-
-  for(taxid in names(lineages)){
-    lineage <- lineages[[taxid]]
-    stratum <- lineage$id[lineage$id %in% names(cousin_sets)] %>% tail(1)
-    aunt <- lineage$id[which(lineage$id %in% stratum) + 1]
-    cousin_sets <- add_to(cousin_sets, stratum, aunt, taxid)
-  }
-
-  cousin_sets
+  ### FIXME: convert to tree
+  # if(!is.null(scinames)){
+  #   taxids <- taxize::get_uid(scinames, verbose=FALSE) %>% as.character
+  # }
+  # lineages <- taxize::classification(taxids, db='ncbi')
+  #
+  # taxids <- as.character(taxids)
+  #
+  # for(taxid in names(lineages)){
+  #   lineage <- lineages[[taxid]]
+  #   stratum <- lineage$id[lineage$id %in% names(cousin_sets)] %>% tail(1)
+  #   aunt <- lineage$id[which(lineage$id %in% stratum) + 1]
+  #   cousin_sets <- add_to(cousin_sets, stratum, aunt, taxid)
+  # }
+  #
+  # cousin_sets
 }
 
 #' Print a strata list
@@ -152,21 +159,22 @@ add_representative <- function(cousin_sets, scinames=NULL, taxids=NULL){
 #' @param x A named or unnamed strata
 #' @export
 print_strata <- function(x){
-  for(stratum in names(x)){
-    cat(sprintf('%s\n', stratum))
-    if(length(unlist(x[[stratum]])) == 0){
-      cat("  NO REPRESENTATIVE\n")
-    } else {
-      for(aunt in names(x[[stratum]])){
-        # If the aunt has no included children, ignore it
-        if(length(x[[stratum]][[aunt]]) > 0)
-          cat(sprintf('  %s\n', aunt))
-        for(species in x[[stratum]][[aunt]]){
-          cat(sprintf('    %s\n', species))
-        }
-      }
-    }
-  }
+  ### FIXME: convert to tree
+  # for(stratum in names(x)){
+  #   cat(sprintf('%s\n', stratum))
+  #   if(length(unlist(x[[stratum]])) == 0){
+  #     cat("  NO REPRESENTATIVE\n")
+  #   } else {
+  #     for(aunt in names(x[[stratum]])){
+  #       # If the aunt has no included children, ignore it
+  #       if(length(x[[stratum]][[aunt]]) > 0)
+  #         cat(sprintf('  %s\n', aunt))
+  #       for(species in x[[stratum]][[aunt]]){
+  #         cat(sprintf('    %s\n', species))
+  #       }
+  #     }
+  #   }
+  # }
 }
 
 #' Get a map from taxid id to MRCA and stratum level
@@ -177,17 +185,18 @@ print_strata <- function(x){
 #' vector of taxon IDs.
 #' @export
 strata2mrca <- function(strata){
-  lapply(
-    seq_along(strata),
-    function(i) {
-      taxa <- unlist(strata[[i]])
-      data.frame(
-        taxid = taxa,
-        mrca  = rep(names(strata)[i], length(taxa)),
-        ps    = rep(i, length(taxa))
-      )
-    }
-  ) %>% do.call(what=rbind) %>% { rownames(.) <- NULL; . }
+  ### FIXME: convert to tree
+  # lapply(
+  #   seq_along(strata),
+  #   function(i) {
+  #     taxa <- unlist(strata[[i]])
+  #     data.frame(
+  #       taxid = taxa,
+  #       mrca  = rep(names(strata)[i], length(taxa)),
+  #       ps    = rep(i, length(taxa))
+  #     )
+  #   }
+  # ) %>% do.call(what=rbind) %>% { rownames(.) <- NULL; . }
 }
 
 

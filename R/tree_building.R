@@ -2,9 +2,28 @@
 #'
 #' @param lineages list of lineages, where each lineage is a data.frame with
 #' the columns id and name
+#' @param remove_subspecies Should leafs with subtrees be removed. Currently if
+#' one lineage uses a specific species as a leaf and a second lineage uses a
+#' child of the species, a malformed tree is created where one node is both a
+#' tip and a node.
 #' @return phylo object with node names and no branch lengths
-lineages_to_phylo <- function(lineages){
-  # get species names
+lineages_to_phylo <- function(lineages, remove_subspecies=FALSE){
+
+  if(remove_subspecies)
+    lineages <- Filter(function(x){
+      # either the lineage terminates in a species
+      (tail(x$rank, 1) == 'species') ||
+      # or it is a subspecies, where no other member of the lineage is
+      # species-terminal
+      (
+        sum(
+          x[x$rank == 'species', 'id'] == 
+          lapply(lineages, function(y) y$id) %>% unlist %>% unname
+        ) == 1
+      )
+    }, lineages)
+
+  # get tip names (usually species)
   tip.label <- unique(sapply(lineages, function(x) tail(x$name, 1)))
 
   # get species taxon IDs

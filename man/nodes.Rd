@@ -4,10 +4,14 @@
 \alias{nodes}
 \title{Get node indices}
 \usage{
-nodes(tree)
+nodes(tree, rebase = FALSE, byname = FALSE)
 }
 \arguments{
 \item{tree}{phylo object}
+
+\item{rebase}{logical Make indices base 1}
+
+\item{byname}{logical Return node labels, rather than indices}
 }
 \description{
 Get node indices

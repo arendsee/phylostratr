@@ -4,10 +4,12 @@
 \alias{leafs}
 \title{Get leaf indices}
 \usage{
-leafs(tree)
+leafs(tree, byname = FALSE)
 }
 \arguments{
 \item{tree}{phylo object}
+
+\item{byname}{logical Return leaf labels, rather than indices}
 }
 \description{
 Get leaf indices

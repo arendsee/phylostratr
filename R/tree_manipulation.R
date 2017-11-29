@@ -60,17 +60,35 @@ tree_names <- function(tree){
 #' Get leaf indices
 #'
 #' @param tree phylo object
+#' @param byname logical Return leaf labels, rather than indices
 #' @export
-leafs <- function(tree){
-  1:length(tree$tip.label)
+leafs <- function(tree, byname=FALSE){
+  ids <- 1:length(tree$tip.label)
+  if(byname){
+    tree$tip.label[ids]
+  } else {
+    ids
+  }
 }
 
 #' Get node indices
 #'
 #' @param tree phylo object
+#' @param rebase logical Make indices base 1
+#' @param byname logical Return node labels, rather than indices
 #' @export
-nodes <- function(tree){
-  (length(tree$tip.label)+1):(nleafs(tree) + tree$Nnode)
+nodes <- function(tree, rebase=FALSE, byname=FALSE){
+  ids <- (length(tree$tip.label)+1):(nleafs(tree) + tree$Nnode)
+  ids_base1 <- ids - nleafs(tree)
+  if(byname){
+    if(is.null(tree$node.label))
+      stop("Cannot get nodes by name since tree has no node labels")
+    tree$node.label[ids_base1]
+  } else if(rebase){
+    ids_base1
+  } else {
+    ids
+  }
 }
 
 #' Get the number of leafs
@@ -238,6 +256,20 @@ subtree <- function(tree, id){
   subset_phylo(tree, descendent_nodes(tree, id))
 }
 
+#' Get the sisters of a node
+#'
+#' @param tree phylo object
+#' @param id vector of ids or names
+#' @return integer vector of indices
+#' @export
+sisters <- function(tree, id){
+  id <- clean_phyid(tree, id, len=1)
+  if(is_root(tree, id)){
+    stop("Root has no parent and thus no sisters")
+  }
+  setdiff(children(tree, parent(tree, id)), id)
+}
+
 #' Get list of sister trees for a given node
 #'
 #' @param tree phylo object
@@ -245,8 +277,7 @@ subtree <- function(tree, id){
 #' @return list of phylo objects
 #' @export
 sister_trees <- function(tree, id){
-  id <- clean_phyid(tree, id, len=1)
-  sister_ids <- setdiff(children(tree, parent(tree, id)), id)
+  sister_ids <- sisters(tree, id)
   sister_trees <- lapply(sister_ids, subtree, tree=tree)
   if(length(sister_trees) > 0){
     names(sister_trees) <- sister_ids

@@ -84,36 +84,40 @@ uniprot_fill_strata <- function(strata, ...){
   strata
 }
 
-#' Given a focal taxid, find the uniprot descendents of a taxon's aunts
+#' Given a focal taxid, build a tree of 
 #'
 #' @param taxid The focal species NCBI taxon id
-#' @param ... Additional arguments sent to \code{uniprot_downstream_ids}
 #' @return data.tree with strata from the NCBI lineage. Each stratum has one or
 #' more representative clades, which are the immediate, outgroup children of
 #' the stratum's mose recent common ancestor. For each of the 'aunts', all
 #' descendent species that are represented in UniProt are added included. Note
 #' this is a flat tree, the topology between aunt and descendent is lost.
 #' @export
-uniprot_cousins <- function(taxid, filter){
+uniprot_cousins <- function(taxid){
   tree <- ncbi_aunts(taxid)
-  data.tree::Do(
-    data.tree::Traverse(tree, filterFun=data.tree::isLeaf),
-    function(node){
-      children <- uniprot_downstream_ids(taxid)[-1]
-      for(child in children){
-        node$AddChild(child)
-      }
-      node$type = 'aunt'
+  lin <- lineage(tree, as.character(taxid))[-1]
+  aunts <- lapply(lin, function(ancestor){
+    aunts   <- tree_names(tree)[sisters(tree, ancestor)]
+    cousins <- lapply(aunts, uniprot_downstream_ids)
+    cousins %>%
+      Filter(f=function(x) { length(x) > 0 }) %>%
+      lapply(taxizedb::classification) %>%
+      lapply(Filter, f=is.data.frame) %>%
+      lapply(lineages_to_phylo, remove_subspecies=TRUE) %>%
+      Filter(f=function(x) length(x$tip.label) > 0) %>%
+      Reduce(f=function(a,b){bind.tree(a,b,where='root')})
   })
+  names(aunts) <- tree_names(tree)[lin]
+  aunts <- aunts[!sapply(aunts, is.null)]
 
-  is_stratum <- function(node) {
-    child_types <- unlist(sapply(node$children, function(n) n$type))
-    all(!is.null(child_types) & (child_types == "aunt"))
+  # Get backbone of final tree (losing any unrepresented nodes)
+  final <- subset_phylo(tree, names(aunts), collapse=FALSE, descend=FALSE)
+  # Bind each stratum onto the final tree
+  for(i in names(aunts)){
+    final <- bind.tree(final, aunts[[i]], where=clean_phyid(final, i))
   }
 
-  data.tree::Do(data.tree::Traverse(tree, filterFun=is_stratum), filter)
-
-  tree
+  final
 }
 
 #' Retrive the sequences from the uniprot cousins
