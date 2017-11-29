@@ -1,59 +1,52 @@
-#' Select representatives for a strata
+#' Get a diverse subset of species from tree
 #'
-#' @param x data.tree containing one stratum, especially in the NCBI common
-#' tree case, this may contain many children.
-#' @return data.tree where all but the first child of each immediate child of
-#' the stratum root is culled.
+#' @param tree phylo object
+#' @param n number of species to keep (if greater then the number of species in
+#' the tree, the tree is returned unchanged)
+#' @param weights Numeric vector with length equal to the number of species in
+#' the tree. A weight of 1 will have no influence, lower than one means the
+#' species is less likely to be selected.
+#' @return phylo object
 #' @export
-take_first <- function(x){
-  if(!is.null(x$children))
-    Do(x$children, function(node) node$children <- head(node$children, 1))
-  x
-}
-
-# #' Get a diverse subset of species from tree
-# #'
-# #' @param tree phylo object
-# #' @param n number of species to keep (if greater then the number of species in
-# #' the tree, the tree is returned unchanged)
-# #' @param weights Numeric vector with length equal to the number of species in the tree
-# #' @return phylo object
-# diverse_subtree <- function(tree, n, weights=rep(0, nleafs(tree))){
-#   if(n < 1){
-#     stop('Must select at least one species')
-#   }
-#   if(length(weights) != nleafs(tree)){
-#     stop('The number of weights must equal the number of species')
-#   }
-#
-#   if(is.null(tree$edge.length)){
-#
-#   }
-#
-#   # start by taking the species with the highest phylogeny independent weight
-#   chosen <- head(which.max(weights), 1)
-#
-#   # then scale weights to penalize species that are close to the chosen species
-#   scaled.weights <- weights -
-#
-# }
-
-#' Make a filter
+#' @examples
+#' data(atree)
+#' 
+#' # default
+#' diverse_subtree(atree, 4)
 #'
-#' @param n The number of taxa that must be present before resorting to
-#' \code{fun}
-#' @param fun The filter function to use for strata with more than \code{n}
-#' representatives
-#' @export
-#' @return A filter that can be used in \code{uniprot_cousin_proteomes}
-make_do_if_over <- function(n=3, fun=take_first){
-  function(node){
-    if(n > length(node$leaves)){
-      fun(node)
+#' # do not to include the 't1' species
+#' diverse_subtree(atree, 4, weights=c(0,1,1,1,1,1,1,1,1,1,1))
+diverse_subtree <- function(tree, n, weights=rep(1, nleafs(tree))){
+  if(n < 1){
+    stop('Must select at least one species')
+  }
+  if(length(weights) != nleafs(tree)){
+    stop('The number of weights must equal the number of species')
+  }
+
+  n <- min(n, nleafs(tree))
+
+  lins <- lapply(1:nleafs(tree), lineage, tree=tree)
+
+  for(i in 1:n){
+    if(i == 1){
+      # start by taking the species with the highest phylogeny independent weight
+      chosen_taxa <- head(which.max(weights), 1)
+      # initial list of visited taxa
+      seen <- lins[[chosen_taxa]]
     } else {
-      node 
+      # then scale weights to penalize species that are close to the chosen species
+      scaled.weights <- weights *
+        sapply(lins, function(x){
+          1 - length(intersect(x, seen)) / length(x)
+        })
+      new_taxon <- head(which.max(scaled.weights), 1)
+      seen <- union(seen, lins[[new_taxon]])
+      chosen_taxa <- c(chosen_taxa, new_taxon)
     }
   }
+
+  subset_phylo(tree, chosen_taxa)
 }
 
 .make_taxidmap <- function(x){

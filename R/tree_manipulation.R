@@ -222,7 +222,7 @@ subset_phylo <- function(tree, id, collapse=TRUE, descend=TRUE){
   }
   if(collapse){
     # collapse the edges of nodes that have only a single descendent 
-    new_tree <- collapse.singles(new_tree)
+    new_tree <- ape::collapse.singles(new_tree)
   }
   new_tree
 }
