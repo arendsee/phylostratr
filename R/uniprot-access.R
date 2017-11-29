@@ -111,7 +111,7 @@ uniprot_cousins <- function(taxid){
   aunts <- aunts[!sapply(aunts, is.null)]
 
   # Get backbone of final tree (losing any unrepresented nodes)
-  final <- subset_phylo(tree, names(aunts), collapse=FALSE, descend=FALSE)
+  final <- lineage_to_ancestor_tree(names(aunts))
   # Bind each stratum onto the final tree
   for(i in names(aunts)){
     final <- ape::bind.tree(final, aunts[[i]], where=clean_phyid(final, i))
@@ -226,7 +226,6 @@ use_recommended_prokaryotes <- function(x){
     'prokaryote_sample.rda',
     package='phylostratr'
   ))
-
   # If the basal stratum is already cellular organisms, replace it
   if(as.integer(names(x)[1]) == 131567L){
     x[[1]] <- prokaryote_sample
