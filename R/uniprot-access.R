@@ -177,7 +177,13 @@ uniprot_cousin_proteomes <- function(
 }
 
 
-uniprot_sample_prokaryotes <- function(downto='class'){
+uniprot_sample_prokaryotes <- function(downto='class', remake=FALSE){
+
+  old.file <- system.file('extdata', 'prokaryote_sample.rda', package='phylostratr')
+  if(!remake && file.exists(old.file)){
+    return(readRDS(old.file))
+  }
+
   # Get all bacterial and Archael classes (class is one level below phylum)
   prokaryote_classes <- taxize::downstream(c('eubacteria', 'Archaea'), downto=downto, db='ncbi')
 
@@ -210,7 +216,9 @@ uniprot_sample_prokaryotes <- function(downto='class'){
       lapply(as.character) %>%
       lapply(sample_taxids, size=1) %>% unlist
 
-  list(`2`=bacteria_taxids, `2157`=archaea_taxids)
+  c(bacteria_taxids, archaea_taxids) %>%
+    taxizedb::classification() %>%
+    lineages_to_phylo
 }
 
 #' Use the prokaryotic species that I use
@@ -218,9 +226,8 @@ uniprot_sample_prokaryotes <- function(downto='class'){
 #' This set of species is currently not all that great. It is a sample of
 #' bacterial and archaeal species from each class in each domain.
 #'
-#' @param x A named list of named lists, where all names are NCBI taxon IDs and
-#' the leaves are vectors of species-level IDs.
-#' @return x with the basal stratum (ID=131567) replaced
+#' @param x Strata object
+#' @return x Strata object with the basal stratum (ID=131567) replaced
 #' @export
 use_recommended_prokaryotes <- function(x){
   prokaryote_sample <- readRDS(system.file(
@@ -228,6 +235,7 @@ use_recommended_prokaryotes <- function(x){
     'prokaryote_sample.rda',
     package='phylostratr'
   ))
+
   # If the basal stratum is already cellular organisms, replace it
   if(as.integer(names(x)[1]) == 131567L){
     x[[1]] <- prokaryote_sample

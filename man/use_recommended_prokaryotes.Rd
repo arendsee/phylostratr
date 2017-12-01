@@ -7,11 +7,10 @@
 use_recommended_prokaryotes(x)
 }
 \arguments{
-\item{x}{A named list of named lists, where all names are NCBI taxon IDs and
-the leaves are vectors of species-level IDs.}
+\item{x}{Strata object}
 }
 \value{
-x with the basal stratum (ID=131567) replaced
+x Strata object with the basal stratum (ID=131567) replaced
 }
 \description{
 This set of species is currently not all that great. It is a sample of
