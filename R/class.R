@@ -11,7 +11,8 @@ setClass(
 
 #' Initialize a Strata object
 #'
-#' @param focal_species The name of the focal species. This name should match the tip label from the tree.
+#' @param focal_name The name of the focal species. This name should match the tip label from the tree.
+#' @param focal_id The ID (e.g. NCBI taxonomy) of the focal species
 #' @param tree 'phylo' object
 #' @param data List of data. This is where filenames for downloaded proteins,
 #' among other things, will be stored.
