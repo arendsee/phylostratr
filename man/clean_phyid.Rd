@@ -4,7 +4,7 @@
 \alias{clean_phyid}
 \title{Convert node/tip name to id, check size}
 \usage{
-clean_phyid(tree, id, len = NULL)
+clean_phyid(tree, id, len = NULL, type = "auto")
 }
 \arguments{
 \item{tree}{phylo object}
@@ -12,6 +12,11 @@ clean_phyid(tree, id, len = NULL)
 \item{id}{integer id or a node label}
 
 \item{len}{require id to be of this length (NULL for no requirement)}
+
+\item{type}{['auto', 'index', or 'name'], is 'index' then the id is expected
+to be an index in the phylo object, if 'name' it is expected to be a node or
+tip name, if 'auto' the value is assumed to be a name if it is a character
+string.}
 }
 \value{
 on success, return a valid integrel id

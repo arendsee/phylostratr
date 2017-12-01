@@ -26,27 +26,60 @@ set_node_names <- function(tree, default_names=paste0("n", nodes(tree))){
 #' @param tree phylo object
 #' @param id integer id or a node label
 #' @param len require id to be of this length (NULL for no requirement)
+#' @param type ['auto', 'index', or 'name'], is 'index' then the id is expected
+#' to be an index in the phylo object, if 'name' it is expected to be a node or
+#' tip name, if 'auto' the value is assumed to be a name if it is a character
+#' string.
 #' @return on success, return a valid integrel id
-clean_phyid <- function(tree, id, len=NULL){
+clean_phyid <- function(tree, id, len=NULL, type='auto'){
+  is_integer <- function(i){
+    if(is.character(i)){
+      all(grepl("^[0-9]+$", id, perl=TRUE))
+    } else if(is.numeric(i)){
+      !all((i %% 1) > 1e-6)
+    } else {
+      FALSE
+    }
+  }
+  if(!is.null(len) && length(id) != len) {
+    stop("Expected ", len, " id(s), got ", length(id))
+  }
   if(length(id) == 0){
     return(integer(0)) 
   }
-  if(is.character(id)){
-    names <- tree_names(tree)
-    if(all(id %in% names)){
-      id <- match(id, names)
-    } else if(!all(grepl("^[0-9]+$", id, perl=TRUE))) {
-      stop("Could not find nodes with the requested labels")
+  index <- if(type == 'auto'){
+    # If all ids match node/tip names, assume they are names ...
+    if(all(id %in% tree_names(tree))){
+      match(id, tree_names(tree))
+    # if all the ids are integers, assume they are indices
+    } else if(is_integer(id)) {
+      as.integer(id)
+    # otherwise, die screaming
+    } else {
+      stop("Could not interpret ids")
     }
+  } else if(type == 'index'){
+    if(is_integer(id)) {
+      as.integer(id)
+    } else {
+      stop("Could not find requested ids")
+    }
+  } else if(type == 'name'){
+      if(all(id %in% tree_names(tree))){
+        match(id, tree_names(tree))
+      } else {
+        stop("Could not find nodes with requested names")
+      }
+  } else {
+    stop('Unsupported type')
   }
-  if(!is.null(len) && length(id) != len)
-    stop("Expected ", len, " id(s), got ", length(id))
-  id <- as.integer(id)
-  if(max(id, na.rm=TRUE) > tree_size(tree))
+  if(max(index, na.rm=TRUE) > tree_size(tree)){
     stop("Cannot get node ", max(id, na.rm=TRUE), " for tree of size ", tree_size(tree))
-  if(min(id, na.rm=TRUE) < 1)
+  }
+  if(min(index, na.rm=TRUE) < 1){
     stop("Invalid id, node ids must be greater than 0")
-  id
+  }
+  index
 }
 
 #' Get the names of all leafs and nodes in a tree
