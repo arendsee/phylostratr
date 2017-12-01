@@ -90,33 +90,6 @@ strata_apply <- function(strata, f, id=strata@focal_species, ...){
   strata
 }
 
-### FIXME: nahhh, just kill me
-# .make_taxidmap <- function(x){
-#   data.tree::Get(Traverse(x), 'name') %>% names %>% taxid2name
-# }
-
-#' Substitute names for taxids in strata
-#'
-#' Be careful with this function; data.tree uses reference semantics so this
-#' function can have unintended side-effects.
-#'
-#' @param x data.tree, where node names are NCBI taxon IDs
-#' @param scinames named character vector, where names are NCBI taxon IDs and
-#' elements are scientific names
-#' @return data.tree, where all names are scientific names
-#' @export
-as_named_strata <- function(x, scinames=NULL){
-  ### FIXME: convert to tree
-  # scinames <- .make_taxidmap(x, depth)
-  # x$Do(
-  #   data.tree::Traverse(x),
-  #   function(x){
-  #     x$name <- scinames[names(x)]
-  #   }
-  # )
-  # x
-}
-
 #' Map a function over a specific stratum
 #'
 #' @param cousin_sets A nested list of cousins

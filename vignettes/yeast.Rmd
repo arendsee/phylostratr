@@ -60,9 +60,7 @@ deep_strata <- focal_taxid %>%
   # add prokaryote stratum
   use_recommended_prokaryotes %>%
   # download UniProt sequences (this may take 10+ minutes)
-  uniprot_fill_strata %>%
-  # replace taxon ids with taxon names
-  as_named_strata(depth=2)
+  uniprot_fill_strata
 ```
 
 Now we will use the *Saccharomyces* tree we defined above to resolve
