@@ -8,7 +8,7 @@ print.Strata <- function(x, ...){
     "
     Strata object
     focal species: {x@focal_species}
-    data:          {names(x@data)}
+    data:          {paste(names(x@data), collapse=', ')}
     #species:      {length(x@tree$tip.label)}
     S4 Slots:
       x@tree

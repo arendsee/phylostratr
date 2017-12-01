@@ -46,7 +46,8 @@ diverse_subtree <- function(tree, n, weights=rep(1, nleafs(tree))){
     }
   }
 
-  subset_phylo(tree, chosen_taxa)
+  subset_phylo(tree, chosen_taxa, collapse=n>1)
+
 }
 
 #' Apply f to each outgroup branch ascending node id
@@ -57,27 +58,32 @@ diverse_subtree <- function(tree, n, weights=rep(1, nleafs(tree))){
 #' @param ... Additional arguments passed to f
 #' @return Strata object
 strata_apply <- function(strata, f, id=strata@focal_species, ...){
-  lin <- lineage(strata@tree, id)
+  lin <- lineage(strata@tree, id)[-1]
 
   outgroups <- lapply(lin, function(ancestor){
     outgroup <- tree_names(strata@tree)[sisters(strata@tree, ancestor)] %>%
       subset_phylo(tree=strata@tree, collapse=FALSE, descend=TRUE) %>%
-      f(...)
+      f(n=5)
+      # f(...)
   })
-  names(outgroups) <- tree_names(tree)[lin]
+  names(outgroups) <- tree_names(strata@tree)[lin]
   outgroups <- outgroups[!sapply(outgroups, is.null)]
 
   # Get backbone of final tree (losing any unrepresented nodes)
-  final <- lineage_to_ancestor_tree(names(aunts))
+  final <- lineage_to_ancestor_tree(names(outgroups))
   # Bind each stratum onto the final tree
-  for(i in names(aunts)){
-    final <- ape::bind.tree(final, aunts[[i]], where=clean_phyid(final, i))
+  for(i in names(outgroups)){
+    final <- ape::bind.tree(final, outgroups[[i]], where=clean_phyid(final, i))
   }
 
-  new_data <- list(rep(NA, nleafs(final)))
-  names(new_data) <- final$tip.label
-  common <- intersect(final$tip.label, tree$tip.label)
-  new_data[common] <- strata@data[common]
+  new_data <- lapply(strata@data, function(x){
+    w <- rep(NA, nleafs(final))
+    names(w) <- final$tip.label
+    common <- intersect(final$tip.label, strata@tree$tip.label)
+    w[common] <- strata@data[common]
+    w
+  })
+
   strata@data <- new_data
   strata@tree <- final
 

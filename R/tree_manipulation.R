@@ -241,8 +241,14 @@ subset_phylo <- function(tree, id, collapse=TRUE, descend=TRUE){
     stop("Malformed tree: must have exactly 1 root")
   }
   if(collapse){
-    # collapse the edges of nodes that have only a single descendent 
-    new_tree <- ape::collapse.singles(new_tree)
+    if(nleafs(new_tree) <= 1){
+      warning(
+        "Cannot call collapse.singles on tree with fewer than 2 leafs ",
+        "because 'ape' explodes on singleton or empty trees.")
+    } else {
+      # collapse the edges of nodes that have only a single descendent 
+      new_tree <- ape::collapse.singles(new_tree)
+    }
   }
   new_tree
 }

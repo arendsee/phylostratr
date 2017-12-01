@@ -50,6 +50,7 @@ sequences, so we will filter for diverse species.
 ```{r, eval=FALSE}
 # Get all UniProt proteomes
 deep_strata <- uniprot_cousins('4932') %>%
+  strata_apply(id='4930', f=diverse_subtree, n=5) %>%
   # add prokaryote stratum
   use_recommended_prokaryotes %>%
   # download UniProt sequences (this may take 10+ minutes)

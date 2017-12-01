@@ -113,9 +113,12 @@ uniprot_cousins <- function(taxid){
     final <- ape::bind.tree(final, aunts[[i]], where=clean_phyid(final, i))
   }
 
+  final <- collapse.singles(final)
+
   Strata(
     focal_species = as.character(taxid),         
-    tree = final
+    tree = final,
+    data =list()
   )
 }
 
