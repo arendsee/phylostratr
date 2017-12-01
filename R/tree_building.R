@@ -52,7 +52,7 @@ lineages_to_phylo <- function(lineages, remove_subspecies=FALSE){
   )
   class(tree) <- 'phylo'
 
-  tree
+  ape::collapse.singles(tree)
 }
 
 #' Make a tree of ancestors from a lineage

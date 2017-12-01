@@ -7,7 +7,8 @@ print.Strata <- function(x, ...){
   print(glue::glue(
     "
     Strata object
-    focal species: {x@focal_species}
+    focal species: {x@focal_name}
+    focal id:      {x@focal_id}
     data:          {paste(names(x@data), collapse=', ')}
     #species:      {length(x@tree$tip.label)}
     S4 Slots:

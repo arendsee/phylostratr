@@ -4,7 +4,8 @@ setClass(
   representation(
     tree = "phylo",
     data = "list",
-    focal_species = "character" 
+    focal_name = "character",
+    focal_id = "numeric"
   )
 )
 
@@ -16,10 +17,11 @@ setClass(
 #' among other things, will be stored.
 #' @return Strata object
 #' @export
-Strata <- function(focal_species, tree, data=list()){
+Strata <- function(focal_name, focal_id, tree, data=list()){
   new('Strata',
     tree = tree,
     data = data,
-    focal_species = focal_species
+    focal_name = focal_name,
+    focal_id = focal_id
   )
 }

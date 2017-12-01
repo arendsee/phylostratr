@@ -4,15 +4,15 @@
 \alias{Strata}
 \title{Initialize a Strata object}
 \usage{
-Strata(focal_species, tree, data = list())
+Strata(focal_name, focal_id, tree, data = list())
 }
 \arguments{
-\item{focal_species}{The name of the focal species. This name should match the tip label from the tree.}
-
 \item{tree}{'phylo' object}
 
 \item{data}{List of data. This is where filenames for downloaded proteins,
 among other things, will be stored.}
+
+\item{focal_species}{The name of the focal species. This name should match the tip label from the tree.}
 }
 \value{
 Strata object
