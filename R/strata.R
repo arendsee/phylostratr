@@ -46,7 +46,7 @@ diverse_subtree <- function(tree, n, weights=rep(1, nleafs(tree))){
     }
   }
 
-  subset_phylo(tree, chosen_taxa, collapse=n>1)
+  subtree(tree, chosen_taxa, collapse=n>1)
 
 }
 
@@ -62,7 +62,7 @@ strata_apply <- function(strata, f, id=strata@focal_species, ...){
 
   outgroups <- lapply(lin, function(ancestor){
     outgroup <- tree_names(strata@tree)[sisters(strata@tree, ancestor)] %>%
-      subset_phylo(tree=strata@tree, collapse=FALSE, descend=TRUE) %>%
+      subtree(tree=strata@tree, collapse=FALSE, descend=TRUE) %>%
       f(n=5)
       # f(...)
   })

@@ -89,7 +89,7 @@ edgelist_to_phylo <- function(edgelist){
 
   # make a phylo object
   tree <- list(
-    edges      = matrix(c(idmap[from], idmap[to]), ncol=2),
+    edges      = matrix(c(idmap[as.character(from)], idmap[as.character(to)]), ncol=2),
     tip.label  = unname(tip.label),
     node.label = unname(node.label),
     Nnode      = length(node.label)

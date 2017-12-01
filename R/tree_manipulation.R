@@ -136,17 +136,23 @@ nleafs <- function(tree){
 #'
 #' @param tree phylo object
 #' @param id A single name or index
+#' @param use_name Should names be used rather than internal ids
 #' @examples
 #' data(atree)
 #' lineage(atree, 't1')
 #' lineage(atree, 1)
 #' @export
-lineage <- function(tree, id){
+lineage <- function(tree, id, use_name=FALSE){
   id <- clean_phyid(tree, id, len=1)
-  if(is_root(tree, id)){
+  id <- if(is_root(tree, id)){
     id
   } else {
     c(lineage(tree, parent(tree, id)), id)
+  }
+  if(use_name){
+    tree_names(tree)[id]
+  } else {
+    id
   }
 }
 
@@ -178,7 +184,7 @@ parent <- function(tree, id=1:tree_size(tree)){
 #' @export
 children <- function(tree, id){
   id <- clean_phyid(tree, id, len=1)
-  tree$edge[tree$edge[,1] == id, 2]
+  sort(tree$edge[tree$edge[,1] == id, 2])
 }
 
 #' Vectorized tree root finder
@@ -212,13 +218,15 @@ get_root <- function(tree){
 descendent_nodes <- function(tree, id){
   id <- clean_phyid(tree, id)
   children <- tree$edge[tree$edge[,1] %in% id, 2]
-  if(length(children) > 0)
-    c(id, descendent_nodes(tree, children))
-  else
-    id
+  ids <-
+    if(length(children) > 0)
+      c(id, descendent_nodes(tree, children))
+    else
+      id
+  sort(ids)
 }
 
-#' Get all leafs descending from set of ids
+#' Get all leafs descending from a set of ids
 #'
 #' This is a simple wrapper around \code{descendent_nodes}.
 #'
@@ -228,7 +236,8 @@ descendent_nodes <- function(tree, id){
 #' @export
 descendents <- function(tree, id){
   descendent_nodes(tree, id) %>%
-    intersect(leafs(tree))
+    intersect(leafs(tree)) %>%
+    sort
 }
 
 #' Select a subset of nodes from a tree
@@ -240,10 +249,10 @@ descendents <- function(tree, id){
 #' @return phylo object
 #' @examples
 #' data(atree)
-#' subset_phylo(atree, c('n15', 'n19'))
-#' subset_phylo(atree, c('t7', 't4', 't1'))
+#' subtree(atree, c('n15', 'n19'))
+#' subtree(atree, c('t7', 't4', 't1'))
 #' @export
-subset_phylo <- function(tree, id, collapse=TRUE, descend=TRUE){
+subtree <- function(tree, id, collapse=TRUE, descend=TRUE){
   id <- clean_phyid(tree, id)
   if(descend){
     id <- descendent_nodes(tree, id)
@@ -251,12 +260,12 @@ subset_phylo <- function(tree, id, collapse=TRUE, descend=TRUE){
   leaf_ids <- intersect(leafs(tree), id)
   id <- lapply(leaf_ids, lineage, tree=tree) %>%
     do.call(what=c) %>% unique
-  new_edge <- tree$edge[(tree$edge[, 1] %in% id) & (tree$edge[, 2] %in% id), ]
+  new_edge <- tree$edge[(tree$edge[, 1] %in% id) & (tree$edge[, 2] %in% id), , drop=FALSE]
   new_Nnode <- length(unique(new_edge[, 1])) 
   new_size <- length(unique(c(new_edge[, 1], new_edge[, 2])))
   leaf_ids <- intersect(leafs(tree), id)
   node_ids <- intersect(nodes(tree), id)
-  idmap <- 1:new_size
+  idmap <- seq_along(c(leaf_ids, node_ids))
   names(idmap) <- c(leaf_ids, node_ids)
   new_edge[, 1] <- idmap[as.character(new_edge[, 1])]
   new_edge[, 2] <- idmap[as.character(new_edge[, 2])]
@@ -270,31 +279,19 @@ subset_phylo <- function(tree, id, collapse=TRUE, descend=TRUE){
     node.label  = new_node.label
   )
   class(new_tree) <- 'phylo'
-  if(sum(is_root(new_tree)) != 1){
-    stop("Malformed tree: must have exactly 1 root")
-  }
-  if(collapse){
-    if(nleafs(new_tree) <= 1){
-      warning(
-        "Cannot call collapse.singles on tree with fewer than 2 leafs ",
-        "because 'ape' explodes on singleton or empty trees.")
-    } else {
-      # collapse the edges of nodes that have only a single descendent 
-      new_tree <- ape::collapse.singles(new_tree)
-    }
+  if(nleafs(new_tree) == 1 && collapse){
+    # ape::collapse.singles dies one single tip input. So I need to implement
+    # my own handling for this edge case. I keep the parent of the single node
+    # to keep the ape from screaming later. 
+    pid <- new_tree$edge[new_edge[, 2] == 1, 1]
+    new_tree$node.label <- new_tree$node.label[pid - 1]
+    new_tree$edge <- new_edge[new_edge[, 2] == 1, , drop=FALSE]
+    new_tree$Nnode <- 1
+  } else if(new_size > 1 && collapse){
+    # collapse the edges of nodes that have only a single descendent 
+    new_tree <- ape::collapse.singles(new_tree)
   }
   new_tree
-}
-
-#' Get a subtree rooted at a given node
-#'
-#' @param tree phylo object
-#' @param id vector of ids or names
-#' @return phylo object
-#' @export
-subtree <- function(tree, id){
-  id <- clean_phyid(tree, id, len=1)
-  subset_phylo(tree, descendent_nodes(tree, id))
 }
 
 #' Get the sisters of a node
@@ -306,9 +303,10 @@ subtree <- function(tree, id){
 sisters <- function(tree, id){
   id <- clean_phyid(tree, id, len=1)
   if(is_root(tree, id)){
-    stop("Root has no parent and thus no sisters")
+    integer(0)
+  } else {
+    setdiff(children(tree, parent(tree, id)), id)
   }
-  setdiff(children(tree, parent(tree, id)), id)
 }
 
 #' Get list of sister trees for a given node
@@ -334,7 +332,7 @@ sister_trees <- function(tree, id){
 prune <- function(tree, id){
   id <- clean_phyid(tree, id)
   id <- descendents(tree, id)
-  subset_phylo(tree, setdiff(leafs(tree), id))
+  subtree(tree, setdiff(leafs(tree), id))
 }
 
 #' Merge fully named subtrees according to a reference tree
@@ -354,7 +352,7 @@ prune <- function(tree, id){
 #' @export
 merge_phylo <- function(tree, subtrees){
   lapply(subtrees, tree_names) %>% do.call(what='c') %>% unique %>%
-    subset_phylo(tree=tree)
+    subtree(tree=tree)
 }
 
 

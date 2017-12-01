@@ -2,18 +2,27 @@
 % Please edit documentation in R/tree_manipulation.R
 \name{subtree}
 \alias{subtree}
-\title{Get a subtree rooted at a given node}
+\title{Select a subset of nodes from a tree}
 \usage{
-subtree(tree, id)
+subtree(tree, id, collapse = TRUE, descend = TRUE)
 }
 \arguments{
 \item{tree}{phylo object}
 
 \item{id}{vector of ids or names}
+
+\item{collapse}{logical collapse edges around nodes with a single descendent}
+
+\item{descend}{logical include all descendents of each id}
 }
 \value{
 phylo object
 }
 \description{
-Get a subtree rooted at a given node
+Select a subset of nodes from a tree
+}
+\examples{
+data(atree)
+subtree(atree, c('n15', 'n19'))
+subtree(atree, c('t7', 't4', 't1'))
 }

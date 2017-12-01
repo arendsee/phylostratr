@@ -2,7 +2,7 @@
 % Please edit documentation in R/tree_manipulation.R
 \name{descendents}
 \alias{descendents}
-\title{Get all leafs descending from set of ids}
+\title{Get all leafs descending from a set of ids}
 \usage{
 descendents(tree, id)
 }

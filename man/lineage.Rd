@@ -4,12 +4,14 @@
 \alias{lineage}
 \title{Find the ancestors of a node}
 \usage{
-lineage(tree, id)
+lineage(tree, id, use_name = FALSE)
 }
 \arguments{
 \item{tree}{phylo object}
 
 \item{id}{A single name or index}
+
+\item{use_name}{Should names be used rather than internal ids}
 }
 \description{
 Find the ancestors of a node
