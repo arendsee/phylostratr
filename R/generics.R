@@ -14,7 +14,8 @@ print.Strata <- function(x, ...){
     S4 Slots:
       x@tree
       x@data
-      x@focal_species
+      x@focal_name
+      x@focal_id
     "
   ))
 }

@@ -8,7 +8,7 @@ uniprot_cousin_proteomes(cousins, dir = "strata", prefix = "ps_",
   dryrun = FALSE, verbose = TRUE, ...)
 }
 \arguments{
-\item{cousins}{The output of \code{uniprot_cousins}}
+\item{cousins}{The output of \code{uniprot_strata}}
 
 \item{dir}{Directory in which to write sequences}
 
@@ -31,12 +31,12 @@ very common in the NCBI common tree).
 }
 \examples{
 \dontrun{
-uniprot_cousins(3702) \%>\%
+uniprot_strata(3702) \%>\%
   lapply(take_first) \%>\%
   uniprot_cousin_proteomes
 
 cfilter <- make_do_if_over(3, take_first)
-uniprot_cousins(3702) \%>\%
+uniprot_strata(3702) \%>\%
   lapply(cfilter) \%>\%
   uniprot_cousin_proteomes
 }

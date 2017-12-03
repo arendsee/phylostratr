@@ -4,7 +4,7 @@
 \alias{strata_apply}
 \title{Apply f to each outgroup branch ascending node id}
 \usage{
-strata_apply(strata, f, id = strata@focal_species, ...)
+strata_apply(strata, f, id = strata@focal_id, ...)
 }
 \arguments{
 \item{strata}{Strata object}

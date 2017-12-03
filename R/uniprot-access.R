@@ -84,43 +84,24 @@ uniprot_fill_strata <- function(strata, ...){
   strata
 }
 
-#' Given a focal taxid, build a tree of 
+#' Given a focal taxid, build a UniProt-based Strata object
 #'
 #' @param taxid The focal species NCBI taxon id
+#' @param from stratum to begin from, where 1 is 'cellular organisms'
 #' @return Strata object
 #' @export
-uniprot_cousins <- function(taxid){
-  tree <- ncbi_aunts(taxid)
-  lin <- lineage(tree, as.character(taxid))[-1]
-  aunts <- lapply(lin, function(ancestor){
-    aunts   <- tree_names(tree)[sisters(tree, ancestor)]
-    cousins <- lapply(aunts, uniprot_downstream_ids)
-    cousins %>%
-      Filter(f=function(x) { length(x) > 0 }) %>%
-      lapply(taxizedb::classification) %>%
-      lapply(Filter, f=is.data.frame) %>%
-      lapply(lineages_to_phylo, remove_subspecies=TRUE) %>%
-      Filter(f=function(x) length(x$tip.label) > 0) %>%
-      Reduce(f=function(a,b){ape::bind.tree(a,b,where='root')})
-  })
-  names(aunts) <- tree_names(tree)[lin]
-  aunts <- aunts[!sapply(aunts, is.null)]
-
-  # Get backbone of final tree (losing any unrepresented nodes)
-  final <- lineage_to_ancestor_tree(names(aunts))
-  # Bind each stratum onto the final tree
-  for(i in names(aunts)){
-    final <- ape::bind.tree(final, aunts[[i]], where=clean_phyid(final, i))
-  }
-
-  final <- ape::collapse.singles(final)
-
-  Strata(
-    focal_name = taxid2name(taxid),
-    focal_id   = taxid,
-    tree       = final,
-    data       = list()
-  )
+uniprot_strata <- function(taxid, from=2){
+  taxizedb::classification(taxid)[[1]]$id[from] %>%
+    uniprot_downstream_ids %>%
+    taxizedb::classification() %>%
+    Filter(f=is.data.frame) %>%
+    lineages_to_phylo(clean=TRUE) %>%
+    Strata(
+      focal_name = taxid2name(taxid),
+      focal_id   = taxid,
+      tree       = .,
+      data       = list()
+    )
 }
 
 #' Retrive the sequences from the uniprot cousins
@@ -130,7 +111,7 @@ uniprot_cousins <- function(taxid){
 #' There may be multiple aunts in multifurcating nodes of the tree (this is
 #' very common in the NCBI common tree).
 #'
-#' @param cousins The output of \code{uniprot_cousins}
+#' @param cousins The output of \code{uniprot_strata}
 #' @param dir Directory in which to write sequences
 #' @param prefix The phylostratum-level prefix
 #' @param dryrun If TRUE, do not download files or create directories
@@ -139,12 +120,12 @@ uniprot_cousins <- function(taxid){
 #' @return Nothing, this function is run for its effects
 #' @examples
 #' \dontrun{
-#' uniprot_cousins(3702) %>%
+#' uniprot_strata(3702) %>%
 #'   lapply(take_first) %>%
 #'   uniprot_cousin_proteomes
 #'
 #' cfilter <- make_do_if_over(3, take_first)
-#' uniprot_cousins(3702) %>%
+#' uniprot_strata(3702) %>%
 #'   lapply(cfilter) %>%
 #'   uniprot_cousin_proteomes
 #' }

@@ -4,7 +4,7 @@
 \alias{diverse_subtree}
 \title{Get a diverse subset of species from tree}
 \usage{
-diverse_subtree(tree, n, weights = rep(1, nleafs(tree)))
+diverse_subtree(tree, n, weights = rep(1, nleafs(tree)), collapse = FALSE)
 }
 \arguments{
 \item{tree}{phylo object}
@@ -15,6 +15,8 @@ the tree, the tree is returned unchanged)}
 \item{weights}{Numeric vector with length equal to the number of species in
 the tree. A weight of 1 will have no influence, lower than one means the
 species is less likely to be selected.}
+
+\item{collapse}{Should nodes with a single descendent be collapse?}
 }
 \value{
 phylo object

@@ -17,7 +17,7 @@ ncbi_tree <- function(taxa){
 #' @param byname Get ancestor names, instead of NCBI ids
 #' @export
 ncbi_ancestors <- function(taxid, byname=FALSE){
-  taxize::classification(taxid, db='ncbi')[[1]]$id 
+  taxizedb::classification(taxid, db='ncbi')[[1]]$id 
 }
 
 #' Get the species level cousins of a taxid
@@ -34,11 +34,11 @@ ncbi_cousins <- function(taxid){
 #' @return phylo object with all NCBI sisters of all ancestors
 #' @export
 ncbi_aunts <- function(taxid){
-  # FIXME: cannot find root (taxize issue #639)
-  #        so I remove the first index (root)
-  ncbi_ancestors(taxid)[-1] %>%
-    lapply(function(x){
-      kids <- taxize::children(x, db='ncbi')[[1]]$childtaxa_id
+  lin <- ncbi_ancestors(taxid)[-1] %>%
+    head(-1) %>% tail(-1) %>%
+    taxizedb::children()
+  lapply(names(lin), function(x){
+      kids <- lin[[x]]$childtaxa_id
       matrix(c(rep(x, length(kids)), kids), ncol=2)
     }) %>%
     do.call(what=rbind) %>%

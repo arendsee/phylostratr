@@ -4,16 +4,14 @@
 \alias{lineages_to_phylo}
 \title{Make a tree from the union of lineages}
 \usage{
-lineages_to_phylo(lineages, remove_subspecies = FALSE)
+lineages_to_phylo(lineages, clean = FALSE)
 }
 \arguments{
 \item{lineages}{list of lineages, where each lineage is a data.frame with
 the columns id and name}
 
-\item{remove_subspecies}{Should leafs with subtrees be removed. Currently if
-one lineage uses a specific species as a leaf and a second lineage uses a
-child of the species, a malformed tree is created where one node is both a
-tip and a node.}
+\item{clean}{Should leafs with descendents be removed? This can occur when
+both a species and a descendent subspecies are in the lineage set.}
 }
 \value{
 phylo object with node names and no branch lengths

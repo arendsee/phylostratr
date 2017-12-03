@@ -6,6 +6,7 @@
 #' @param weights Numeric vector with length equal to the number of species in
 #' the tree. A weight of 1 will have no influence, lower than one means the
 #' species is less likely to be selected.
+#' @param collapse Should nodes with a single descendent be collapse?
 #' @return phylo object
 #' @export
 #' @examples
@@ -16,7 +17,7 @@
 #'
 #' # do not to include the 't1' species
 #' diverse_subtree(atree, 4, weights=c(0,1,1,1,1,1,1,1,1,1))
-diverse_subtree <- function(tree, n, weights=rep(1, nleafs(tree))){
+diverse_subtree <- function(tree, n, weights=rep(1, nleafs(tree)), collapse=FALSE){
   if(n < 1){
     stop('Must select at least one species')
   }
@@ -46,7 +47,7 @@ diverse_subtree <- function(tree, n, weights=rep(1, nleafs(tree))){
     }
   }
 
-  subtree(tree, chosen_taxa, collapse=n>1)
+  subtree(tree, chosen_taxa, collapse=collapse)
 
 }
 
@@ -57,24 +58,22 @@ diverse_subtree <- function(tree, n, weights=rep(1, nleafs(tree))){
 #' @param id A name or index
 #' @param ... Additional arguments passed to f
 #' @return Strata object
-strata_apply <- function(strata, f, id=strata@focal_species, ...){
+strata_apply <- function(strata, f, id=strata@focal_id, ...){
   lin <- lineage(strata@tree, id)[-1]
 
   outgroups <- lapply(lin, function(ancestor){
     outgroup <- tree_names(strata@tree)[sisters(strata@tree, ancestor)] %>%
       subtree(tree=strata@tree, collapse=FALSE, descend=TRUE) %>%
-      f(n=5)
-      # f(...)
+      f(...)
   })
   names(outgroups) <- tree_names(strata@tree)[lin]
   outgroups <- outgroups[!sapply(outgroups, is.null)]
 
-  # Get backbone of final tree (losing any unrepresented nodes)
-  final <- lineage_to_ancestor_tree(names(outgroups))
-  # Bind each stratum onto the final tree
-  for(i in names(outgroups)){
-    final <- ape::bind.tree(final, outgroups[[i]], where=clean_phyid(final, i))
-  }
+  final <- lapply(outgroups, tree2edgelist) %>%
+    do.call(what=rbind) %>%
+    unique %>%
+    edgelist_to_phylo %>%
+    ape::collapse.singles()
 
   new_data <- lapply(strata@data, function(x){
     w <- rep(NA, nleafs(final))
@@ -84,10 +83,12 @@ strata_apply <- function(strata, f, id=strata@focal_species, ...){
     w
   })
 
-  strata@data <- new_data
-  strata@tree <- final
+  new_strata <- strata
 
-  strata
+  new_strata@data <- new_data
+  new_strata@tree <- final
+
+  new_strata
 }
 
 #' Map a function over a specific stratum

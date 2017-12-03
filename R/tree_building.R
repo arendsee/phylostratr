@@ -1,58 +1,45 @@
+#' Convert a tree to an edge list
+#'
+#' @param tree phylo object
+#' @export
+tree2edgelist <- function(tree){
+  if(is.null(tree$node.label)){
+    stop("Cannot convert this tree to an edge list since it lacks node labels")
+  }
+  edge <- tree$edge
+  matrix(c(
+      tree_names(tree)[edge[ , 1]],
+      tree_names(tree)[edge[ , 2]]
+    ),
+    ncol=2,
+    byrow=FALSE
+  )
+}
+
 #' Make a tree from the union of lineages
 #'
 #' @param lineages list of lineages, where each lineage is a data.frame with
 #' the columns id and name
-#' @param remove_subspecies Should leafs with subtrees be removed. Currently if
-#' one lineage uses a specific species as a leaf and a second lineage uses a
-#' child of the species, a malformed tree is created where one node is both a
-#' tip and a node.
+#' @param clean Should leafs with descendents be removed? This can occur when
+#' both a species and a descendent subspecies are in the lineage set.
 #' @return phylo object with node names and no branch lengths
-lineages_to_phylo <- function(lineages, remove_subspecies=FALSE){
-
-  if(remove_subspecies)
-    lineages <- Filter(function(x){
-      # either the lineage terminates in a species
-      (tail(x$rank, 1) == 'species') ||
-      # or it is a subspecies, where no other member of the lineage is
-      # species-terminal
-      (
-        sum(
-          x[x$rank == 'species', 'id'] == 
-          (lapply(lineages, function(y) y$id) %>% unlist %>% unname)
-        ) == 1
-      )
-    }, lineages)
-
-  # get tip names (usually species)
-  tip.label <- unique(sapply(lineages, function(x) tail(x$name, 1)))
-
-  # get species taxon IDs
-  tip.id <- unique(sapply(lineages, function(x) tail(x$id, 1)))
-
-  # build edge list based on taxonomy IDs
-  edges <- unique(do.call(what=rbind,
-    lapply(lineages, function(x){
+lineages_to_phylo <- function(lineages, clean=FALSE){
+  to_edge <- function(xs){
+    # build edge list based on taxonomy IDs
+    lapply(xs, function(x){
       matrix(c(head(x$id, -1), tail(x$id, -1)), ncol=2)
-    })
-  ))
-
-  # get node IDs
-  node.id <- setdiff(c(edges[,1], edges[,2]), tip.id)
-
-  # make a map from taxonomy ID to internal 1:n ids
-  idmap <- 1:(length(tip.label) + length(node.id))
-  names(idmap) <- c(tip.id, node.id)
-
-  # make a phylo object
-  tree <- list(
-    edges      = matrix(c(idmap[edges[,1]], idmap[edges[,2]]), ncol=2),
-    tip.label  = unname(tip.label),
-    node.label = unname(node.id),
-    Nnode      = length(node.id)
-  )
-  class(tree) <- 'phylo'
-
-  ape::collapse.singles(tree)
+    }) %>%
+    do.call(what=rbind) %>%
+    unique
+  }
+  edges <- to_edge(lineages)
+  if(clean){
+    bad <- names(lineages)[names(lineages) %in% edges[, 1]]
+    edges <- Filter(x=lineages, f=function(x){
+      !any(head(x$id, -1) %in% bad)      
+    }) %>% to_edge
+  }
+  edgelist_to_phylo(edges) %>% ape::collapse.singles()
 }
 
 #' Make a tree of ancestors from a lineage
@@ -98,5 +85,3 @@ edgelist_to_phylo <- function(edgelist){
 
   tree
 }
-
-

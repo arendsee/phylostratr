@@ -69,15 +69,12 @@ library(taxize)
 # TODO: use TOL instead of NCBI common tree
 
 focal_taxid <- 3702
-strata <- focal_taxid %>%
+strata <-
   # Get stratified relatives represented in UniProt
-  uniprot_cousins %>%
+  uniprot_strata(focal_taxid, from=2) %>%
   # Select a diverse subset of 5 or fewer representatives from each stratum.
-  strata_apply(f=diverse_subtree, n=5) %>%
-  # Empty the ancestor of animals and fungi 
-  clear_aunt(2759, 33154) %>%
-  # Replace the representatives with humans and yeast
-  add_representative(scinames=c('Homo sapiens', 'Saccharomyces cerevisiae')) %>%
+  strata_apply(f=diverse_subtree, n=5)
+
   # Use a prebuilt set of prokaryotic species
   use_recommended_prokaryotes
 
