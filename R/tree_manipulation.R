@@ -246,14 +246,15 @@ descendents <- function(tree, id){
 #' @param id vector of ids or names
 #' @param collapse logical collapse edges around nodes with a single descendent
 #' @param descend logical include all descendents of each id
+#' @param type id type: ['name', 'id', 'auto']
 #' @return phylo object
 #' @examples
 #' data(atree)
 #' subtree(atree, c('n15', 'n19'))
 #' subtree(atree, c('t7', 't4', 't1'))
 #' @export
-subtree <- function(tree, id, collapse=TRUE, descend=TRUE){
-  id <- clean_phyid(tree, id)
+subtree <- function(tree, id, collapse=TRUE, descend=TRUE, type='auto'){
+  id <- clean_phyid(tree, id, type=type)
   if(descend){
     id <- descendent_nodes(tree, id)
   }
@@ -328,9 +329,10 @@ sister_trees <- function(tree, id){
 #'
 #' @param tree phylo object
 #' @param id vector of indices or names 
+#' @param type id type: ['name', 'id', 'auto']
 #' @export
-prune <- function(tree, id){
-  id <- clean_phyid(tree, id)
+prune <- function(tree, id, type='auto'){
+  id <- clean_phyid(tree, id, type=type)
   id <- descendents(tree, id)
   subtree(tree, setdiff(leafs(tree), id))
 }

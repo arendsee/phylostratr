@@ -4,12 +4,14 @@
 \alias{prune}
 \title{Remove the specified indices, and their descendents, from the tree}
 \usage{
-prune(tree, id)
+prune(tree, id, type = "auto")
 }
 \arguments{
 \item{tree}{phylo object}
 
 \item{id}{vector of indices or names}
+
+\item{type}{id type: ['name', 'id', 'auto']}
 }
 \description{
 Remove the specified indices, and their descendents, from the tree

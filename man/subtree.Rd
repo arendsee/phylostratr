@@ -4,7 +4,7 @@
 \alias{subtree}
 \title{Select a subset of nodes from a tree}
 \usage{
-subtree(tree, id, collapse = TRUE, descend = TRUE)
+subtree(tree, id, collapse = TRUE, descend = TRUE, type = "auto")
 }
 \arguments{
 \item{tree}{phylo object}
@@ -14,6 +14,8 @@ subtree(tree, id, collapse = TRUE, descend = TRUE)
 \item{collapse}{logical collapse edges around nodes with a single descendent}
 
 \item{descend}{logical include all descendents of each id}
+
+\item{type}{id type: ['name', 'id', 'auto']}
 }
 \value{
 phylo object

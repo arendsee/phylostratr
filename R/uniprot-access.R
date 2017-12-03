@@ -217,13 +217,7 @@ use_recommended_prokaryotes <- function(x){
     'prokaryote_sample.rda',
     package='phylostratr'
   ))
-
-  # If the basal stratum is already cellular organisms, replace it
-  if(as.integer(names(x)[1]) == 131567L){
-    x[[1]] <- prokaryote_sample
-  # if not, prepend it
-  } else {
-    x <- append(list(`131567`=prokaryote_sample), x)
-  }
+  x@tree <- subtree(x@tree, '2759', type='name')
+  x@tree <- ape::bind.tree(prokaryote_sample, x@tree)
   x
 }
