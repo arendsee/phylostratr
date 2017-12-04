@@ -4,12 +4,14 @@
 \alias{sisters}
 \title{Get the sisters of a node}
 \usage{
-sisters(tree, id)
+sisters(tree, id, type = "auto")
 }
 \arguments{
 \item{tree}{phylo object}
 
 \item{id}{vector of ids or names}
+
+\item{type}{id type: ['name', 'id', 'auto']}
 }
 \value{
 integer vector of indices

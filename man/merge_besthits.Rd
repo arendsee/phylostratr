@@ -4,11 +4,10 @@
 \alias{merge_besthits}
 \title{Build a single data.frame with an MRCA column from stratified blast results}
 \usage{
-merge_besthits(besthits_strata)
+merge_besthits(strata)
 }
 \arguments{
-\item{besthits_strata}{A named list of lists of dataframes. The names are
-the phylostrata names. The data.frames are filtered BLAST results.}
+\item{strata}{A Strata object with a list of dataframe as the data$besthit slot.}
 }
 \value{
 A single dataframe holding the top hits of each focal gene against

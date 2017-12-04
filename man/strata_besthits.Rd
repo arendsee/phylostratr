@@ -4,14 +4,16 @@
 \alias{strata_besthits}
 \title{Load each blast result and filter out the best hit against each query gene}
 \usage{
-strata_besthits(blast_strata)
+strata_besthits(strata)
 }
 \arguments{
-\item{blast_strata}{A named list of phylostrata where each element consists
+\item{strata}{Strata object with 'blast_result' vector in data
 of a possibly empty list of filenames. The filenames are raw BLAST results.}
 }
 \value{
-A list of lists of data.frames, where each data.frame is a filtered blast result
+Strata object with 'besthits' field in data slot. This field holds a
+data.frame for each target species, where each data.frame is a filtered
+blast result
 }
 \description{
 Load each blast result and filter out the best hit against each query gene

@@ -4,12 +4,14 @@
 \alias{descendents}
 \title{Get all leafs descending from a set of ids}
 \usage{
-descendents(tree, id)
+descendents(tree, id, ...)
 }
 \arguments{
 \item{tree}{phylo object}
 
 \item{id}{vector of ids or names}
+
+\item{...}{Arguments sent to descendent_nodes}
 }
 \value{
 integer vector of leaf ids

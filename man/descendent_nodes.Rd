@@ -4,12 +4,14 @@
 \alias{descendent_nodes}
 \title{Get all nodes (leafs and ancestors) descending from, and including, a set of ids}
 \usage{
-descendent_nodes(tree, id)
+descendent_nodes(tree, id, type = "auto")
 }
 \arguments{
 \item{tree}{phylo object}
 
 \item{id}{vector of ids or names}
+
+\item{type}{id type: ['name', 'id', 'auto']}
 }
 \value{
 integer vector of leaf and node ids

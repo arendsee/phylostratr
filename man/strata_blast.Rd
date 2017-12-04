@@ -9,7 +9,7 @@ strata_blast(query, strata, makedb_args = list(), blast_args = list())
 \arguments{
 \item{query}{The protein FASTA file for the focal species}
 
-\item{strata}{named list of phylostrata, where each element is a vector of cousin protein FASTA filenames}
+\item{strata}{Strata object where the 'faa' vector is included in the data slot}
 
 \item{makedb_args}{Additional arguments passed to \code{make_blast_database}}
 

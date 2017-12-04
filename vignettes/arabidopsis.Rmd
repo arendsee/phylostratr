@@ -64,7 +64,6 @@ thaliana* as follows:
 
 ```{r, eval=FALSE}
 library(phylostratr)
-library(taxize)
 
 # TODO: use TOL instead of NCBI common tree
 
@@ -93,7 +92,7 @@ query <- system.file(
 )
 
 # Add the focal species to the analysis
-strata_fasta <- add_to(strata, 3702)
+strata_fasta <- add_taxid(strata_fasta, 3702)
 # Set the focal protein fasta file
 strata_fasta@data$faa[['3702']] <- query
 

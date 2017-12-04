@@ -106,34 +106,35 @@ run_blastp <- function(
 #' Blast strata 
 #'
 #' @param query The protein FASTA file for the focal species
-#' @param strata named list of phylostrata, where each element is a vector of cousin protein FASTA filenames
+#' @param strata Strata object where the 'faa' vector is included in the data slot
 #' @param makedb_args Additional arguments passed to \code{make_blast_database} 
 #' @param blast_args Additional arguments passed to \code{run_blastp}
 #' @return named list of phylostrata, where each element is a vector of blast result filenames 
 strata_blast <- function(query, strata, makedb_args=list(), blast_args=list()){
-  lapply(
-    strata,
-    function(cousins){
-      vapply(
-        FUN.VALUE = "",
-        names(cousins),
-        function(cousin_name){
-          fastafile <- cousins[[cousin_name]]
-          blastdb <- do.call(make_blast_database, args=append(fastafile, makedb_args))
-          blast_args <- append(list(query, cousin_name, blastdb=blastdb), blast_args)
-          do.call(run_blastp, args=blast_args)
-        }
-      )
-    }
-  )
+  if(is.null(strata@data$faa)){
+    stop("The input Strata object must have an 'faa' field in the 'data' slot")
+  }
+  strata@data$blast_result <- lapply(names(strata@data$faa), function(taxid){
+    fastafile <- strata@data$faa[[taxid]]
+    blastdb <- do.call(make_blast_database, args=append(fastafile, makedb_args))
+    blast_args <- append(list(query, taxid, blastdb=blastdb), blast_args)
+    do.call(run_blastp, args=blast_args)
+  })
+  names(strata@data$blast_result) <- names(strata@data$faa)
+  strata
 }
 
 #' Load each blast result and filter out the best hit against each query gene
 #'
-#' @param blast_strata A named list of phylostrata where each element consists
+#' @param strata Strata object with 'blast_result' vector in data
 #' of a possibly empty list of filenames. The filenames are raw BLAST results.
-#' @return A list of lists of data.frames, where each data.frame is a filtered blast result
-strata_besthits <- function(blast_strata){
+#' @return Strata object with 'besthits' field in data slot. This field holds a
+#' data.frame for each target species, where each data.frame is a filtered
+#' blast result
+strata_besthits <- function(strata){
+  if(is.null(strata@data$faa)){
+    stop("The input Strata object must have a 'blast_result' field in the 'data' slot")
+  }
   # produce an empty blast result
   empty_blast_result <- data.frame(
     qseqid = character(0),
@@ -141,50 +142,40 @@ strata_besthits <- function(blast_strata){
     evalue = numeric(0),
     score  = numeric(0)
   )
-  lapply(blast_strata,
-    function(blast_stratum) {
-      if(length(blast_stratum) == 0){
-        list(empty_blast_result)
-      } else {
-        lapply(
-          blast_stratum,         
-          function(blast_file){
-            if(length(blast_file) > 0){
-              readr::read_tsv(blast_file, col_types='ccdd') %>% get_max_hit
-            } else {
-              empty_blast_result
-            }
-          }
-        )
-      }
-    }
-  )
+  taxa <- names(strata@data$blast_result)
+  strata@data$besthit <- lapply(taxa, function(taxid){
+    blast_file <- strata@data$blast_result[[taxid]]
+    readr::read_tsv(blast_file, col_types='ccdd') %>% get_max_hit
+  })
+  names(strata@data$besthit) <- taxa
+  strata
 }
 
 #' Build a single data.frame with an MRCA column from stratified blast results
 #'
-#' @param besthits_strata A named list of lists of dataframes. The names are
-#' the phylostrata names. The data.frames are filtered BLAST results.
+#' @param strata A Strata object with a list of dataframe as the data$besthit slot.
 #' @return A single dataframe holding the top hits of each focal gene against
 #' each subject species.
-merge_besthits <- function(besthits_strata){
-  strata <- names(besthits_strata)
-  ps <- 1:length(strata)
-  lapply(
-    ps,
-    function(i) {
-      do.call(rbind, besthits_strata[[i]]) %>% {
-        if(nrow(.) > 0){
-          .$mrca <- strata[i]
-          .$ps <- i
-        } else {
-          .$mrca <- integer(0)
-          .$ps <- integer(0)
-        }
-        as.data.frame(.)
+merge_besthits <- function(strata){
+  besthits_strata <- strata@data$besthit
+  strata_names <- lineage(strata@tree, strata@focal_id, type='name')
+  strata_names <- tree_names(strata@tree)[strata_names]
+  ps <- seq_along(strata_names)
+  lapply(ps, function(i){
+    taxa <- sister_trees(strata@tree, strata_names[i], type='name') %>%
+      lapply(function(sis){ sis$tip.label }) %>%
+      unlist %>% unname
+    do.call(rbind, besthits_strata[taxa]) %>% {
+      if(length(.) > 0 && nrow(.) > 0){
+        .$mrca <- strata_names[i]
+        .$ps <- i
+      } else {
+        .$mrca <- integer(0)
+        .$ps <- integer(0)
       }
-    }
-  ) %>%
+      as.data.frame(.)
+    } %>% { rownames(.) <- NULL; . }
+  }) %>%
     do.call(what=rbind) %>%
     {
       d <- .

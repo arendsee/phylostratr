@@ -4,12 +4,14 @@
 \alias{parent}
 \title{Vectorized node parent getter}
 \usage{
-parent(tree, id = 1:tree_size(tree))
+parent(tree, id = 1:tree_size(tree), type = "auto")
 }
 \arguments{
 \item{tree}{phylo object}
 
 \item{id}{vector of ids or names}
+
+\item{type}{id type: ['name', 'id', 'auto']}
 }
 \value{
 vector of parent ids (NA if root)

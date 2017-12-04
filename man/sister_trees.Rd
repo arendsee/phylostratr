@@ -4,12 +4,14 @@
 \alias{sister_trees}
 \title{Get list of sister trees for a given node}
 \usage{
-sister_trees(tree, id)
+sister_trees(tree, id, type = "auto")
 }
 \arguments{
 \item{tree}{phylo object}
 
 \item{id}{vector of ids or names}
+
+\item{type}{id type: ['name', 'id', 'auto']}
 }
 \value{
 list of phylo objects

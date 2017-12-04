@@ -81,6 +81,7 @@ uniprot_retrieve_proteome <- function(
 uniprot_fill_strata <- function(strata, ...){
   species <- strata@tree$tip.label
   strata@data$faa <- lapply(strata@tree$tip.label, uniprot_retrieve_proteome, ...)
+  names(strata@data$faa) <- strata@tree$tip.label
   strata
 }
 

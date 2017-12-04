@@ -137,13 +137,14 @@ nleafs <- function(tree){
 #' @param tree phylo object
 #' @param id A single name or index
 #' @param use_name Should names be used rather than internal ids
+#' @param type id type: ['name', 'id', 'auto']
 #' @examples
 #' data(atree)
 #' lineage(atree, 't1')
 #' lineage(atree, 1)
 #' @export
-lineage <- function(tree, id, use_name=FALSE){
-  id <- clean_phyid(tree, id, len=1)
+lineage <- function(tree, id, use_name=FALSE, type='auto'){
+  id <- clean_phyid(tree, id, len=1, type=type)
   id <- if(is_root(tree, id)){
     id
   } else {
@@ -169,10 +170,11 @@ tree_size <- function(tree){
 #'
 #' @param tree phylo object
 #' @param id vector of ids or names
+#' @param type id type: ['name', 'id', 'auto']
 #' @return vector of parent ids (NA if root)
 #' @export
-parent <- function(tree, id=1:tree_size(tree)){
-  id <- clean_phyid(tree, id)
+parent <- function(tree, id=1:tree_size(tree), type='auto'){
+  id <- clean_phyid(tree, id, type=type)
   tree$edge[match(id, tree$edge[, 2]), 1]
 }
 
@@ -180,10 +182,11 @@ parent <- function(tree, id=1:tree_size(tree)){
 #'
 #' @param tree phylo object
 #' @param id vector of ids or names
+#' @param type id type: ['name', 'id', 'auto']
 #' @return vector of children, (integer(0) if there are no children)
 #' @export
-children <- function(tree, id){
-  id <- clean_phyid(tree, id, len=1)
+children <- function(tree, id, type='auto'){
+  id <- clean_phyid(tree, id, len=1, type=type)
   sort(tree$edge[tree$edge[,1] == id, 2])
 }
 
@@ -213,10 +216,11 @@ get_root <- function(tree){
 #'
 #' @param tree phylo object
 #' @param id vector of ids or names
+#' @param type id type: ['name', 'id', 'auto']
 #' @return integer vector of leaf and node ids
 #' @export
-descendent_nodes <- function(tree, id){
-  id <- clean_phyid(tree, id)
+descendent_nodes <- function(tree, id, type='auto'){
+  id <- clean_phyid(tree, id, type=type)
   children <- tree$edge[tree$edge[,1] %in% id, 2]
   ids <-
     if(length(children) > 0)
@@ -232,10 +236,11 @@ descendent_nodes <- function(tree, id){
 #'
 #' @param tree phylo object
 #' @param id vector of ids or names
+#' @param ... Arguments sent to descendent_nodes
 #' @return integer vector of leaf ids
 #' @export
-descendents <- function(tree, id){
-  descendent_nodes(tree, id) %>%
+descendents <- function(tree, id, ...){
+  descendent_nodes(tree, id, ...) %>%
     intersect(leafs(tree)) %>%
     sort
 }
@@ -256,10 +261,10 @@ descendents <- function(tree, id){
 subtree <- function(tree, id, collapse=TRUE, descend=TRUE, type='auto'){
   id <- clean_phyid(tree, id, type=type)
   if(descend){
-    id <- descendent_nodes(tree, id)
+    id <- descendent_nodes(tree, id, type='index')
   }
   leaf_ids <- intersect(leafs(tree), id)
-  id <- lapply(leaf_ids, lineage, tree=tree) %>%
+  id <- lapply(leaf_ids, lineage, tree=tree, type='index') %>%
     do.call(what=c) %>% unique
   new_edge <- tree$edge[(tree$edge[, 1] %in% id) & (tree$edge[, 2] %in% id), , drop=FALSE]
   new_Nnode <- length(unique(new_edge[, 1])) 
@@ -299,10 +304,11 @@ subtree <- function(tree, id, collapse=TRUE, descend=TRUE, type='auto'){
 #'
 #' @param tree phylo object
 #' @param id vector of ids or names
+#' @param type id type: ['name', 'id', 'auto']
 #' @return integer vector of indices
 #' @export
-sisters <- function(tree, id){
-  id <- clean_phyid(tree, id, len=1)
+sisters <- function(tree, id, type='auto'){
+  id <- clean_phyid(tree, id, len=1, type=type)
   if(is_root(tree, id)){
     integer(0)
   } else {
@@ -314,11 +320,12 @@ sisters <- function(tree, id){
 #'
 #' @param tree phylo object
 #' @param id vector of ids or names
+#' @param type id type: ['name', 'id', 'auto']
 #' @return list of phylo objects
 #' @export
-sister_trees <- function(tree, id){
-  sister_ids <- sisters(tree, id)
-  sister_trees <- lapply(sister_ids, subtree, tree=tree)
+sister_trees <- function(tree, id, type='auto'){
+  sister_ids <- sisters(tree, id, type=type)
+  sister_trees <- lapply(sister_ids, subtree, tree=tree, type='index')
   if(length(sister_trees) > 0){
     names(sister_trees) <- sister_ids
   }
@@ -333,8 +340,8 @@ sister_trees <- function(tree, id){
 #' @export
 prune <- function(tree, id, type='auto'){
   id <- clean_phyid(tree, id, type=type)
-  id <- descendents(tree, id)
-  subtree(tree, setdiff(leafs(tree), id))
+  id <- descendents(tree, id, type='index')
+  subtree(tree, setdiff(leafs(tree), id), type='index')
 }
 
 #' Merge fully named subtrees according to a reference tree
@@ -354,7 +361,7 @@ prune <- function(tree, id, type='auto'){
 #' @export
 merge_phylo <- function(tree, subtrees){
   lapply(subtrees, tree_names) %>% do.call(what='c') %>% unique %>%
-    subtree(tree=tree)
+    subtree(tree=tree, type='name')
 }
 
 
@@ -369,8 +376,8 @@ map_ids <- function(a, b){
   # start with map from the tips of `a` to those of `b`
   idmaps <- list(matrix(
       c(
-        clean_phyid(a, a$tip.label),
-        clean_phyid(b, a$tip.label)
+        clean_phyid(a, a$tip.label, type='name'),
+        clean_phyid(b, a$tip.label, type='name')
       ), ncol=2))
   # iteratively find the parents of nodes, until root is reached
   while(TRUE){
@@ -380,8 +387,8 @@ map_ids <- function(a, b){
       idmaps <- append(
         idmaps,
         list(unique(matrix(c(
-            parent(a, last_a),
-            parent(b, last_b)
+            parent(a, last_a, type='index'),
+            parent(b, last_b, type='index')
           ), ncol=2)))
       )
     } else {

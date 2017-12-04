@@ -4,12 +4,14 @@
 \alias{children}
 \title{Get the immediate children of a node}
 \usage{
-children(tree, id)
+children(tree, id, type = "auto")
 }
 \arguments{
 \item{tree}{phylo object}
 
 \item{id}{vector of ids or names}
+
+\item{type}{id type: ['name', 'id', 'auto']}
 }
 \value{
 vector of children, (integer(0) if there are no children)
