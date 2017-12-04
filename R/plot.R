@@ -14,19 +14,19 @@ plot_one_obo_tree <- function(tree, stat){
   d <- reshape2::dcast(d, staxid ~ qseqid, value.var='nlogE')
   rownames(d) <- d[, 1]
   d <- d[, -1]
-  tree$tip.label <- taxid2name(tree$tip.label) %>% substr(1, 30) 
-  g <- ggtree(tree, layout='slanted') +
-    geom_tiplab(size=2, color="black")
-  gheatmap(g, d, offset=4, width=0.8, colnames=TRUE, colnames_angle=-45, hjust=0)
+  g <- ggtree::ggtree(tree, layout='slanted') +
+    ggtree::geom_tiplab(size=2, color="black")
+  ggtree::gheatmap(g, d, offset=4, width=0.8, colnames=TRUE, colnames_angle=-45, hjust=0)
 }
 
-plot_obo_trees <- function(tree, hits){
+plot_obo_trees <- function(tree, hits, n=30){
   dat <- .common(hits)
-  n=30
-  for(i in (1:(length(dat$stat) %/% n))){
-    indices <- i:min(i+n-1, length(dat$stat))
+  tree$tip.label <- taxid2name(tree$tip.label) %>% substr(1, 30) 
+  N=length(hits$stat)
+  lapply(seq(0, N, by=n), function(i){
+    indices <- (i*n):min((i+1)*n-1, N)
     plot_one_obo_tree(tree, do.call(what=rbind, dat$stat[indices]))
-  }
+  })
 }
 
 #' Plot the max hit scores against each species for one gene
