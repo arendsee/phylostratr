@@ -8,6 +8,27 @@ eval_bins <- function(evalue){
   bin
 }
 
+plot_one_obo_tree <- function(tree, stat){
+  d <- stat
+  d$nlogE <- ifelse(d$evalue < 1e-100, 1e-100, d$evalue) %>% {-1 * log10(.)}
+  d <- reshape2::dcast(d, staxid ~ qseqid, value.var='nlogE')
+  rownames(d) <- d[, 1]
+  d <- d[, -1]
+  tree$tip.label <- taxid2name(tree$tip.label) %>% substr(1, 30) 
+  g <- ggtree(tree, layout='slanted') +
+    geom_tiplab(size=2, color="black")
+  gheatmap(g, d, offset=4, width=0.8, colnames=TRUE, colnames_angle=-45, hjust=0)
+}
+
+plot_obo_trees <- function(tree, hits){
+  dat <- .common(hits)
+  n=30
+  for(i in (1:(length(dat$stat) %/% n))){
+    indices <- i:min(i+n-1, length(dat$stat))
+    plot_one_obo_tree(tree, do.call(what=rbind, dat$stat[indices]))
+  }
+}
+
 #' Plot the max hit scores against each species for one gene
 #'
 #' This is an internal method, a user would normally use \code{plot_obo} or
@@ -35,45 +56,26 @@ plot_one_obo <- function(stats, qseqid, xlines){
     )
 }
 
-#' Plot the max hit scores against each species
-#'
-#' @param d data.frame of the best hits of focal genes against subject species.
-#' It must have the columns [staxid, qseqid, evalue, score, mrca, ps]
-#' @param lower.bound A lower bound at which to truncate scores
-#' @param upper.bound An upper bound at which to truncate scores
-#' @return A named list of ggplot2 objects, with names being the qseqid
-#' @export
-plot_obo <- function(d, lower.bound=0, upper.bound=100){
 
-  d <- dplyr::arrange(d, -.data$ps, .data$staxid)
-
+# @param lower.bound A lower bound at which to truncate scores
+# @param upper.bound An upper bound at which to truncate scores
+.common <- function(d, lower.bound=0, upper.bound=Inf){
   if(!is.null(upper.bound))
     d$score <- ifelse(d$score > upper.bound, upper.bound, d$score)
   if(!is.null(lower.bound))
     d$score <- ifelse(d$score < lower.bound, lower.bound, d$score)
-
-  nspecies <- length(unique(d$staxid))
 
   taxidmap <- d %>%
     dplyr::select(.data$staxid, .data$ps) %>%
     dplyr::distinct() %>%
     dplyr::arrange(-.data$ps)
 
+  d <- dplyr::arrange(d, -.data$ps, .data$staxid)
   # It is essential to turn the taxon IDs into ordered factors, otherwise they
   # will be interpreted as numbers, and plotted accordingly.
   d$staxid <- factor(as.character(d$staxid), levels=as.character(taxidmap$staxid))
 
-  xlines <- taxidmap %>%
-    dplyr::group_by(.data$ps) %>%
-    dplyr::summarize(n = length(.data$ps)) %>%
-    dplyr::arrange(-.data$ps) %>%
-    { Reduce(sum, .$n, accumulate=TRUE) } %>%
-    { .[-length(.)] } %>%
-    { . + 0.5 } %>%
-    as.data.frame %>%
-    magrittr::set_names('xlines')
-
-  stats <- d %>%
+  stat <- d %>%
     dplyr::select(.data$qseqid, .data$score, .data$evalue, .data$staxid) %>%
     merge(taxidmap, by='staxid') %>%
     dplyr::group_by(.data$qseqid) %>%
@@ -85,12 +87,39 @@ plot_obo <- function(d, lower.bound=0, upper.bound=100){
     } %>%
     lapply(dplyr::arrange, -.data$ps, .data$staxid)
 
+  list(d=d, stat=stat, taxidmap=taxidmap)
+}
+
+
+#' Plot the max hit scores against each species
+#'
+#' @param d data.frame of the best hits of focal genes against subject species.
+#' It must have the columns [staxid, qseqid, evalue, score, mrca, ps]
+#' @param ... Additional arguments sent to .arrange_hits
+#' @return A named list of ggplot2 objects, with names being the qseqid
+#' @export
+plot_obo <- function(d, ...){
+
+  dat <- .common(d)
+
+  nspecies <- length(unique(dat$d$staxid))
+
+  xlines <- dat$taxidmap %>%
+    dplyr::group_by(.data$ps) %>%
+    dplyr::summarize(n = length(.data$ps)) %>%
+    dplyr::arrange(-.data$ps) %>%
+    { Reduce(sum, .$n, accumulate=TRUE) } %>%
+    { .[-length(.)] } %>%
+    { . + 0.5 } %>%
+    as.data.frame %>%
+    magrittr::set_names('xlines')
+
   lapply(
-    names(stats), 
+    names(dat$stats), 
     function(qseqid) {
-      plot_one_obo(stats[[qseqid]], qseqid, xlines)
+      plot_one_obo(dat$stats[[qseqid]], qseqid, xlines)
     }
-  ) %>% magrittr::set_names(stats$qseqid)
+  ) %>% magrittr::set_names(dat$stats$qseqid)
 }
 
 #' Make PDf with multiple obo plots per page

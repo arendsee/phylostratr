@@ -12,6 +12,7 @@ Imports:
     dplyr,
     geiger,
     ggplot2,
+    ggtree,
     glue,
     gridExtra,
     magrittr,

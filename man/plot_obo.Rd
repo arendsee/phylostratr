@@ -4,15 +4,13 @@
 \alias{plot_obo}
 \title{Plot the max hit scores against each species}
 \usage{
-plot_obo(d, lower.bound = 0, upper.bound = 100)
+plot_obo(d, ...)
 }
 \arguments{
 \item{d}{data.frame of the best hits of focal genes against subject species.
 It must have the columns [staxid, qseqid, evalue, score, mrca, ps]}
 
-\item{lower.bound}{A lower bound at which to truncate scores}
-
-\item{upper.bound}{An upper bound at which to truncate scores}
+\item{...}{Additional arguments sent to .arrange_hits}
 }
 \value{
 A named list of ggplot2 objects, with names being the qseqid
