@@ -76,24 +76,32 @@ strata <-
   strata_apply(f=diverse_subtree, n=5) %>%
   # Use a prebuilt set of prokaryotic species
   use_recommended_prokaryotes
-  # Add protein data
 
   # TODO: add archaeplastida (viridiplantae, red algae, glaucophytes)
 ```
 
 ```{r, eval=FALSE}
-# # Download genomes, storing the filenames
-# strata_fasta <- uniprot_fill_strata(strata)
-#
-# focal_tree <-
-#   taxizedb::classification(3702)[[1]]$id %>%
-#   lineage_to_ancestor_tree
-#
-# # BLAST against each target genome (this will take a few hours)
-# # TODO: don't hard code the threads
-# results <- strata_blast(query, strata_fasta, blast_args=list(nthreads=8)) %>%
-#   strata_besthits %>%
-#   merge_besthits
+# Download genomes, storing the filenames
+strata_fasta <- uniprot_fill_strata(strata)
+
+# Set query sequence (here I use a subset of the A. thaliana protiens)
+query <- system.file(
+    'extdata',
+    'araport11',
+    'at_ATxGx99xx.faa',
+    package='phylostratr'
+)
+
+# Add the focal species to the analysis
+strata_fasta <- add_to(strata, 3702)
+# Set the focal protein fasta file
+strata_fasta@data$faa[['3702']] <- query
+
+# BLAST against each target genome (this will take a few hours)
+# TODO: don't hard code the threads
+results <- strata_blast(query, strata_fasta, blast_args=list(nthreads=8)) %>%
+  strata_besthits %>%
+  merge_besthits
 ```
 
 The `results` variable is saved as a `phylostratr` dataset, and can be loaded
@@ -119,3 +127,9 @@ summary(phylostrata$mrca_name)
 ```
 
 Note that this is a reduced dataset, with only 1/100 of the genes represented.
+
+
+```{r, eval=FALSE}
+### TEMP
+
+```
