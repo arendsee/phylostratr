@@ -37,15 +37,19 @@ test_that("Can make and run blast", {
 unlink('blastdb', recursive=TRUE)
 unlink('a-vs-b.tab')
 
-
-strata <- list(
-  ps1 = list(a = file.path('sample_data', 'a.faa')),
-  ps2 = list(),
-  ps3 = list(b = file.path('sample_data', 'b.faa')),
-  ps4 = list(c = file.path('sample_data', 'c.faa')),
-  ps5 = list(d = file.path('sample_data', 'd.faa'),
-       e = file.path('sample_data', 'e.faa')),
-  ps6 = list()
+tree <- ape::rtree(5) %>% set_node_names
+tree$tip.label <- letters[1:5]
+strata <- Strata(
+  tree=tree,
+  focal_name='a',
+  focal_id=999,
+  data=list(faa=list(
+      a = file.path('sample_data', 'a.faa'),
+      b = file.path('sample_data', 'b.faa'),
+      c = file.path('sample_data', 'c.faa'),
+      d = file.path('sample_data', 'd.faa'),
+      e = file.path('sample_data', 'e.faa')
+    ))
 )
 
 strata_results <- NULL
@@ -58,15 +62,14 @@ test_that("strata_blast", {
         strata,
         blast_args=list(verbose=FALSE)
       )
-      strata_results
+      strata_results@data$blast_result
     },
     list(
-      ps1 = c(a='a.tab'),
-      ps2 = character(0),
-      ps3 = c(b='b.tab'),
-      ps4 = c(c='c.tab'),
-      ps5 = c(d='d.tab', e='e.tab'),
-      ps6 = character(0)
+      a='a.tab',
+      b='b.tab',
+      c='c.tab',
+      d='d.tab',
+      e='e.tab'
     )
   )
 })
@@ -74,17 +77,17 @@ test_that("strata_blast", {
 test_that("strata_besthits", {
   expect_true(
     # results must be a list of lists
-    strata_besthits(strata_results) %>% sapply(is.list) %>% all
+    strata_besthits(strata_results)@data$besthit %>% sapply(is.list) %>% all
   )
   expect_true(
     # results must be a list of lists of data.frames
-    strata_besthits(strata_results) %>% sapply(sapply, is.data.frame) %>% unlist %>% all
+    strata_besthits(strata_results)@data$besthit %>% sapply(is.data.frame) %>% all
   )
 })
 
 test_that("merge_besthits", {
   expect_true({
-    besthits <- strata_besthits(strata_results) %>% merge_besthits
+    besthits <- strata_besthits(strata_results) %>% merge_besthits(by='name')
     all(c('staxid', 'qseqid', 'evalue', 'score', 'mrca', 'ps') %in% names(besthits)) &&
     nrow(besthits) == 425
   })

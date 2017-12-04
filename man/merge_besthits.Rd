@@ -4,10 +4,12 @@
 \alias{merge_besthits}
 \title{Build a single data.frame with an MRCA column from stratified blast results}
 \usage{
-merge_besthits(strata)
+merge_besthits(strata, by = "id")
 }
 \arguments{
 \item{strata}{A Strata object with a list of dataframe as the data$besthit slot.}
+
+\item{by}{['id', 'name'] is the focal species tip.label in the phylo tree equal to Strata@focal_id or Strata@focal_name?}
 }
 \value{
 A single dataframe holding the top hits of each focal gene against

@@ -154,11 +154,17 @@ strata_besthits <- function(strata){
 #' Build a single data.frame with an MRCA column from stratified blast results
 #'
 #' @param strata A Strata object with a list of dataframe as the data$besthit slot.
+#' @param by ['id', 'name'] is the focal species tip.label in the phylo tree equal to Strata@focal_id or Strata@focal_name?
 #' @return A single dataframe holding the top hits of each focal gene against
 #' each subject species.
-merge_besthits <- function(strata){
+merge_besthits <- function(strata, by='id'){
   besthits_strata <- strata@data$besthit
-  strata_names <- lineage(strata@tree, strata@focal_id, type='name')
+  focal_label <- if(by == 'id'){
+    strata@focal_id
+  } else {
+    strata@focal_name
+  }
+  strata_names <- lineage(strata@tree, focal_label, type='name')
   strata_names <- tree_names(strata@tree)[strata_names]
   ps <- seq_along(strata_names)
   lapply(ps, function(i){
