@@ -219,6 +219,9 @@ use_recommended_prokaryotes <- function(x){
     package='phylostratr'
   ))
   x@tree <- subtree(x@tree, '2759', type='name')
-  x@tree <- ape::bind.tree(prokaryote_sample, x@tree)
+  root <- taxizedb::classification(x@tree$tip.label[1])[[1]]$id %>% lineage_to_ancestor_tree
+  y <- ape::bind.tree(root, prokaryote_sample)
+  y <- ape::bind.tree(y, x@tree, where=which(tree_names(y) == '2759'))
+  x@tree <- y
   x
 }
