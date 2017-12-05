@@ -28,6 +28,9 @@ plot_obo_trees <- function(hits, tree=NULL, n=30, focal_id=NULL, to_name=FALSE){
     tree <- lineages_to_phylo(taxizedb::classification(unique(hits$staxid)))
   }
   if(!is.null(focal_id)){
+    if(!any(focal_id %in% tree$tip.label)){
+      stop("'focal_id' is not one of the tips of 'tree'")
+    }
     tip_vector <- lapply(lineage(tree, focal_id, type='name'), function(i){
       lapply(sister_trees(tree, i, type='index'), function(x) x$tip.label) %>% unlist %>% unname
     }) %>% unlist
@@ -40,8 +43,9 @@ plot_obo_trees <- function(hits, tree=NULL, n=30, focal_id=NULL, to_name=FALSE){
   if(to_name)
     tree$tip.label <- taxid2name(tree$tip.label) %>% substr(1, 30) 
   N <- length(dat$stat)
+
   lapply(seq(0, N, by=n), function(i){
-    indices <- (i*n):min((i+1)*n-1, N)
+    indices <- i:min(i+n-1, N)
     plot_one_obo_tree(tree, do.call(what=rbind, dat$stat[indices]))
   })
 }
