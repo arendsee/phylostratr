@@ -52,7 +52,8 @@ sequences, so we will filter for diverse species.
 focal_taxid <- 4932
 deep_strata <- focal_taxid %>%
   # build a tree of all UniProt genomes
-  uniprot_cousins
+  uniprot_strata %>%
+  add_taxid('4930')
   # Select a diverse subset of 5 or fewer representatives from each stratum.
   # Only do this above the Saccharomyces genus, since we will later replace
   # Saccharomyces with out own tree.
