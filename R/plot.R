@@ -8,21 +8,38 @@ eval_bins <- function(evalue){
   bin
 }
 
-plot_one_obo_tree <- function(tree, stat){
+plot_one_obo_tree <- function(tree, stat, cutoff=1e-20){
   d <- stat
-  d$nlogE <- ifelse(d$evalue < 1e-100, 1e-100, d$evalue) %>% {-1 * log10(.)}
+  d$evalue <- ifelse(is.na(d$evalue), 10, d$evalue)
+  d$nlogE <- ifelse(d$evalue < cutoff, cutoff, d$evalue) %>% {-1 * log10(.)}
   d <- reshape2::dcast(d, staxid ~ qseqid, value.var='nlogE')
   rownames(d) <- d[, 1]
   d <- d[, -1]
+  d <- sapply(d, function(x) ifelse(is.na(x), -1, x)) %>%
+    magrittr::set_rownames(rownames(d))
   g <- ggtree::ggtree(tree, layout='slanted') +
     ggtree::geom_tiplab(size=2, color="black")
   ggtree::gheatmap(g, d, offset=4, width=0.8, colnames=TRUE, colnames_angle=-45, hjust=0)
 }
 
-plot_obo_trees <- function(tree, hits, n=30){
+plot_obo_trees <- function(hits, tree=NULL, n=30, focal_id=NULL, to_name=FALSE){
   dat <- .common(hits)
-  tree$tip.label <- taxid2name(tree$tip.label) %>% substr(1, 30) 
-  N=length(hits$stat)
+  if(is.null(tree)){
+    tree <- lineages_to_phylo(taxizedb::classification(unique(hits$staxid)))
+  }
+  if(!is.null(focal_id)){
+    tip_vector <- lapply(lineage(tree, focal_id, type='name'), function(i){
+      lapply(sister_trees(tree, i, type='index'), function(x) x$tip.label) %>% unlist %>% unname
+    }) %>% unlist
+    tip_vector <- c(tip_vector, focal_id)
+    if(!setequal(tip_vector, tree$tip.label)){
+      stop("Unexpected error in getting tip_vector, probably the focal_id argument bad")
+    }
+    tree <- ape::rotateConstr(tree, tip_vector)
+  }
+  if(to_name)
+    tree$tip.label <- taxid2name(tree$tip.label) %>% substr(1, 30) 
+  N <- length(dat$stat)
   lapply(seq(0, N, by=n), function(i){
     indices <- (i*n):min((i+1)*n-1, N)
     plot_one_obo_tree(tree, do.call(what=rbind, dat$stat[indices]))

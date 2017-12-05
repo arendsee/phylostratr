@@ -130,5 +130,10 @@ Note that this is a reduced dataset, with only 1/100 of the genes represented.
 
 ```{r, eval=FALSE}
 ### TEMP
-
+d <- readRDS(system.file(
+    'extdata',
+    'araport11',
+    'araport11.Rda',
+    package='phylostratr'
+))
 ```
