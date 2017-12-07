@@ -36,6 +36,7 @@ saccharomyces <- Strata(
     focal_name = 'Saccharomyces_cerevisiae',
     focal_id = 4932
 )
+saccharomyces@tree <- set_node_names(saccharomyces@tree)
 ```
 
 Where we assume the folder `yeast` holds the respective protein sequences. It
@@ -48,16 +49,24 @@ tree. As in the *Arabidopsis* vignette, we don't want to use all the UniProt
 sequences, so we will filter for diverse species. 
 
 ```{r, eval=FALSE}
-# Get all UniProt proteomes
+# set weights on species selection
+weights <- c(
+  '1355160' = 0,   # these three are deprecated
+  '245562'  = 0,
+  '1094981' = 0,
+  '284813'  = 1.1, # these are the reference replacements
+  '766039'  = 1.1,
+  '237561'  = 1.1
+)
 focal_taxid <- 4932
-deep_strata <- focal_taxid %>%
-  # build a tree of all UniProt genomes
+strata <- focal_taxid %>%
+  # Get all UniProt proteomes
   uniprot_strata %>%
-  add_taxid('4930')
+  # build a tree of all UniProt genomes
   # Select a diverse subset of 5 or fewer representatives from each stratum.
   # Only do this above the Saccharomyces genus, since we will later replace
   # Saccharomyces with out own tree.
-  strata_apply(id='4930', f=diverse_subtree, n=5) %>%
+  strata_apply(f=diverse_subtree, n=5, weights=weights) %>%
   # add prokaryote stratum
   use_recommended_prokaryotes %>%
   # download UniProt sequences (this may take 10+ minutes)
@@ -69,15 +78,20 @@ phylogenetic relationships among the species in the *Saccharomyces* genus,
 this allows for finer phylostratigraphic analysis.
 
 ```{r, eval=FALSE}
-# remove the youngest strata (Saccharomyces)
-strata <- append(head(deep_strata, -1), saccharomyces)
+
+tree <- strata@tree
+tree <- prune(tree, focal_taxid, type='name')
+tree <- ape::bind.tree(tree, saccharomyces@tree, where=which(tree_names(tree) == '4892'))
+
+strata@tree <- tree
+strata@data$faa <- append(strata@data$faa, saccharomyces@data$faa)
 ```
 
 Next we run BLAST
 
 ```{r, eval=FALSE}
 results <- strata_blast(
-    query      = saccharomyces$s1[[1]],
+    query      = strata@data$faa[['Saccharomyces_cerevisiae']],
     strata     = strata,
     blast_args = list(nthreads=8) # TODO: don't hardcode the threads
 ) %>%

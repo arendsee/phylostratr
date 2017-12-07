@@ -16,13 +16,17 @@
 #' diverse_subtree(atree, 4)
 #'
 #' # do not to include the 't1' species
-#' diverse_subtree(atree, 4, weights=c(0,1,1,1,1,1,1,1,1,1))
-diverse_subtree <- function(tree, n, weights=rep(1, nleafs(tree)), collapse=FALSE){
+#' diverse_subtree(atree, 4, weights=c(t1=0))
+diverse_subtree <- function(tree, n, weights=NULL, collapse=FALSE){
   if(n < 1){
     stop('Must select at least one species')
   }
-  if(length(weights) != nleafs(tree)){
-    stop('The number of weights must equal the number of species')
+
+  if(is.null(weights)){
+    weights <- rep(1, length(tree$tip.label))
+  } else {
+    weights <- weights[tree$tip.label]
+    weights[is.na(weights)] <- 1
   }
 
   n <- min(n, nleafs(tree))

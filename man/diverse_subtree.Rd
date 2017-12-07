@@ -4,7 +4,7 @@
 \alias{diverse_subtree}
 \title{Get a diverse subset of species from tree}
 \usage{
-diverse_subtree(tree, n, weights = rep(1, nleafs(tree)), collapse = FALSE)
+diverse_subtree(tree, n, weights = NULL, collapse = FALSE)
 }
 \arguments{
 \item{tree}{phylo object}
@@ -31,5 +31,5 @@ data(atree)
 diverse_subtree(atree, 4)
 
 # do not to include the 't1' species
-diverse_subtree(atree, 4, weights=c(0,1,1,1,1,1,1,1,1,1))
+diverse_subtree(atree, 4, weights=c(t1=0))
 }
