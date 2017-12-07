@@ -63,7 +63,11 @@ diverse_subtree <- function(tree, n, weights=NULL, collapse=FALSE){
 #' @param ... Additional arguments passed to f
 #' @return Strata object
 strata_apply <- function(strata, f, id=strata@focal_id, ...){
-  lin <- lineage(strata@tree, id)[-1]
+  if(!any(id %in% tree_names(strata@tree))){
+    stop("id not found in tree")
+  }
+
+  lin <- lineage(strata@tree, id, type='name')[-1]
 
   outgroups <- lapply(lin, function(ancestor){
     outgroup <- tree_names(strata@tree)[sisters(strata@tree, ancestor)] %>%
