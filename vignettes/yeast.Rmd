@@ -21,7 +21,7 @@ FASTA filenames into a list and convert it to a tree:
 
 ```{r}
 library(phylostratr)
-library(magrittr)
+focal_taxid <- 4932
 saccharomyces <- Strata(
     tree = ape::read.tree(system.file('extdata', 'yeast', 'tree', package='phylostratr')),
     data = list(faa=list(
@@ -34,7 +34,7 @@ saccharomyces <- Strata(
              Saccharomyces_uvarum       = 'yeast/uvarum.faa'
            )),
     focal_name = 'Saccharomyces_cerevisiae',
-    focal_id = 4932
+    focal_id = focal_taxid
 )
 saccharomyces@tree <- set_node_names(saccharomyces@tree)
 ```
