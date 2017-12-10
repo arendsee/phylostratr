@@ -160,7 +160,7 @@ get_mrca_names <- function(hittable){
     dplyr::distinct() %>%
     dplyr::arrange(.data$ps) %>%
     { .$mrca } %>%
-    taxid2name %>%
+    taxizedb::taxid2name() %>%
     { factor(., levels=unname(.)) }
 }
 

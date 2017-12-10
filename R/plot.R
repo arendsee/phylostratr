@@ -8,28 +8,35 @@ eval_bins <- function(evalue){
   bin
 }
 
-plot_tree <- function(strata){
-  ggtree(strata@tree, layout='slanted')
-    geom_tiplab(size=2) +
-    geom_nodelab(size=2)
+plot_tree <- function(x){
+  if(class(x) == "Strata"){
+    x <- x@tree
+  }
+  ggtree::ggtree(x, layout='slanted') +
+    ggtree::geom_tiplab(size=2) +
+    ggtree::geom_nodelab(size=2)
 }
 
-plot_one_obo_tree <- function(tree, stat){
+plot_one_obo_tree <- function(
+  tree,
+  stat,
+  colors=c('darkred', 'darkorange1', 'yellow', 'green', 'blue')
+){
   d <- stat
   d$eval_bins <- factor(as.integer(d$eval_bins))
   d <- reshape2::dcast(d, staxid ~ qseqid, value.var='eval_bins')
   rownames(d) <- d[, 1]
-  d <- d[, -1]
-  colors <- c('darkred', 'darkorange1', 'yellow', 'green', 'blue')
+  d <- d[, -1]  
   g <- ggtree::ggtree(tree, layout='slanted', ladderize=FALSE) +
     ggtree::geom_tiplab(size=1, color="black")
-  ggtree::gheatmap(g, d, offset=14, width=6, colnames=TRUE,
+  g <- ggtree::gheatmap(g, d, offset=14, width=6, colnames=TRUE,
                    colnames_angle=-45, hjust=0,
                    font.size=1) +
     ggplot2::scale_fill_manual(
       values = colors,
       labels = c('1+', '1', '1e-3', '1e-5', '1e-20')
     )
+  g
 }
 
 #' Plots for the hit distribution of all genes
@@ -44,37 +51,24 @@ plot_one_obo_tree <- function(tree, stat){
 #' @param to_name If TRUE, then the tip labels will be converted from taxonomy
 #' IDs to scientific names
 #' @export
-plot_obo_trees <- function(hits, tree=NULL, n=50, focal_id=NULL, to_name=FALSE){
+plot_obo_trees <- function(hits, tree=NULL, n=50, focal_id=NULL, to_name=TRUE){
   dat <- .common(hits)
   if(is.null(tree)){
-    tree <- lineages_to_phylo(taxizedb::classification(unique(hits$staxid)))
+    tree <- lineages_to_phylo(taxizedb::classification(unique(dat$taxidmap$staxid)))
   }
   if(!is.null(focal_id)){
-    if(!any(focal_id %in% tree$tip.label)){
-      stop("'focal_id' is not one of the tips of 'tree'")
-    }
-    tip_vector <- lapply(lineage(tree, focal_id, type='name'), function(i){
-      lapply(sister_trees(tree, i, type='index'), function(x) x$tip.label) %>%
-        unlist %>% unname
-    }) %>% unlist
-    tip_vector <- c(tip_vector, focal_id)
-    if(!setequal(tip_vector, tree$tip.label)){
-      stop("Unexpected error in getting tip_vector, probably the focal_id argument bad")
-    }
-    tree <- ape::rotateConstr(tree, tip_vector)
+    tree <- make_tree_relative_to(tree, focal_id)
   }
   if(to_name){
-    rowmap <- taxid2name(tree$tip.label)
-    names(rowmap) <- tree$tip.label
-    tree$tip.label <- rowmap[tree$tip.label]
+    tree$tip.label <- taxizedb::taxid2name(tree$tip.label)
   }
   N <- length(dat$stat)
 
   lapply(seq(0, N, by=n), function(i){
     indices <- i:min(i+n-1, N)
-    stat <- do.call(what=rbind, dat$stat[indices])
+    stat <- do.call(what=rbind, dat$stat[c(8001, indices)])
     if(to_name){
-      stat$staxid <- rowmap[stat$staxid] 
+      stat$staxid <- taxizedb::taxid2name(stat$staxid)
     }
     plot_one_obo_tree(tree, stat)
   })

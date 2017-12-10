@@ -5,7 +5,7 @@
 \title{Plots for the hit distribution of all genes}
 \usage{
 plot_obo_trees(hits, tree = NULL, n = 50, focal_id = NULL,
-  to_name = FALSE)
+  to_name = TRUE)
 }
 \arguments{
 \item{hits}{A table of best hits}

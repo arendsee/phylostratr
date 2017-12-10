@@ -364,6 +364,24 @@ merge_phylo <- function(tree, subtrees){
     subtree(tree=tree, type='name')
 }
 
+#' Organize the tips with the focal_id on tip
+make_tree_relative_to <- function(tree, focal_id){
+  if(!any(focal_id %in% tree$tip.label)){
+    stop("'focal_id' is not one of the tips of 'tree'")
+  }
+  tip_vector <- lapply(lineage(tree, focal_id, type='name'), function(i){
+    lapply(sister_trees(tree, i, type='index'), function(x) x$tip.label) %>%
+      unlist %>% unname
+  }) %>% unlist
+  tip_vector <- c(tip_vector, focal_id)
+  if(!setequal(tip_vector, tree$tip.label)){
+    stop("Unexpected error in getting tip_vector, probably the focal_id argument bad")
+  }
+  ape::rotateConstr(tree, tip_vector)
+}
+
+
+
 
 
 #' Map indices from a to b based off tip labels

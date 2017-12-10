@@ -98,7 +98,7 @@ uniprot_strata <- function(taxid, from=2){
     Filter(f=is.data.frame) %>%
     lineages_to_phylo(clean=TRUE) %>%
     Strata(
-      focal_name = taxid2name(taxid),
+      focal_name = taxizedb::taxid2name(taxid),
       focal_id   = taxid,
       tree       = .,
       data       = list()
