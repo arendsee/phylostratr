@@ -365,6 +365,9 @@ merge_phylo <- function(tree, subtrees){
 }
 
 #' Organize the tips with the focal_id on tip
+#'
+#' @param tree phylo object
+#' @param focal_id The name of the taxon to be ordered relative to
 make_tree_relative_to <- function(tree, focal_id){
   if(!any(focal_id %in% tree$tip.label)){
     stop("'focal_id' is not one of the tips of 'tree'")

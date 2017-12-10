@@ -6,6 +6,11 @@
 \usage{
 make_tree_relative_to(tree, focal_id)
 }
+\arguments{
+\item{tree}{phylo object}
+
+\item{focal_id}{The name of the taxon to be ordered relative to}
+}
 \description{
 Organize the tips with the focal_id on tip
 }
