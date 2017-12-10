@@ -8,6 +8,12 @@ eval_bins <- function(evalue){
   bin
 }
 
+plot_tree <- function(strata){
+  ggtree(strata@tree, layout='slanted')
+    geom_tiplab(size=2) +
+    geom_nodelab(size=2)
+}
+
 plot_one_obo_tree <- function(tree, stat){
   d <- stat
   d$eval_bins <- factor(as.integer(d$eval_bins))
