@@ -35,8 +35,7 @@ saccharomyces <- Strata(
            )),
     focal_name = 'Saccharomyces_cerevisiae',
     focal_id = focal_taxid
-)
-saccharomyces@tree$tip.label <- taxizedb::name2taxid(saccharomyces@tree$tip.label)
+) %>% tips2ncbi_taxids
 ```
 
 Where we assume the folder `yeast` holds the respective protein sequences. It
@@ -90,9 +89,9 @@ Next we run BLAST
 
 ```{r, eval=FALSE}
 results <- strata_blast(
-    query      = strata@data$faa[['Saccharomyces_cerevisiae']],
+    query      = strata@data$faa[[focal_taxid]],
     strata     = strata,
-    blast_args = list(nthreads=8) # TODO: don't hardcode the threads
+    blast_args = list(nthreads=8)
 ) %>%
   strata_besthits %>%
   merge_besthits

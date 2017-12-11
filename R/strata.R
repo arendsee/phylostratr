@@ -200,3 +200,27 @@ stratify <- function(
     dplyr::mutate(mrca_name = strata_names[.data$mrca])
 }
 
+#' Convert strata data, tip, and node names to and from NCBI taxonomy IDs
+#'
+#' @param strata Strata object
+#' @param target What to convert, may be 'tip', 'node', or 'all'
+#' @param to What to convert to, may be 'id' or 'name'
+#' @return Strata object with new names
+strata_convert <- function(strata, target='tip', to='id', ...){
+  FUN <- switch(
+    to,
+    id = taxizedb::name2taxid,
+    name = taxizedb::taxid2name,
+    stop("Illegal 'to' value: must be either 'id' or 'name'")
+  )
+  if(target == 'tip' || target == 'all'){
+    strata@tree$tip.label <- FUN(strata@tree$tip.label)
+    for(item in names(strata@data)){
+      names(strata@data[[item]]) <- FUN(names(strata@data[[item]]))
+    }
+  }
+  if(target == 'node' || target == 'all'){
+    strata@tree$node.label <- FUN(strata@tree$node.label)
+  }
+  strata
+}
