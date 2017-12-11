@@ -36,7 +36,7 @@ saccharomyces <- Strata(
     focal_name = 'Saccharomyces_cerevisiae',
     focal_id = focal_taxid
 )
-saccharomyces@tree <- set_node_names(saccharomyces@tree)
+saccharomyces@tree$tip.label <- taxizedb::name2taxid(saccharomyces@tree$tip.label)
 ```
 
 Where we assume the folder `yeast` holds the respective protein sequences. It
@@ -58,7 +58,7 @@ weights <- c(
   '766039'  = 1.1,
   '237561'  = 1.1
 )
-focal_taxid <- 4932
+focal_taxid <- '4932'
 strata <- focal_taxid %>%
   # Get all UniProt proteomes
   uniprot_strata %>%
@@ -78,11 +78,10 @@ phylogenetic relationships among the species in the *Saccharomyces* genus,
 this allows for finer phylostratigraphic analysis.
 
 ```{r, eval=FALSE}
-
-tree <- strata@tree
-tree <- prune(tree, focal_taxid, type='name')
+# Remove the Saccharomyces branch
+tree <- prune(strata@tree, '4930', type='name')
+# Replace it with out custom tree (4892 is the parent of 4930)
 tree <- ape::bind.tree(tree, saccharomyces@tree, where=which(tree_names(tree) == '4892'))
-
 strata@tree <- tree
 strata@data$faa <- append(strata@data$faa, saccharomyces@data$faa)
 ```
