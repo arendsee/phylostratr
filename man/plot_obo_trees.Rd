@@ -28,10 +28,11 @@ IDs to scientific names}
 Plots for the hit distribution of all genes
 }
 \examples{
-
+\dontrun{
 scheme = list(
-  cutoff = c(1e-100, 1e-20, 1e-5, 1e-3, 1e-1),
-  color = c('violet', 'blue', 'green', 'orange', 'red', 'darkred')
+  cutoff = c(1e-100, 1e-20, 1e-5, 1e-1),
+  color = c('#0000FF', '#14A9FF', '#7AFDFF', '#CC9500', '#FF1E00')
 )
 plot_one_obo_tree(tree, stat, scheme)
+}
 }

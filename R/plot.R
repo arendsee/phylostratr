@@ -59,16 +59,18 @@ plot_one_obo_tree <- function(
 #' @param scheme Color scheme
 #' @export
 #' @examples
-#' 
+#' \dontrun{
 #' scheme = list(
-#'   cutoff = c(1e-100, 1e-20, 1e-5, 1e-3, 1e-1),
-#'   color = c('violet', 'blue', 'green', 'orange', 'red', 'darkred')
+#'   cutoff = c(1e-100, 1e-20, 1e-5, 1e-1),
+#'   color = c('#0000FF', '#14A9FF', '#7AFDFF', '#CC9500', '#FF1E00')
 #' )
 #' plot_one_obo_tree(tree, stat, scheme)
+#' }
 plot_obo_trees <- function(hits, tree=NULL, n=50, focal_id=NULL, to_name=TRUE, scheme=default_scheme){
-  dat <- .common(hits)
+  dat <- base::split(hits, f=factor(hits$qseqid))
+
   if(is.null(tree)){
-    tree <- lineages_to_phylo(taxizedb::classification(unique(dat$taxidmap$staxid)))
+    tree <- lineages_to_phylo(taxizedb::classification(dat[[1]]$staxid))
   }
   if(!is.null(focal_id)){
     tree <- make_tree_relative_to(tree, focal_id)
@@ -76,11 +78,11 @@ plot_obo_trees <- function(hits, tree=NULL, n=50, focal_id=NULL, to_name=TRUE, s
   if(to_name){
     tree$tip.label <- taxizedb::taxid2name(tree$tip.label)
   }
-  N <- length(dat$stat)
+  N <- length(dat)
 
   lapply(seq(0, N, by=n), function(i){
     indices <- i:min(i+n-1, N)
-    stat <- do.call(what=rbind, dat$stat[indices])
+    stat <- do.call(what=rbind, dat[indices])
     if(to_name){
       stat$staxid <- taxizedb::taxid2name(stat$staxid)
     }
