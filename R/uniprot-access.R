@@ -99,7 +99,7 @@ uniprot_strata <- function(taxid, from=2){
     lineages_to_phylo(clean=TRUE) %>%
     Strata(
       focal_name = taxizedb::taxid2name(taxid),
-      focal_id   = taxid,
+      focal_id   = as.integer(taxid),
       tree       = .,
       data       = list()
     )
@@ -218,9 +218,13 @@ use_recommended_prokaryotes <- function(x){
     'prokaryote_sample.rda',
     package='phylostratr'
   ))
+  # extract the Eukaryota branch
   x@tree <- subtree(x@tree, '2759', type='name')
-  root <- taxizedb::classification(x@tree$tip.label[1])[[1]]$id %>% lineage_to_ancestor_tree
+  # get 'cellular_organism -> Eukaryota' tree (just these two nodes)
+  root <- taxizedb::classification(2759)[[1]]$id %>% lineage_to_ancestor_tree
+  # bind the prokaryotes to 'cellular_organism'
   y <- ape::bind.tree(root, prokaryote_sample)
+  # bind the eukaryote intput tree to 'Eukaryota'
   y <- ape::bind.tree(y, x@tree, where=which(tree_names(y) == '2759'))
   x@tree <- y
   x
