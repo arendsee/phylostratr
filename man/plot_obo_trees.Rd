@@ -5,7 +5,7 @@
 \title{Plots for the hit distribution of all genes}
 \usage{
 plot_obo_trees(hits, tree = NULL, n = 50, focal_id = NULL,
-  to_name = TRUE)
+  to_name = TRUE, scheme = default_scheme)
 }
 \arguments{
 \item{hits}{A table of best hits}
@@ -21,7 +21,17 @@ the tree relative with the focal species on top)}
 
 \item{to_name}{If TRUE, then the tip labels will be converted from taxonomy
 IDs to scientific names}
+
+\item{scheme}{Color scheme}
 }
 \description{
 Plots for the hit distribution of all genes
+}
+\examples{
+
+scheme = list(
+  cutoff = c(1e-100, 1e-20, 1e-5, 1e-3, 1e-1),
+  color = c('violet', 'blue', 'green', 'orange', 'red', 'darkred')
+)
+plot_one_obo_tree(tree, stat, scheme)
 }

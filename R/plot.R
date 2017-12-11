@@ -1,12 +1,18 @@
-eval_bins <- function(evalue){
-  bins <- c("e >= 1", "e < 1", "e < 1e-3", "e < 1e-5", "e < 1e-20")
-  bin <- ifelse(evalue >= 1e-20, bins[4], bins[5])
-  bin <- ifelse(evalue >= 1e-5,  bins[3], bin)
-  bin <- ifelse(evalue >= 1e-3,  bins[2], bin)
-  bin <- ifelse(evalue >= 1,     bins[1], bin)
-  bin <- factor(bin, levels=bins)
-  bin
+default_scheme <- list(
+  cutoff = c(1e-20, 1e-5, 1e-3, 1), 
+  color  = c('blue', 'green', 'yellow', 'darkorange1', 'darkred')
+)
+
+eval_bins <- function(d, scheme=default_scheme){
+  stopifnot((length(scheme$cutoff)+1) == length(scheme$color))
+  # treat NA as maximally insignificant
+  evalue <- d$evalue
+  evalue[is.na(evalue)] <- Inf
+  .bincode(evalue, c(-Inf, scheme$cutoff, Inf))
 }
+  # d$evalue_color <- scheme$color[evalue_bin]
+  # d$evalue_label <- c(scheme$cutoff, "1+")[evalue_bin]
+  # d
 
 plot_tree <- function(x){
   if(class(x) == "Strata"){
@@ -20,11 +26,11 @@ plot_tree <- function(x){
 plot_one_obo_tree <- function(
   tree,
   stat,
-  colors=c('darkred', 'darkorange1', 'yellow', 'green', 'blue')
+  color_scheme=default_scheme
 ){
   d <- stat
-  d$eval_bins <- factor(as.integer(d$eval_bins))
-  d <- reshape2::dcast(d, staxid ~ qseqid, value.var='eval_bins')
+  d$evalue_bin <- factor(eval_bins(stat, color_scheme))
+  d <- reshape2::dcast(d, staxid ~ qseqid, value.var='evalue_bin')
   rownames(d) <- d[, 1]
   d <- d[, -1]  
   g <- ggtree::ggtree(tree, layout='slanted', ladderize=FALSE) +
@@ -33,8 +39,8 @@ plot_one_obo_tree <- function(
                    colnames_angle=-45, hjust=0,
                    font.size=1) +
     ggplot2::scale_fill_manual(
-      values = colors,
-      labels = c('1+', '1', '1e-3', '1e-5', '1e-20')
+      values = color_scheme$color,
+      labels = c(color_scheme$cutoff, paste0(tail(color_scheme$cutoff,1), '+'))
     )
   g
 }
@@ -50,8 +56,16 @@ plot_one_obo_tree <- function(
 #' the tree relative with the focal species on top)
 #' @param to_name If TRUE, then the tip labels will be converted from taxonomy
 #' IDs to scientific names
+#' @param scheme Color scheme
 #' @export
-plot_obo_trees <- function(hits, tree=NULL, n=50, focal_id=NULL, to_name=TRUE){
+#' @examples
+#' 
+#' scheme = list(
+#'   cutoff = c(1e-100, 1e-20, 1e-5, 1e-3, 1e-1),
+#'   color = c('violet', 'blue', 'green', 'orange', 'red', 'darkred')
+#' )
+#' plot_one_obo_tree(tree, stat, scheme)
+plot_obo_trees <- function(hits, tree=NULL, n=50, focal_id=NULL, to_name=TRUE, scheme=default_scheme){
   dat <- .common(hits)
   if(is.null(tree)){
     tree <- lineages_to_phylo(taxizedb::classification(unique(dat$taxidmap$staxid)))
@@ -66,11 +80,11 @@ plot_obo_trees <- function(hits, tree=NULL, n=50, focal_id=NULL, to_name=TRUE){
 
   lapply(seq(0, N, by=n), function(i){
     indices <- i:min(i+n-1, N)
-    stat <- do.call(what=rbind, dat$stat[c(8001, indices)])
+    stat <- do.call(what=rbind, dat$stat[indices])
     if(to_name){
       stat$staxid <- taxizedb::taxid2name(stat$staxid)
     }
-    plot_one_obo_tree(tree, stat)
+    plot_one_obo_tree(tree, stat, scheme)
   })
 }
 
