@@ -12,7 +12,7 @@ strata <- Strata(
              'Saccharomyces_uvarum'       = 'yeast/uvarum.faa'
            )),
     focal_species = 'Saccharomyces_cerevisiae'
-)
+) %>% sort_strata
 
 test_that("strata_convert works", {
   # name-->id-->name is not guaranteed to result in an identical strata,
@@ -42,6 +42,10 @@ test_that("strata_convert works", {
 
 test_that("strata_apply over identity changes nothing", {
   ident <- function(x, ...) x
-
-  expect_equal(strata_apply(strata, ident, id=strata@focal_name), strata, id=strata@focal_name)
+  # The tree is unchanged
+  expect_true(ape::all.equal.phylo(strata_apply(strata, ident)@tree, strata@tree))
+  # The data are unchaged
+  expect_true(setequal(strata_apply(strata, ident)@data$faa, strata@data$faa))
+  # Focal species is unchanged
+  expect_equal(strata_apply(strata, ident)@focal_species, strata@focal_species)
 })

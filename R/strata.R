@@ -85,8 +85,9 @@ strata_apply <- function(strata, f, ...){
       subtree(tree=strata@tree, collapse=FALSE, descend=TRUE) %>%
       f(...)
   })
-  names(outgroups) <- tree_names(strata@tree)[lin]
+  names(outgroups) <- tree_names(strata@tree)[parent(strata@tree, lin)]
   outgroups <- outgroups[!sapply(outgroups, is.null)]
+  outgroups[[strata@focal_species]] <- f(subtree(strata@tree, strata@focal_species), ...)
 
   final <- lapply(outgroups, tree2edgelist) %>%
     do.call(what=rbind) %>%
@@ -95,11 +96,7 @@ strata_apply <- function(strata, f, ...){
     ape::collapse.singles()
 
   new_data <- lapply(strata@data, function(x){
-    w <- rep(NA, nleafs(final))
-    names(w) <- final$tip.label
-    common <- intersect(final$tip.label, strata@tree$tip.label)
-    w[common] <- strata@data[common]
-    w
+    x[final$tip.label]
   })
 
   new_strata <- strata
