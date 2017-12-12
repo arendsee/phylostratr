@@ -57,7 +57,6 @@ test_that("strata_blast", {
   expect_equal(
     {
       strata_results <<- strata_blast(
-        file.path('sample_data', 'a.faa'),
         strata,
         blast_args=list(verbose=FALSE)
       )

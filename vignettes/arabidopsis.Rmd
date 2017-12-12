@@ -86,11 +86,9 @@ strata %>%
     sort_strata %>%
     plot_tree
 
-query <- strata@data$faa[[strata@focal_species]]
-
 # BLAST against each target genome (this will take a few hours)
 # TODO: don't hard code the threads
-results <- strata_blast(query, strata_fasta, blast_args=list(nthreads=8)) %>%
+results <- strata_blast(strata_fasta, blast_args=list(nthreads=8)) %>%
   strata_besthits %>%
   merge_besthits
 ```

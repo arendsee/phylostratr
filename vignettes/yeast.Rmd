@@ -88,7 +88,6 @@ Next we run BLAST
 
 ```{r, eval=FALSE}
 results <- strata_blast(
-    query      = strata@data$faa[[focal_taxid]],
     strata     = strata,
     blast_args = list(nthreads=8)
 ) %>%

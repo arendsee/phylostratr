@@ -105,13 +105,18 @@ run_blastp <- function(
 
 #' Blast strata 
 #'
-#' @param query The protein FASTA file for the focal species
 #' @param strata Strata object where the 'faa' vector is included in the data slot
 #' @param makedb_args Additional arguments passed to \code{make_blast_database} 
 #' @param blast_args Additional arguments passed to \code{run_blastp}
 #' @return named list of phylostrata, where each element is a vector of blast result filenames 
-strata_blast <- function(query, strata, makedb_args=list(), blast_args=list()){
+strata_blast <- function(
+  strata,
+  makedb_args=list(),
+  blast_args=list()
+){
   is_valid_strata(strata)
+
+  query <- strata@data$faa[[strata@focal_species]]
 
   if(is.null(strata@data$faa)){
     stop("The input Strata object must have an 'faa' field in the 'data' slot")

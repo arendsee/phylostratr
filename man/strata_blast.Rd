@@ -4,11 +4,9 @@
 \alias{strata_blast}
 \title{Blast strata}
 \usage{
-strata_blast(query, strata, makedb_args = list(), blast_args = list())
+strata_blast(strata, makedb_args = list(), blast_args = list())
 }
 \arguments{
-\item{query}{The protein FASTA file for the focal species}
-
 \item{strata}{Strata object where the 'faa' vector is included in the data slot}
 
 \item{makedb_args}{Additional arguments passed to \code{make_blast_database}}
