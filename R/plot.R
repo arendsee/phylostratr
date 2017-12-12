@@ -23,7 +23,7 @@ plot_tree <- function(x){
   if(class(x) == "Strata"){
     x <- x@tree
   }
-  ggtree::ggtree(x, layout='slanted') +
+  ggtree::ggtree(x, layout='slanted', ladderize=FALSE) +
     ggtree::geom_tiplab(size=2) +
     ggtree::geom_nodelab(size=2)
 }

@@ -23,6 +23,20 @@ uniprot_downstream_ids <- function(taxid, reference_only=FALSE, delay=FALSE){
   children
 }
 
+#' Make reference-species preferring weight vector for diverse_subtree
+#'
+#' @param weight How much to prefer the reference species. The default, 1.05,
+#' will weakly prefer them, acting mostly as a tie-breaker. Higher weights
+#' could lead to reduced diversity.
+#' @param clade Weight taxa descending from this clade. The default is 2759
+#' (Eukaryota).
+uniprot_weight_by_ref <- function(weight=1.05, clade=2759){
+  refs <- uniprot_downstream_ids(clade, reference_only=TRUE)
+  weights <- rep(1.1, length(refs))
+  names(weights) <- refs
+  weights 
+}
+
 #' Download a UniProt proteome
 #'
 #' Thre proteome is written to a file with the name '<taxid>.faa', for example,
