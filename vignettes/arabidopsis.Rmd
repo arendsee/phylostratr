@@ -81,17 +81,12 @@ strata <-
 
 # TODO: add archaeplastida (viridiplantae, red algae, glaucophytes)
 
-# Add the focal species to the analysis
-strata <- add_taxid(strata, focal_taxid)
-
 strata %>%
     strata_convert(target='all', to='name') %>%
-    {.@tree} %>%
-    make_tree_relative_to('Arabidopsis thaliana') %>%
+    sort_strata %>%
     plot_tree
 
-# Set the focal protein fasta file
-strata_fasta@data$faa[[focal_taxid]] <- query
+query <- strata@data$faa[[strata@focal_species]]
 
 # BLAST against each target genome (this will take a few hours)
 # TODO: don't hard code the threads

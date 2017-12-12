@@ -33,8 +33,7 @@ saccharomyces <- Strata(
              Saccharomyces_eubayanus    = 'yeast/eubayanus.faa',
              Saccharomyces_uvarum       = 'yeast/uvarum.faa'
            )),
-    focal_name = 'Saccharomyces_cerevisiae',
-    focal_id = focal_taxid
+    focal_species = 'Saccharomyces_cerevisiae'
 ) %>% strata_convert(target='tip', to='id')
 ```
 
