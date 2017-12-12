@@ -4,12 +4,10 @@
 \alias{Strata}
 \title{Initialize a Strata object}
 \usage{
-Strata(focal_name, focal_id, tree, data = list())
+Strata(focal_species, tree, data = list())
 }
 \arguments{
-\item{focal_name}{The name of the focal species. This name should match the tip label from the tree.}
-
-\item{focal_id}{The ID (e.g. NCBI taxonomy) of the focal species}
+\item{focal_species}{The name of the focal species. This name should match the tip label from the tree.}
 
 \item{tree}{'phylo' object}
 

@@ -1,3 +1,17 @@
+#' Assert a Strata object is valid, die on failure
+#'
+#' @param strata Strata object
+is_valid_strata <- function(strata){
+  if(!(strata@focal_species %in% strata@tree$tip.label)){
+    stop("Invalid Strata object, the focal species '", strata@focal_species, "' is not found in the tree")
+  }
+  for(field in names(strata@data)){
+    if(!all(names(strata@data[[field]]) %in% strata@tree$tip.label)){
+      stop("Invalid Strata object, data field '", field, "' contains species labels that are not in the tree")
+    }
+  }
+}
+
 #' Get a diverse subset of species from tree
 #'
 #' @param tree phylo object
@@ -59,15 +73,12 @@ diverse_subtree <- function(tree, n, weights=NULL, collapse=FALSE){
 #'
 #' @param strata Strata object
 #' @param f A function of a phylo object that return a phylo object
-#' @param id A name or index
 #' @param ... Additional arguments passed to f
 #' @return Strata object
-strata_apply <- function(strata, f, id=strata@focal_id, ...){
-  if(!any(id %in% tree_names(strata@tree))){
-    stop("id not found in tree")
-  }
+strata_apply <- function(strata, f, ...){
+  is_valid_strata(strata)
 
-  lin <- lineage(strata@tree, id, type='name')[-1]
+  lin <- lineage(strata@tree, strata@focal_species, type='name')[-1]
 
   outgroups <- lapply(lin, function(ancestor){
     outgroup <- tree_names(strata@tree)[sisters(strata@tree, ancestor)] %>%
@@ -206,7 +217,7 @@ stratify <- function(
 #' @param target What to convert, may be 'tip', 'node', or 'all'
 #' @param to What to convert to, may be 'id' or 'name'
 #' @return Strata object with new names
-strata_convert <- function(strata, target='tip', to='id', ...){
+strata_convert <- function(strata, target='tip', to='id'){
   FUN <- switch(
     to,
     id = taxizedb::name2taxid,
@@ -218,9 +229,21 @@ strata_convert <- function(strata, target='tip', to='id', ...){
     for(item in names(strata@data)){
       names(strata@data[[item]]) <- FUN(names(strata@data[[item]]))
     }
+    strata@focal_species <- FUN(strata@focal_species)
   }
   if(target == 'node' || target == 'all'){
     strata@tree$node.label <- FUN(strata@tree$node.label)
   }
+  strata
+}
+
+#' Sort strata relative to focal species
+#'
+#' @param strata Strata object
+#' @return Strata object with reorded tips
+#' @export
+sort_strata <- function(strata){
+  is_valid_strata(strata)
+  strata@tree <- make_tree_relative_to(strata@tree, strata@focal_species)
   strata
 }

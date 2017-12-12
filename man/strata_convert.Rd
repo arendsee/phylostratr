@@ -4,7 +4,7 @@
 \alias{strata_convert}
 \title{Convert strata data, tip, and node names to and from NCBI taxonomy IDs}
 \usage{
-strata_convert(strata, target = "tip", to = "id", ...)
+strata_convert(strata, target = "tip", to = "id")
 }
 \arguments{
 \item{strata}{Strata object}

@@ -4,25 +4,22 @@ setClass(
   representation(
     tree = "phylo",
     data = "list",
-    focal_name = "character",
-    focal_id = "numeric"
+    focal_species = "character"
   )
 )
 
 #' Initialize a Strata object
 #'
-#' @param focal_name The name of the focal species. This name should match the tip label from the tree.
-#' @param focal_id The ID (e.g. NCBI taxonomy) of the focal species
+#' @param focal_species The name of the focal species. This name should match the tip label from the tree.
 #' @param tree 'phylo' object
 #' @param data List of data. This is where filenames for downloaded proteins,
 #' among other things, will be stored.
 #' @return Strata object
 #' @export
-Strata <- function(focal_name, focal_id, tree, data=list()){
+Strata <- function(focal_species, tree, data=list()){
   new('Strata',
     tree = tree,
     data = data,
-    focal_name = focal_name,
-    focal_id = focal_id
+    focal_species = as.character(focal_species)
   )
 }

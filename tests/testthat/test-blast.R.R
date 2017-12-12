@@ -41,8 +41,7 @@ tree <- ape::rtree(5) %>% set_node_names
 tree$tip.label <- letters[1:5]
 strata <- Strata(
   tree=tree,
-  focal_name='a',
-  focal_id=999,
+  focal_species='a',
   data=list(faa=list(
       a = file.path('sample_data', 'a.faa'),
       b = file.path('sample_data', 'b.faa'),
@@ -87,7 +86,7 @@ test_that("strata_besthits", {
 
 test_that("merge_besthits", {
   expect_true({
-    besthits <- strata_besthits(strata_results) %>% merge_besthits(by='name')
+    besthits <- strata_besthits(strata_results) %>% merge_besthits
     # the columns are correct
     all(c('staxid', 'qseqid', 'evalue', 'score', 'mrca', 'ps') %in% names(besthits)) &&
     # all staxa are represented

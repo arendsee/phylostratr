@@ -4,14 +4,12 @@
 \alias{strata_apply}
 \title{Apply f to each outgroup branch ascending node id}
 \usage{
-strata_apply(strata, f, id = strata@focal_id, ...)
+strata_apply(strata, f, ...)
 }
 \arguments{
 \item{strata}{Strata object}
 
 \item{f}{A function of a phylo object that return a phylo object}
-
-\item{id}{A name or index}
 
 \item{...}{Additional arguments passed to f}
 }

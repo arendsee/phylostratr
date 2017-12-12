@@ -111,6 +111,8 @@ run_blastp <- function(
 #' @param blast_args Additional arguments passed to \code{run_blastp}
 #' @return named list of phylostrata, where each element is a vector of blast result filenames 
 strata_blast <- function(query, strata, makedb_args=list(), blast_args=list()){
+  is_valid_strata(strata)
+
   if(is.null(strata@data$faa)){
     stop("The input Strata object must have an 'faa' field in the 'data' slot")
   }
@@ -132,6 +134,8 @@ strata_blast <- function(query, strata, makedb_args=list(), blast_args=list()){
 #' data.frame for each target species, where each data.frame is a filtered
 #' blast result
 strata_besthits <- function(strata){
+  is_valid_strata(strata)
+
   if(is.null(strata@data$faa)){
     stop("The input Strata object must have a 'blast_result' field in the 'data' slot")
   }
@@ -154,17 +158,13 @@ strata_besthits <- function(strata){
 #' Build a single data.frame with an MRCA column from stratified blast results
 #'
 #' @param strata A Strata object with a list of dataframe as the data$besthit slot.
-#' @param by ['id', 'name'] is the focal species tip.label in the phylo tree equal to Strata@focal_id or Strata@focal_name?
 #' @return A single dataframe holding the top hits of each focal gene against
 #' each subject species.
-merge_besthits <- function(strata, by='id'){
+merge_besthits <- function(strata){
+  is_valid_strata(strata)
+
   besthits_strata <- strata@data$besthit
-  focal_label <- if(by == 'id'){
-    strata@focal_id
-  } else {
-    strata@focal_name
-  }
-  strata_names <- lineage(strata@tree, focal_label, type='name')
+  strata_names <- lineage(strata@tree, strata@focal_species, type='name')
   strata_names <- tree_names(strata@tree)[strata_names]
   ps <- seq_along(strata_names)
 
@@ -196,9 +196,9 @@ merge_besthits <- function(strata, by='id'){
     }
 
   # Merge in the focal species
-  besthits_strata[[focal_label]] %>%
+  besthits_strata[[strata@focal_species]] %>%
     {
-      .$mrca <- strata@focal_id
+      .$mrca <- strata@focal_species
       .$ps <- max(ps)+1
       .
     } %>%

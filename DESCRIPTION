@@ -32,7 +32,7 @@ Remotes:
     arendsee/taxizedb,
     GuangchuangYu/ggtree,
     GuangchuangYu/treeio,
-    GuangchuangYu/tidytree
+    arendsee/tidytree
 License: GPL-3 + file LICENSE
 Encoding: UTF-8
 LazyData: true
