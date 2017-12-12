@@ -186,6 +186,17 @@ test_that("subtree(collapse=TRUE, descend=FALSE)", {
   expect_equal(tree_names(subtree(atree, integer(0), descend=FALSE)), character(0))
 })
 
+test_that("subtree edges are correct", {
+  expect_equal(
+    subtree(atree, c(1,4,7), descend=FALSE)$edge,
+    matrix(c(4,4,5,5,1,5,2,3), ncol=2)
+  )
+  # check single tip edge
+  expect_equal(subtree(atree, 't1')$edge, matrix(c(2,1), ncol=2))
+  # check single tip names
+  expect_equal(tree_names(subtree(atree, 't1')), c("t1", "n15"))
+})
+
 test_that("backbone trees are cool", {
   one_tree <- lineage_to_ancestor_tree(lineage(atree, 5, use_name=TRUE))
   expect_equal(tree_names(one_tree)[parent(one_tree, "t5")], "n18") 

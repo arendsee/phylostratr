@@ -291,7 +291,7 @@ subtree <- function(tree, id, collapse=TRUE, descend=TRUE, type='auto'){
     # to keep the ape from screaming later. 
     pid <- new_tree$edge[new_edge[, 2] == 1, 1]
     new_tree$node.label <- new_tree$node.label[pid - 1]
-    new_tree$edge <- new_edge[new_edge[, 2] == 1, , drop=FALSE]
+    new_tree$edge <- matrix(c(2,1), ncol=2)
     new_tree$Nnode <- 1
   } else if(new_size > 1 && collapse){
     # collapse the edges of nodes that have only a single descendent 
