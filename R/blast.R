@@ -196,7 +196,7 @@ merge_besthits <- function(strata, by='id'){
     }
 
   # Merge in the focal species
-  besthits_strata[[as.character(strata@focal_id)]] %>%
+  besthits_strata[[focal_label]] %>%
     {
       .$mrca <- strata@focal_id
       .$ps <- max(ps)+1

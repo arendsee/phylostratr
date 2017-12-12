@@ -88,7 +88,10 @@ test_that("strata_besthits", {
 test_that("merge_besthits", {
   expect_true({
     besthits <- strata_besthits(strata_results) %>% merge_besthits(by='name')
-    all(c('staxid', 'qseqid', 'evalue', 'score', 'mrca', 'ps') %in% names(besthits))
+    # the columns are correct
+    all(c('staxid', 'qseqid', 'evalue', 'score', 'mrca', 'ps') %in% names(besthits)) &&
+    # all staxa are represented
+    setequal(letters[1:5], unique(besthits$staxid))
   })
 })
 
