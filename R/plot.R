@@ -1,6 +1,11 @@
-default_scheme <- list(
+scheme1 <- list(
   cutoff = c(1e-20, 1e-5, 1e-3, 1), 
   color  = c('blue', 'green', 'yellow', 'darkorange1', 'darkred')
+)
+
+scheme2 = list(
+  cutoff = c(1e-100, 1e-20, 1e-5, 1e-1),
+  color = c('#0000FF', '#14A9FF', '#7AFDFF', '#CC9500', '#FF1E00')
 )
 
 eval_bins <- function(d, scheme=default_scheme){
@@ -66,7 +71,7 @@ plot_one_obo_tree <- function(
 #' )
 #' plot_one_obo_tree(tree, stat, scheme)
 #' }
-plot_obo_trees <- function(hits, tree=NULL, n=50, focal_id=NULL, to_name=TRUE, scheme=default_scheme){
+plot_obo_trees <- function(hits, tree=NULL, n=50, focal_id=NULL, to_name=TRUE, scheme=scheme2){
   dat <- base::split(hits, f=factor(hits$qseqid))
 
   if(is.null(tree)){

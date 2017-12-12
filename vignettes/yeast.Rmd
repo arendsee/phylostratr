@@ -35,7 +35,7 @@ saccharomyces <- Strata(
            )),
     focal_name = 'Saccharomyces_cerevisiae',
     focal_id = focal_taxid
-) %>% tips2ncbi_taxids
+) %>% strata_convert(target='tip', to='id')
 ```
 
 Where we assume the folder `yeast` holds the respective protein sequences. It
@@ -78,10 +78,10 @@ this allows for finer phylostratigraphic analysis.
 
 ```{r, eval=FALSE}
 # Remove the Saccharomyces branch
-tree <- prune(strata@tree, '4930', type='name')
+strata@tree <- prune(strata@tree, '4930', type='name')
+strata <- add_taxid(strata, '4930')
 # Replace it with out custom tree (4892 is the parent of 4930)
-tree <- ape::bind.tree(tree, saccharomyces@tree, where=which(tree_names(tree) == '4892'))
-strata@tree <- tree
+strata@tree <- ape::bind.tree(strata@tree, saccharomyces@tree, where=which(tree_names(strata@tree) == '4930'))
 strata@data$faa <- append(strata@data$faa, saccharomyces@data$faa)
 ```
 
@@ -95,4 +95,8 @@ results <- strata_blast(
 ) %>%
   strata_besthits %>%
   merge_besthits
+
+pdf('all-yeast.pdf')
+plot_obo_trees(results, tree=strata@tree, focal_id=focal_taxid)
+dev.off()
 ```

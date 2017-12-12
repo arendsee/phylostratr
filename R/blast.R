@@ -167,7 +167,8 @@ merge_besthits <- function(strata, by='id'){
   strata_names <- lineage(strata@tree, focal_label, type='name')
   strata_names <- tree_names(strata@tree)[strata_names]
   ps <- seq_along(strata_names)
-  lapply(ps, function(i){
+
+  besthits <- lapply(ps, function(i){
     taxa <- sister_trees(strata@tree, strata_names[i], type='name') %>%
       lapply(function(sis){ sis$tip.label }) %>%
       unlist %>% unname
@@ -193,4 +194,14 @@ merge_besthits <- function(strata, by='id'){
         tidyr::complete_(c('qseqid', 'staxid')) %>%
         merge(mrca_map, by='staxid')
     }
+
+  # Merge in the focal species
+  besthits_strata[[as.character(strata@focal_id)]] %>%
+    {
+      .$mrca <- strata@focal_id
+      .$ps <- max(ps)+1
+      .
+    } %>%
+    dplyr::select(staxid, qseqid, evalue, score, mrca, ps) %>%
+    rbind(besthits)
 }
