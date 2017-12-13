@@ -98,3 +98,9 @@ pdf('all-yeast.pdf')
 plot_obo_trees(results, tree=strata@tree, focal_id=focal_taxid)
 dev.off()
 ```
+
+Then HMMer
+
+```{r, eval=FALSE}
+
+```

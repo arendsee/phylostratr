@@ -36,6 +36,36 @@ hmmer_parse_domtblout <- function(file){
   parse_hmmer_output(file, 'domtblout')
 }
 
+make_hmmscan_filter <- function(by='domain_ievalue', k=1e-5, op='<'){
+  f <- get(op)
+  function(x){
+    x$domtblout[f(x$domtblout[[by]], k), ] %>%
+      dplyr::select(
+        domain = 'domain_accession',
+        qseqid = 'query_name',
+        dlen   = 'domain_len',
+        by,
+        qlen   = 'qlen',
+        dfrom  = 'hmm_from',
+        dto    = 'hmm_to',
+        qfrom  = 'ali_from',
+        qto    = 'ali_to'
+      )
+  }
+}
+
+strata_hmmscan <- function(
+  strata,
+  finder  = run_hmmscan,
+  filter  = make_hmmscan_filter(by='domain_ievalue', k=1e-5),
+  ...
+){
+  strata@data$hmmscan <- lapply(
+    names(strata@data$faa),
+    function(species) filter(finder(strata@data$faa[[species]], ...))
+  )
+}
+
 parse_hmmer_output <- function(file, type){
   column_names <- if(type == 'tblout'){
     c(
@@ -43,7 +73,7 @@ parse_hmmer_output <- function(file, type){
       'domain_accession',
       'query_name',
       'query_accession',
-      'sequecne_evalue',
+      'sequence_evalue',
       'sequence_score',
       'sequence_bias',
       'best_domain_evalue',
