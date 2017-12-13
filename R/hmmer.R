@@ -64,6 +64,60 @@ strata_hmmscan <- function(
     names(strata@data$faa),
     function(species) filter(finder(strata@data$faa[[species]], ...))
   )
+  strata
+}
+
+strata_load_hmmscan <- function(
+  strata,
+  dir = 'hmmscan-results',
+  filter  = make_hmmscan_filter(by='domain_ievalue', k=1e-5),
+  ...
+){
+  if(!dir.exisits(dir)){
+    stop("Expected to find hmmscan resuls in folder 'hmmscan-results', but this folder does not exist")
+  }
+  strata@data$hmmscan <- lapply(strata@tree$tip.label, function(taxid){
+    list(
+      domtblout = hmmer_parse_domtblout(file.path(dir, paste0(taxid, '.domtblout.tab'))),
+      tblout = hmmer_parse_tblout(file.path(dir, paste0(taxid, '.tblout.tab'))),
+    ) %>%
+      hmmresult
+  })
+  strata
+}
+
+strata_retrieve_PFAM_domains <- function(strata, dir='pfam-domains', version='31.0'){
+  col_names <- c(
+    "seq_id",
+    "alignment_start",
+    "alignment_end",
+    "envelope_start",
+    "envelope_end",
+    "hmm_acc",
+    "hmm_name",
+    "type",
+    "hmm_start",
+    "hmm_end",
+    "hmm_length",
+    "bit_score",
+    "E_value",
+    "clan"
+  )
+  dir.create(dir, showWarnings=FALSE)
+  lapply(strata@tree$tip.label[1:2], function(taxid){
+    url=glue::glue('ftp://ftp.ebi.ac.uk/pub/databases/Pfam/releases/Pfam{version}/proteomes/{taxid}.tsv.gz')
+    # FIXME: RCurl is actually broken, returning true regardless of whether the file exists
+    if(RCurl::url.exists(url)){
+      filename <- file.path(dir, paste0(taxid, ".tsv"))
+      if(!file.exists(filename)){
+        readr::read_tsv(url, comment="#", col_names=col_names) %>%
+          readr::write_tsv(path=filename)
+      }
+      filename
+    } else {
+      NULL
+    }
+  })
 }
 
 parse_hmmer_output <- function(file, type){
