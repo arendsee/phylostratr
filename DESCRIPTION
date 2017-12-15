@@ -19,11 +19,13 @@ Imports:
     methods,
     readr,
     reshape2,
+    rhmmer,
     rlang (>= 0.1.2),
     taxizedb,
     tidyr
 Remotes:
     arendsee/taxizedb,
+    arendsee/rhmmer,
     GuangchuangYu/ggtree,
     GuangchuangYu/treeio
 License: GPL-3 + file LICENSE
@@ -36,3 +38,4 @@ Suggests:
     rmarkdown,
     testthat
 VignetteBuilder: knitr
+BiocViews: 
