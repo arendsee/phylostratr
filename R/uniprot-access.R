@@ -181,7 +181,7 @@ uniprot_sample_prokaryotes <- function(downto='class', remake=FALSE){
   }
 
   # Get all bacterial and Archael classes (class is one level below phylum)
-  prokaryote_classes <- taxize::downstream(c('eubacteria', 'Archaea'), downto=downto, db='ncbi')
+  prokaryote_classes <- taxizedb::downstream(c('eubacteria', 'Archaea'), downto=downto, db='ncbi')
 
   # Get all uniprot reference genomes for each bacterial class
   bacteria_class_reps <- lapply(

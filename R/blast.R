@@ -207,6 +207,13 @@ merge_besthits <- function(strata){
       .$ps <- max(ps)+1
       .
     } %>%
-    dplyr::select(staxid, qseqid, evalue, score, mrca, ps) %>%
+    dplyr::select(
+      .data$staxid,
+      .data$qseqid,
+      .data$evalue,
+      .data$score,
+      .data$mrca,
+      .data$ps
+    ) %>%
     rbind(besthits)
 }

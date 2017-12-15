@@ -64,6 +64,7 @@ thaliana* as follows:
 
 ```{r, eval=FALSE}
 library(phylostratr)
+library(magrittr)
 
 focal_taxid <- '3702'
 strata <-

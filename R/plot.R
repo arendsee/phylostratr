@@ -8,7 +8,7 @@ scheme2 = list(
   color = c('#0000FF', '#14A9FF', '#7AFDFF', '#CC9500', '#FF1E00')
 )
 
-eval_bins <- function(d, scheme=default_scheme){
+eval_bins <- function(d, scheme=scheme2){
   stopifnot((length(scheme$cutoff)+1) == length(scheme$color))
   # treat NA as maximally insignificant
   evalue <- d$evalue
@@ -31,7 +31,7 @@ plot_tree <- function(x){
 plot_one_obo_tree <- function(
   tree,
   stat,
-  color_scheme=default_scheme
+  color_scheme=scheme2
 ){
   d <- stat
   d$evalue_bin <- factor(eval_bins(stat, color_scheme))

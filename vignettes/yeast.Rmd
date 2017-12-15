@@ -19,8 +19,9 @@ species we want).
 The most general way to customize a sequence dataset is to simply write the
 FASTA filenames into a list and convert it to a tree:
 
-```{r}
+```{r, eval=FALSE}
 library(phylostratr)
+library(magrittr)
 focal_taxid <- 4932
 saccharomyces <- Strata(
     tree = ape::read.tree(system.file('extdata', 'yeast', 'tree', package='phylostratr')),
@@ -97,10 +98,4 @@ results <- strata_blast(
 pdf('all-yeast.pdf')
 plot_obo_trees(results, tree=strata@tree, focal_id=focal_taxid)
 dev.off()
-```
-
-Then HMMer
-
-```{r, eval=FALSE}
-
 ```

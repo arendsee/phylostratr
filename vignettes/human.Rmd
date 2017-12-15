@@ -12,8 +12,9 @@ vignette: >
 The human case study, in terms of implentation, is nearly identical to the
 Arabidopsis study.
 
-```{r}
+```{r, eval=FALSE}
 library(phylostratr)
+library(magrittr)
 focal_taxid <- '9606'
 strata <-
   # Get stratified relatives represented in UniProt

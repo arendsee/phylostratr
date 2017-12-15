@@ -25,7 +25,7 @@ ncbi_ancestors <- function(taxid, byname=FALSE){
 #' @param taxid a single NCBI taxon
 #' @export
 ncbi_cousins <- function(taxid){
-  taxize::downstream(ncbi_ancestors(taxid)[-1], downto='species', db='ncbi')
+  taxizedb::downstream(ncbi_ancestors(taxid)[-1], downto='species', db='ncbi')
 }
 
 #' Get all ancestral sisters of a taxon
