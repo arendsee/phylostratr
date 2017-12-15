@@ -77,34 +77,50 @@ strata_load_hmmscan <- function(
   strata
 }
 
+retrievable_pfam_taxids <- function(){
+  pfam_url <- "ftp://ftp.ebi.ac.uk/pub/databases/Pfam/releases/Pfam31.0/proteomes/"
+  RCurl::getURL(pfam_url, verbose=TRUE, dirlistonly=TRUE) %>%
+    readr::read_lines() %>%
+    sub(pattern='\\.tsv.gz', replacement='') %>%
+    { .[grepl('^[0-9]+$', .)] } %>%
+    as.integer
+}
+
 strata_retrieve_PFAM_domains <- function(strata, dir='pfam-domains', version='31.0'){
-  col_names <- c(
-    "seq_id",
-    "alignment_start",
-    "alignment_end",
-    "envelope_start",
-    "envelope_end",
-    "hmm_acc",
-    "hmm_name",
-    "type",
-    "hmm_start",
-    "hmm_end",
-    "hmm_length",
-    "bit_score",
-    "E_value",
-    "clan"
+  col_types <- c(
+    seq_id          = readr::col_character(),
+    alignment_start = readr::col_integer(),
+    alignment_end   = readr::col_integer(),
+    envelope_start  = readr::col_integer(),
+    envelope_end    = readr::col_integer(),
+    hmm_acc         = readr::col_character(),
+    hmm_name        = readr::col_character(),
+    type            = readr::col_character(),
+    hmm_start       = readr::col_integer(),
+    hmm_end         = readr::col_integer(),
+    hmm_length      = readr::col_integer(),
+    bit_score       = readr::col_double(),
+    E_value         = readr::col_double(),
+    clan            = readr::col_character()
   )
+
+  pfam_taxids <- retrievable_pfam_taxids()
+
+  strata@data$pfam <- rep(NA, length(strata@tree$tip.label))
+  names(strata@data$pfam) <- strata@tree$tip.label
+
   dir.create(dir, showWarnings=FALSE)
-  lapply(strata@tree$tip.label[1:2], function(taxid){
-    url=glue::glue('ftp://ftp.ebi.ac.uk/pub/databases/Pfam/releases/Pfam{version}/proteomes/{taxid}.tsv.gz')
-    # TODO: catch missing URL
+
+  strata@data$pfam[names(strata@data$pfam) %in% pfam_taxids] <- 
+    lapply(strata@tree$tip.label, function(taxid){
+      url=glue::glue('ftp://ftp.ebi.ac.uk/pub/databases/Pfam/releases/Pfam{version}/proteomes/{taxid}.tsv.gz')
       filename <- file.path(dir, paste0(taxid, ".tsv"))
       if(!file.exists(filename)){
         readr::read_tsv(url, comment="#", col_names=col_names) %>%
           readr::write_tsv(path=filename)
       }
       filename
-    # ----------------------- end catch
-    # on failure, return NULL
-  })
+    })
+
+  strata
 }
