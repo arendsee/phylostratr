@@ -30,6 +30,7 @@ uniprot_downstream_ids <- function(taxid, reference_only=FALSE, delay=FALSE){
 #' could lead to reduced diversity.
 #' @param clade Weight taxa descending from this clade. The default is 2759
 #' (Eukaryota).
+#' @export
 uniprot_weight_by_ref <- function(weight=1.05, clade=2759){
   refs <- uniprot_downstream_ids(clade, reference_only=TRUE)
   weights <- rep(1.1, length(refs))

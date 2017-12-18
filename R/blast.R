@@ -109,6 +109,7 @@ run_blastp <- function(
 #' @param makedb_args Additional arguments passed to \code{make_blast_database} 
 #' @param blast_args Additional arguments passed to \code{run_blastp}
 #' @return named list of phylostrata, where each element is a vector of blast result filenames 
+#' @export
 strata_blast <- function(
   strata,
   makedb_args=list(),
@@ -138,6 +139,7 @@ strata_blast <- function(
 #' @return Strata object with 'besthits' field in data slot. This field holds a
 #' data.frame for each target species, where each data.frame is a filtered
 #' blast result
+#' @export
 strata_besthits <- function(strata){
   is_valid_strata(strata)
 
@@ -165,6 +167,7 @@ strata_besthits <- function(strata){
 #' @param strata A Strata object with a list of dataframe as the data$besthit slot.
 #' @return A single dataframe holding the top hits of each focal gene against
 #' each subject species.
+#' @export
 merge_besthits <- function(strata){
   is_valid_strata(strata)
 

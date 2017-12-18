@@ -75,6 +75,7 @@ diverse_subtree <- function(tree, n, weights=NULL, collapse=FALSE){
 #' @param f A function of a phylo object that return a phylo object
 #' @param ... Additional arguments passed to f
 #' @return Strata object
+#' @export
 strata_apply <- function(strata, f, ...){
   is_valid_strata(strata)
 
@@ -214,6 +215,7 @@ stratify <- function(
 #' @param target What to convert, may be 'tip', 'node', or 'all'
 #' @param to What to convert to, may be 'id' or 'name'
 #' @return Strata object with new names
+#' @export
 strata_convert <- function(strata, target='tip', to='id'){
   FUN <- switch(
     to,
