@@ -77,50 +77,55 @@ strata_load_hmmscan <- function(
   strata
 }
 
-retrievable_pfam_taxids <- function(){
-  pfam_url <- "ftp://ftp.ebi.ac.uk/pub/databases/Pfam/releases/Pfam31.0/proteomes/"
-  RCurl::getURL(pfam_url, verbose=TRUE, dirlistonly=TRUE) %>%
-    readr::read_lines() %>%
-    sub(pattern='\\.tsv.gz', replacement='') %>%
-    { .[grepl('^[0-9]+$', .)] } %>%
-    as.integer
+#' Retrieve uniprot to pfam maps for all taxa
+#'
+#' @param strata Strata object
+#' @param dir director to which maps should be written
+#' @return Strata object with uniprot2pfam field in data, which stores the
+#'         filenames of the retrieved maps.
+#' @export
+strata_uniprot_pfam_map <- function(strata, dir='pfam'){
+  dir.create(dir, recursive=TRUE, showWarnings=FALSE)
+  taxa <- strata@tree$tip.label
+  strata@data$uniprot2pfam <- lapply(taxa, function(taxid){
+    filename <- file.path(dir, paste0(taxid, ".tab"))
+    if(!file.exists(filename))
+      readr::write_tsv(uniprot_map2pfam(taxid), path=filename)
+    filename
+  })
+  names(strata@data$uniprot2pfam) <- taxa
+  strata
 }
 
-strata_retrieve_PFAM_domains <- function(strata, dir='pfam-domains', version='31.0'){
-  col_types <- c(
-    seq_id          = readr::col_character(),
-    alignment_start = readr::col_integer(),
-    alignment_end   = readr::col_integer(),
-    envelope_start  = readr::col_integer(),
-    envelope_end    = readr::col_integer(),
-    hmm_acc         = readr::col_character(),
-    hmm_name        = readr::col_character(),
-    type            = readr::col_character(),
-    hmm_start       = readr::col_integer(),
-    hmm_end         = readr::col_integer(),
-    hmm_length      = readr::col_integer(),
-    bit_score       = readr::col_double(),
-    E_value         = readr::col_double(),
-    clan            = readr::col_character()
-  )
+stratify_by_pfam_domain <- function(strata){
+  if(!('uniprot2pfam' %in% names(strata@data))){
+    stop("You need to run `strata_uniprot_pfam_map` before this function")
+  }
 
-  pfam_taxids <- retrievable_pfam_taxids()
+  reps <- strata@tree %>%
+    lineage(strata@focal_species, type='name') %>%
+    lapply(sister_trees, tree=strata@tree, type='index') %>%
+    lapply(function(x){ lapply(x, leafs, byname=TRUE) %>% unlist %>% unique })
 
-  strata@data$pfam <- rep(NA, length(strata@tree$tip.label))
-  names(strata@data$pfam) <- strata@tree$tip.label
+  names(reps) <- tree_names(strata@tree)[lineage(strata@tree, strata@focal_species)]
+  reps <- reps[-1]
 
-  dir.create(dir, showWarnings=FALSE)
+  domains <- lapply(reps, function(taxa){
+    lapply(taxa, function(taxid){
+      readr::read_tsv(strata@data$uniprot2pfam[[as.character(taxid)]])$pfamID
+    }) %>% unlist %>% unique
+  })
 
-  strata@data$pfam[names(strata@data$pfam) %in% pfam_taxids] <- 
-    lapply(strata@tree$tip.label, function(taxid){
-      url=glue::glue('ftp://ftp.ebi.ac.uk/pub/databases/Pfam/releases/Pfam{version}/proteomes/{taxid}.tsv.gz')
-      filename <- file.path(dir, paste0(taxid, ".tsv"))
-      if(!file.exists(filename)){
-        readr::read_tsv(url, comment="#", col_names=col_names) %>%
-          readr::write_tsv(path=filename)
-      }
-      filename
-    })
+  focal_domains <- readr::read_tsv(strata@data$uniprot2pfam[[strata@focal_species]])
 
-  strata
+  domstrat <- lapply(domains, function(x) {
+    focal_domains$pfamID %in% x
+  }) %>%
+    do.call(what=cbind) %>%
+    apply(1, which) %>%
+    lapply(head, 1) %>% unlist
+
+  # TODO: the above just gets that stratification of specific domains, I want
+  # to stratify genes BY domain. Anyway, tomorrow, continue from here.
+    
 }

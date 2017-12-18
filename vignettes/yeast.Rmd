@@ -99,3 +99,9 @@ pdf('all-yeast.pdf')
 plot_obo_trees(results, tree=strata@tree, focal_id=focal_taxid)
 dev.off()
 ```
+
+We can perform a domain analysis
+
+```{r, eval=FALSE}
+strata <- strata_uniprot_pfam_map(strata)
+```

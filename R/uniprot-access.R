@@ -172,6 +172,23 @@ uniprot_cousin_proteomes <- function(
   }
 }
 
+#' Map UniProt IDs for an organism to PFAM IDs
+#'
+#' @param taxid Species NCBI taxonomy ID
+#' @return A data.frame with columns 'uniprotID' and 'pfamID'
+#' @export
+uniprot_map2pfam <- function(taxid){
+  base='http://www.uniprot.org/uniprot/'
+  format='format=tab'
+  columns='columns=id,database(PFAM)'
+  url <- glue::glue('{base}?query=organism:{taxid}&{format}&{columns}')
+  con <- curl::curl(url)
+  readr::read_tsv(con, col_types='cc') %>%
+    magrittr::set_names(c('uniprotID', 'pfamID')) %>%
+    dplyr::mutate(pfamID = sub(';$', '', .data$pfamID)) %>%
+    tidyr::separate_rows(.data$pfamID, sep=';')
+}
+
 
 uniprot_sample_prokaryotes <- function(downto='class', remake=FALSE){
 
