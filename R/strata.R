@@ -206,7 +206,7 @@ stratify <- function(
       )
     } %>%
     dplyr::distinct() %>%
-    dplyr::mutate(mrca_name = strata_names[.data$mrca])
+    dplyr::mutate(mrca_name = strata_names[.data$ps])
 }
 
 #' Convert strata data, tip, and node names to and from NCBI taxonomy IDs

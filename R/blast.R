@@ -208,6 +208,7 @@ merge_besthits <- function(strata){
       as.data.frame(.)
     } %>% { rownames(.) <- NULL; . }
   }) %>%
+    Filter(f=function(x){nrow(x) > 0}) %>%
     do.call(what=rbind) %>%
     {
       d <- .
@@ -224,12 +225,17 @@ merge_besthits <- function(strata){
   besthits_strata[[strata@focal_species]] %>%
     {
       .$mrca <- strata@focal_species
-      .$ps <- max(ps)+1
+      .$ps <- as.integer(max(ps)+1)
       .
     } %>%
     dplyr::select(
       .data$staxid,
       .data$qseqid,
+      .data$sseqid,
+      .data$qstart,
+      .data$qend,
+      .data$sstart,
+      .data$ssend,
       .data$evalue,
       .data$score,
       .data$mrca,

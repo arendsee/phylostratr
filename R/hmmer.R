@@ -130,8 +130,8 @@ stratify_by_pfam_domain <- function(strata){
     
 }
 
-merge_pfam <- funtion(strata){
-  pfam <- lapply(seq_along(strata@data$uniprot2pfam), function(i){
+merge_pfam <- function(strata){
+  lapply(seq_along(strata@data$uniprot2pfam), function(i){
     d <- readr::read_tsv(strata@data$uniprot2pfam[[i]], col_types='cc')
     d$staxid <- names(strata@data$uniprot2pfam)[i]
     d
