@@ -68,14 +68,14 @@ read_blast <- function(x, with_taxid=TRUE){
     qstart = readr::col_integer(),
     qend   = readr::col_integer(),
     sstart = readr::col_integer(),
-    ssend  = readr::col_integer(),
+    send   = readr::col_integer(),
     evalue = readr::col_double(),
     score  = readr::col_double()
   )
   if(with_taxid){
     col_types[['staxid']] <- readr::col_character()
   }
-  readr::read_tsv(x, col_types=col_types)
+  readr::read_tsv(x, col_names=names(col_types$cols), col_types=col_types)
 }
 
 #' BLAST query protein FASTA file against a subject species 
@@ -235,7 +235,7 @@ merge_besthits <- function(strata){
       .data$qstart,
       .data$qend,
       .data$sstart,
-      .data$ssend,
+      .data$send,
       .data$evalue,
       .data$score,
       .data$mrca,

@@ -124,9 +124,9 @@ add_taxid <- function(strata, taxid){
   new_tree <- taxizedb::classification(taxid)[[1]]$id %>%
     lineage_to_ancestor_tree
   # Find the most recent common node
-  max_id <- max(which(tree_names(new_tree) %in% tree_names(strata@tree)))
+  max_id <- max(which(new_tree$node.label %in% tree_names(strata@tree)))
   # Find the location at which this should attach to the old tree
-  common_node_index <- which(tree_names(strata@tree) == tree_names(new_tree)[max_id])
+  common_node_index <- which(tree_names(strata@tree) == new_tree$node.label[max_id])
   # Name of parent
   pid <- tree_names(strata@tree)[parent(strata@tree, common_node_index, type='index')]
 

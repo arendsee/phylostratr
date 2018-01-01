@@ -26,7 +26,7 @@ test_that("Can make and run blast", {
   )
   expect_equal(
     names(readr::read_tsv(blastresult)),
-    c('qseqid', 'staxid', 'evalue', 'score')
+    c('qseqid', 'sseqid', 'qstart', 'qend', 'sstart', 'send', 'evalue', 'score', 'staxid')
   )
   expect_equal(
     nrow(readr::read_tsv(blastresult)),
