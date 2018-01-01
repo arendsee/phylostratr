@@ -129,3 +129,13 @@ stratify_by_pfam_domain <- function(strata){
   # to stratify genes BY domain. Anyway, tomorrow, continue from here.
     
 }
+
+merge_pfam <- funtion(strata){
+  pfam <- lapply(seq_along(strata@data$uniprot2pfam), function(i){
+    d <- readr::read_tsv(strata@data$uniprot2pfam[[i]], col_types='cc')
+    d$staxid <- names(strata@data$uniprot2pfam)[i]
+    d
+  }) %>%
+    do.call(what=rbind) %>%
+    dplyr::filter(!is.na(pfamID))
+}
