@@ -74,22 +74,33 @@ strata <-
   strata_apply(f=diverse_subtree, n=5, weights=uniprot_weight_by_ref()) %>%
   # Use a prebuilt set of prokaryotic species
   use_recommended_prokaryotes %>%
+  add_taxid('4932') %>%
+  add_taxid('9606') %>%
   # Download genomes, storing the filenames
-  uniprot_fill_strata(strata)
+  uniprot_fill_strata
 ```
 
 ```{r, eval=FALSE}
-
-# TODO: add archaeplastida (viridiplantae, red algae, glaucophytes)
-
 strata %>%
     strata_convert(target='all', to='name') %>%
     sort_strata %>%
     plot_tree
+```
+
+```{r, eval=FALSE}
+
+## Replace the UniProt Arabidopsis thaliana proteome with the Araport11 proteome.
+## The path below is specific to my pipeline, you can just use the UniProt genes,
+## if you want. The problem with them is that they include all previous variants
+## of the gene models, raising to 89135 genes. Since `A. thaliana` is the focal
+## species, it is important to be very explicit about version of the proteome.
+strata@data$faa[['3702']] <- '/db/araport11/Araport11_genes.201606.pep.fasta'
+
+# TODO: add archaeplastida (viridiplantae, red algae, glaucophytes)
 
 # BLAST against each target genome (this will take a few hours)
 # TODO: don't hard code the threads
-results <- strata_blast(strata_fasta, blast_args=list(nthreads=8)) %>%
+results <- strata_blast(strata, blast_args=list(nthreads=8)) %>%
   strata_besthits %>%
   merge_besthits
 ```
@@ -108,6 +119,8 @@ To get gene list according to phylostrata:
 # TODO: add locus mrca
 phylostrata <- stratify(arabidopsis)
 head(phylostrata)
+
+
 ```
 
 And get the number of genes in each phylostrata

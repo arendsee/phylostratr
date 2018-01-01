@@ -2,7 +2,8 @@
 #'
 #' The resulting data.frame will be complete, with every (qseqid, staxid) pair represented
 #'
-#' @param d A dataframe with the columns 'qseqid', 'staxid', and 'score'
+#' @param d A dataframe with the columns 'qseqid', 'staxid', and 'score'. Other
+#'        columns may be present, if so, they are left unchanged.
 #' @export
 get_max_hit <- function(d){
   d %>%

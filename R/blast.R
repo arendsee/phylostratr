@@ -56,6 +56,28 @@ make_blast_database <- function(
   out
 }
 
+#' Read a blast result of the form expected by phylostratr
+#'
+#' @param x filename
+#' @param with_taxid If TRUE, expect the staxid column to be in the table
+#' @export
+read_blast <- function(x, with_taxid=TRUE){
+  col_types = readr::cols(
+    qseqid = readr::col_character(),
+    sseqid = readr::col_character(),
+    qstart = readr::col_integer(),
+    qend   = readr::col_integer(),
+    sstart = readr::col_integer(),
+    ssend  = readr::col_integer(),
+    evalue = readr::col_double(),
+    score  = readr::col_double()
+  )
+  if(with_taxid){
+    col_types[['staxid']] <- readr::col_character()
+  }
+  readr::read_tsv(x, col_types=col_types)
+}
+
 #' BLAST query protein FASTA file against a subject species 
 #'
 #' @param query_fastafile A protein FASTA file for the focal species
@@ -85,19 +107,14 @@ run_blastp <- function(
       args=c(
         '-db', blastdb,
         '-query', query_fastafile,
-        '-outfmt', '"6 qseqid evalue score"',
+        '-outfmt', '"6 qseqid sseqid qstart qend sstart send evalue score"',
         '-num_threads', nthreads,
         '-seg', if(seg) {'yes'} else {'no'}
       )
     )
     # Add the subject taxon ID, name and order columns, write with header
-    readr::read_tsv(
-      blastresult,
-      col_names = c('qseqid', 'evalue', 'score'),
-      col_types = 'cdd'
-    ) %>%
-      dplyr::mutate(staxid = subject_taxid) %>%
-      dplyr::select(.data$qseqid, .data$staxid, .data$evalue, .data$score) %>%
+    read_blast(blastresult, with_taxid=FALSE) %>%
+      dplyr::mutate(staxid = as.character(subject_taxid)) %>%
       readr::write_tsv(path=blastresult)
   }
   blastresult
@@ -156,7 +173,7 @@ strata_besthits <- function(strata){
   taxa <- names(strata@data$blast_result)
   strata@data$besthit <- lapply(taxa, function(taxid){
     blast_file <- strata@data$blast_result[[taxid]]
-    readr::read_tsv(blast_file, col_types='ccdd') %>% get_max_hit
+    readr::read_tsv(blast_file) %>% get_max_hit
   })
   names(strata@data$besthit) <- taxa
   strata
