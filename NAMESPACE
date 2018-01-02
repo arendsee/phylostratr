@@ -2,7 +2,7 @@
 
 S3method(print,Strata)
 export(Strata)
-export(add_taxid)
+export(add_taxa)
 export(children)
 export(constrict)
 export(descendent_nodes)

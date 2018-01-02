@@ -74,8 +74,7 @@ strata <-
   strata_apply(f=diverse_subtree, n=5, weights=uniprot_weight_by_ref()) %>%
   # Use a prebuilt set of prokaryotic species
   use_recommended_prokaryotes %>%
-  add_taxid('4932') %>%
-  add_taxid('9606') %>%
+  add_taxa(c('4932', '9606')) %>%
   # Download genomes, storing the filenames
   uniprot_fill_strata
 ```

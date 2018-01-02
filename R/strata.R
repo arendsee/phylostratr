@@ -110,40 +110,16 @@ strata_apply <- function(strata, f, ...){
 
 #' Add an id to a representative list
 #'
-#' @param strata A Strata object
-#' @param taxid NCBI taxon ID of the species to add
+#' @param strata A Strata object (all IDs MUST be NCBI taxonomy IDs)
+#' @param taxa NCBI taxon ids to add 
 #' @return Strata object
 #' @export
-add_taxid <- function(strata, taxid){
-  if(length(taxid) > 1)
-    stop("Currently only one taxid is handled at a time in this 'add_taxid'")
-  if(any(taxid %in% tree_names(strata@tree)))
-    return(strata)
+add_taxa <- function(strata, taxa){
+  is_valid_strata(strata)
 
-  # Get new node with its lineage
-  new_tree <- taxizedb::classification(taxid)[[1]]$id %>%
-    lineage_to_ancestor_tree
-  # Find the most recent common node
-  max_id <- max(which(new_tree$node.label %in% tree_names(strata@tree)))
-  # Find the location at which this should attach to the old tree
-  common_node_index <- which(tree_names(strata@tree) == new_tree$node.label[max_id])
-  # Name of parent
-  pid <- tree_names(strata@tree)[parent(strata@tree, common_node_index, type='index')]
-
-  # All species descending from the common node need to be reclassified since
-  # their lineages may have been collapsed. To resolve the relationship between
-  # these species, I need to recover the possibly collapsed nodes and rebuild
-  # the tree.
-  all_tree <- c(taxid, tree_names(strata@tree)[descendents(strata@tree, common_node_index)]) %>%
+  strata@tree <- unique(c(taxa, tree_names(strata@tree))) %>%
     taxizedb::classification() %>%
     lineages_to_phylo
-
-  # Then remove the root of the subtree
-  strata@tree <- prune(strata@tree, common_node_index, type='index')
-
-  # Finally, bind the subtree to the stub
-  where <- which(tree_names(strata@tree) == pid)
-  strata@tree <- ape::bind.tree(strata@tree, all_tree, where=where)
 
   strata
 }

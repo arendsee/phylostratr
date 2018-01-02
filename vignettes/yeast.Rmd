@@ -79,7 +79,7 @@ this allows for finer phylostratigraphic analysis.
 ```{r, eval=FALSE}
 # Remove the Saccharomyces branch
 strata@tree <- prune(strata@tree, '4930', type='name')
-strata <- add_taxid(strata, '4930')
+strata <- add_taxa(strata, '4930')
 # Replace it with out custom tree (4892 is the parent of 4930)
 strata@tree <- ape::bind.tree(strata@tree, saccharomyces@tree, where=which(tree_names(strata@tree) == '4930'))
 strata@data$faa <- append(strata@data$faa, saccharomyces@data$faa)
