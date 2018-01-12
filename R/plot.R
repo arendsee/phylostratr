@@ -216,23 +216,8 @@ make_obo_pdf <- function(d, file='obo.pdf', width=1, height=5, ...){
 #' @return ggplot object
 #' @export
 plot_proteome_lengths <- function(strata, normalize=FALSE){
-  is_valid_strata(strata)
-  if(!('proteome_stats' %in% names(strata@data))){
-    strata <- add_proteome_stats(strata)
-  }
 
-  d <- strata@data$proteome_stats %>%
-    tuplify %>%
-    lapply(function(x){
-      tibble::data_frame(
-        species=rep_len(x$name, length(x$value$length)),
-        protein_length=x$value$length
-      ) %>%
-      dplyr::arrange(.data$protein_length) %>%
-      dplyr::mutate(index = seq_along(.data$protein_length))
-    }) %>%
-    do.call(what=rbind) %>%
-    merge(get_phylostrata_map(strata), by='species')
+  d <- proteome_stats_table(strata)
 
   if(normalize){
     d <- d %>%
@@ -251,6 +236,18 @@ plot_proteome_lengths <- function(strata, normalize=FALSE){
     ggplot2::ylab("Protein length") +
     ggplot2::ggtitle(sprintf("Lengths of proteomes used in %s phylostratigraph", strata@focal_species))
 
+}
+
+plot_proteome_stats <- function(strata){
+  d <- proteome_report_table(strata) %>%
+    reshape2::melt()
+  ggplot2::ggplot(d) +
+    ggplot2::geom_point(ggplot2::aes_string(x='species', y='value', color='mrca')) +
+    ggplot2::facet_wrap("variable", scales='free') +
+    ggplot2::theme(
+      axis.text.x = ggplot2::element_blank(),
+      axis.ticks.x = ggplot2::element_blank()
+    )
 }
 
 plot_revenant <- function(

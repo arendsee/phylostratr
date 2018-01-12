@@ -252,7 +252,7 @@ get_phylostrata_map <- function(strata){
   mrca_levels <- map %>%
     dplyr::select(.data$mrca, .data$ps) %>%
     dplyr::distinct() %>%
-    dplyr::arrange(ps) %$% mrca
+    dplyr::arrange(.data$ps) %>% {.$mrca}
 
   map$mrca <- factor(map$mrca, levels=mrca_levels)
 
