@@ -26,7 +26,6 @@ check_hit_table <- function(d, has_mrca=FALSE, has_ps=FALSE){
 
 }
 
-
 check_noise <- function(x) {
   # This is a stub
 }

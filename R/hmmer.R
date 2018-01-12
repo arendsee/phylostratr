@@ -137,5 +137,5 @@ merge_pfam <- function(strata){
     d
   }) %>%
     do.call(what=rbind) %>%
-    dplyr::filter(!is.na(pfamID))
+    dplyr::filter(!is.na(.data$pfamID))
 }

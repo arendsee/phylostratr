@@ -42,7 +42,6 @@ load_hittable <- function(filename, na_str='N/A'){
     dplyr::mutate(staxid = as.integer(.data$staxid))
 
   check_hit_table(d)
-  check_taxids(d$staxid)
 
   d
 }
