@@ -4,10 +4,13 @@
 \alias{plot_proteome_lengths}
 \title{Plot the ordered lengths of all proteins in all proteomes}
 \usage{
-plot_proteome_lengths(strata)
+plot_proteome_lengths(strata, normalize = FALSE)
 }
 \arguments{
 \item{strata}{Strata object}
+
+\item{normalize}{Normalize protein index, this loses proteome length, but
+makes protein distribution more comparable}
 }
 \value{
 ggplot object

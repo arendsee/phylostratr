@@ -211,9 +211,11 @@ make_obo_pdf <- function(d, file='obo.pdf', width=1, height=5, ...){
 #' Plot the ordered lengths of all proteins in all proteomes
 #'
 #' @param strata Strata object
+#' @param normalize Normalize protein index, this loses proteome length, but
+#' makes protein distribution more comparable
 #' @return ggplot object
 #' @export
-plot_proteome_lengths <- function(strata){
+plot_proteome_lengths <- function(strata, normalize=FALSE){
   is_valid_strata(strata)
   if(!('proteome_stats' %in% names(strata@data))){
     strata <- add_proteome_stats(strata)
@@ -231,6 +233,13 @@ plot_proteome_lengths <- function(strata){
     }) %>%
     do.call(what=rbind) %>%
     merge(get_phylostrata_map(strata), by='species')
+
+  if(normalize){
+    d <- d %>%
+      dplyr::group_by(.data$species) %>%
+      dplyr::mutate(index = .data$index / length(.data$index)) %>%
+      dplyr::ungroup()
+  }
 
   ggplot2::ggplot(d) +
     ggplot2::geom_path(ggplot2::aes_string(x='index', y='protein_length', group='species', color='mrca')) +
