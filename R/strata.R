@@ -86,18 +86,9 @@ diverse_subtree <- function(tree, n, weights=NULL, collapse=FALSE){
 #' @return Strata object
 #' @export
 strata_apply <- function(strata, f, ...){
-  is_valid_strata(strata)
+  outgroups <- strata_fold(strata, f, ...)
 
-  lin <- lineage(strata@tree, strata@focal_species, type='name')[-1]
-
-  outgroups <- lapply(lin, function(ancestor){
-    outgroup <- tree_names(strata@tree)[sisters(strata@tree, ancestor)] %>%
-      subtree(tree=strata@tree, collapse=FALSE, descend=TRUE) %>%
-      f(...)
-  })
-  names(outgroups) <- tree_names(strata@tree)[parent(strata@tree, lin)]
-  outgroups <- outgroups[!sapply(outgroups, is.null)]
-  outgroups[[strata@focal_species]] <- f(subtree(strata@tree, strata@focal_species), ...)
+  stopifnot(all(sapply(outgroups, class) == 'phylo'))
 
   final <- lapply(outgroups, tree2edgelist) %>%
     do.call(what=rbind) %>%
@@ -115,6 +106,31 @@ strata_apply <- function(strata, f, ...){
   new_strata@tree <- final
 
   new_strata
+}
+
+#' Apply f to each outgroup branch ascending node id, returning a list 
+#'
+#' @param strata Strata object
+#' @param f A function of a phylo object that may return anything 
+#' @param ... Additional arguments passed to f
+#' @return A named list, with names corresponding to phylostrata 
+#' @export
+strata_fold <- function(strata, f, ...){
+  is_valid_strata(strata)
+
+  lin <- lineage(strata@tree, strata@focal_species, type='name')[-1]
+
+  outgroups <- lapply(lin, function(ancestor){
+    tree_names(strata@tree)[sisters(strata@tree, ancestor)] %>%
+      subtree(tree=strata@tree, collapse=FALSE, descend=TRUE) %>%
+      f(...)
+  })
+
+  names(outgroups) <- tree_names(strata@tree)[parent(strata@tree, lin)]
+  outgroups <- outgroups[!sapply(outgroups, is.null)]
+  outgroups[[strata@focal_species]] <- f(subtree(strata@tree, strata@focal_species), ...)
+
+  outgroups
 }
 
 #' Add an id to a representative list
@@ -219,6 +235,28 @@ strata_convert <- function(strata, target='tip', to='id'){
     strata@tree$node.label <- FUN(strata@tree$node.label)
   }
   strata
+}
+
+get_phylostrata_map <- function(strata){
+  map <- strata_fold(strata, leafs, byname=TRUE) %>%
+    tuplify %>%
+    lapply(function(x){
+      tibble::data_frame(
+        species = x$value,
+        mrca = rep(x$name, length(x$value)),
+        ps = x$position 
+      )
+    }) %>%
+    do.call(what=rbind)
+
+  mrca_levels <- map %>%
+    dplyr::select(.data$mrca, .data$ps) %>%
+    dplyr::distinct() %>%
+    dplyr::arrange(ps) %$% mrca
+
+  map$mrca <- factor(map$mrca, levels=mrca_levels)
+
+  map
 }
 
 #' Sort strata relative to focal species

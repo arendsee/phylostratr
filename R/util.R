@@ -38,3 +38,11 @@ maybe_message <- function(msg, verbose=TRUE, ...){
     ))
   }
 }
+
+# An internal utility function that transforms a named list into a list of
+# 3-element lists holding a name, value, and position.
+tuplify <- function(x){
+  lapply(seq_along(x), function(i){
+    list(name=names(x)[i], value=x[[i]], position=i)
+  })
+}
