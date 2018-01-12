@@ -39,6 +39,7 @@ find_revenants <- function(d, classifier=classify_by_evalue(1e-5)){
 #' @return A subset of d where no gene has a match to the strata specified in 'on'
 #' @export
 constrict <- function(d, on, revenants=NULL, ...){
+  check_hit_table(d)
   if(is.null(revenants)){
     revenants <- find_revenants(d, ...)
   }
@@ -50,7 +51,6 @@ constrict <- function(d, on, revenants=NULL, ...){
   d[d$qseqid %in% seqids, ]
 }
 
-
 find_strange <- function(d){
   check_hit_table(d, has_mrca=TRUE, has_ps=TRUE)
   # FIXME: stub
@@ -59,11 +59,5 @@ find_strange <- function(d){
 make_noise <- function(f, r){
   check_hit_table(f)
   check_hit_table(r)
-  # FIXME: stub
-}
-
-add_pvalue <- function(d, noise){
-  check_hit_table(d)
-  check_noise(noise)
   # FIXME: stub
 }

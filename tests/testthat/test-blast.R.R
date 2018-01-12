@@ -93,6 +93,24 @@ test_that("merge_besthits", {
   })
 })
 
+test_that("check_hit_table works", {
+  expect_error(check_hit_table(5))
+  expect_error({
+    strata_besthits(strata_results) %>% merge_besthits %>%
+      dplyr::select(-qseqid) %>% check_hit_table
+  })
+  expect_error({
+    strata_besthits(strata_results) %>% merge_besthits %>%
+      dplyr::select(-mrca) %>%
+      check_hit_table(has_mrca=TRUE)
+  })
+  expect_error({
+    strata_besthits(strata_results) %>% merge_besthits %>%
+      dplyr::select(-ps) %>%
+      check_hit_table(has_ps=TRUE)
+  })
+})
+
 unlink('a.tab')
 unlink('b.tab')
 unlink('c.tab')
