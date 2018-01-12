@@ -119,60 +119,6 @@ uniprot_strata <- function(taxid, from=2){
     )
 }
 
-#' Retrive the sequences from the uniprot cousins
-#'
-#' cousin_sets A named list of vectors of species taxon ids. Each vector
-#' in the list bears the name of an aunt, all at the same level in the tree.
-#' There may be multiple aunts in multifurcating nodes of the tree (this is
-#' very common in the NCBI common tree).
-#'
-#' @param cousins The output of \code{uniprot_strata}
-#' @param dir Directory in which to write sequences
-#' @param prefix The phylostratum-level prefix
-#' @param dryrun If TRUE, do not download files or create directories
-#' @param verbose Print progress messages
-#' @param ... Additional arguments passed to \code{uniprot_retrieve_proteome}
-#' @return Nothing, this function is run for its effects
-#' @examples
-#' \dontrun{
-#' uniprot_strata(3702) %>%
-#'   lapply(take_first) %>%
-#'   uniprot_cousin_proteomes
-#'
-#' cfilter <- make_do_if_over(3, take_first)
-#' uniprot_strata(3702) %>%
-#'   lapply(cfilter) %>%
-#'   uniprot_cousin_proteomes
-#' }
-uniprot_cousin_proteomes <- function(
-  cousins,
-  dir     = 'strata',
-  prefix  = 'ps_',
-  dryrun  = FALSE,
-  verbose = TRUE,
-  ...
-){
-  strata <- names(cousins)
-  for(ps in seq_along(cousins)){
-    stratum_str <- strata[ps]
-    for(node_id in names(cousins[[ps]])){
-      psdir <- file.path(dir, paste0(prefix, ps), node_id)
-      if(dryrun){
-        maybe_message("Retrieving descendents of '%s' ...", verbose, node_id)
-      } else {
-        maybe_message("Checking descendents of '%s' ...", verbose, node_id)
-        if(!dir.exists(psdir) && length(cousins[[ps]][[node_id]] > 0)){
-          dir.create(psdir, recursive=TRUE)
-        }
-      }
-      for(taxid in cousins[[ps]][[node_id]]){
-        maybe_message(node_id, verbose)
-        uniprot_retrieve_proteome(node_id, dir=psdir, dryrun=dryrun, verbose=verbose, ...)
-      }
-    }
-  }
-}
-
 #' Map UniProt IDs for an organism to PFAM IDs
 #'
 #' @param taxid Species NCBI taxonomy ID

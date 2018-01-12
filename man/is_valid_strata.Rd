@@ -4,10 +4,12 @@
 \alias{is_valid_strata}
 \title{Assert a Strata object is valid, die on failure}
 \usage{
-is_valid_strata(strata)
+is_valid_strata(strata, required = NULL)
 }
 \arguments{
 \item{strata}{Strata object}
+
+\item{required}{A character vector of required data fields}
 }
 \description{
 Assert a Strata object is valid, die on failure

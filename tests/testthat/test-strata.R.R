@@ -14,6 +14,24 @@ strata <- Strata(
     focal_species = 'Saccharomyces_cerevisiae'
 ) %>% sort_strata
 
+test_that("is_valid_strata catches problems", {
+  expect_silent(is_valid_strata(strata)) 
+  # missin required field
+  expect_error(is_valid_strata(strata, required='ladida')) 
+  # species name in data is not in tree
+  expect_error({
+    bad_strata <- strata
+    names(bad_strata@faa)[1] <- "Bob"
+    is_valid_strata(bad_strata)
+  })
+  # wrong focal species
+  expect_error({
+    bad_strata <- strata
+    bad_strata@focal_species <- "Bob"
+    is_valid_strata(bad_strata)
+  })
+})
+
 test_that("strata_convert works", {
   # name-->id-->name is not guaranteed to result in an identical strata,
   # since more than one name may be associated with a given id.

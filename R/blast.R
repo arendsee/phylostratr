@@ -132,13 +132,10 @@ strata_blast <- function(
   makedb_args=list(),
   blast_args=list()
 ){
-  is_valid_strata(strata)
+  is_valid_strata(strata, required='faa')
 
   query <- strata@data$faa[[strata@focal_species]]
 
-  if(is.null(strata@data$faa)){
-    stop("The input Strata object must have an 'faa' field in the 'data' slot")
-  }
   strata@data$blast_result <- lapply(names(strata@data$faa), function(taxid){
     fastafile <- strata@data$faa[[taxid]]
     blastdb <- do.call(make_blast_database, args=append(fastafile, makedb_args))
@@ -158,11 +155,8 @@ strata_blast <- function(
 #' blast result
 #' @export
 strata_besthits <- function(strata){
-  is_valid_strata(strata)
+  is_valid_strata(strata, required=c('faa', 'blast_result'))
 
-  if(is.null(strata@data$faa)){
-    stop("The input Strata object must have a 'blast_result' field in the 'data' slot")
-  }
   # produce an empty blast result
   empty_blast_result <- data.frame(
     qseqid = character(0),
@@ -186,7 +180,7 @@ strata_besthits <- function(strata){
 #' each subject species.
 #' @export
 merge_besthits <- function(strata){
-  is_valid_strata(strata)
+  is_valid_strata(strata, required='besthit')
 
   besthits_strata <- strata@data$besthit
   strata_names <- lineage(strata@tree, strata@focal_species, type='name')

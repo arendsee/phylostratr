@@ -1,13 +1,22 @@
 #' Assert a Strata object is valid, die on failure
 #'
+#' @param required A character vector of required data fields
 #' @param strata Strata object
-is_valid_strata <- function(strata){
+is_valid_strata <- function(strata, required=NULL){
   if(!(strata@focal_species %in% strata@tree$tip.label)){
     stop("Invalid Strata object, the focal species '", strata@focal_species, "' is not found in the tree")
   }
   for(field in names(strata@data)){
     if(!all(names(strata@data[[field]]) %in% strata@tree$tip.label)){
       stop("Invalid Strata object, data field '", field, "' contains species labels that are not in the tree")
+    }
+  }
+  if(!is.null(required)){
+    missing <- setdiff(required, names(strata@data))
+    if(length(missing) > 0){
+      msg <- "Required data field(s) [%s] are missing from Strata object"
+      msg <- sprintf(msg, paste0(missing, collapse=", "))
+      stop(msg)
     }
   }
 }
