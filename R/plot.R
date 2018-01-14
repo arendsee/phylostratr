@@ -208,6 +208,48 @@ make_obo_pdf <- function(d, file='obo.pdf', width=1, height=5, ...){
   dev.off()
 }
 
+#' Plot the ordered lengths of all proteins in all proteomes
+#'
+#' @param strata Strata object
+#' @param normalize Normalize protein index, this loses proteome length, but
+#' makes protein distribution more comparable
+#' @return ggplot object
+#' @export
+plot_proteome_lengths <- function(strata, normalize=FALSE){
+
+  d <- proteome_stats_table(strata)
+
+  if(normalize){
+    d <- d %>%
+      dplyr::group_by(.data$species) %>%
+      dplyr::mutate(index = .data$index / length(.data$index)) %>%
+      dplyr::ungroup()
+  }
+
+  ggplot2::ggplot(d) +
+    ggplot2::geom_path(ggplot2::aes_string(x='index', y='protein_length', group='species', color='mrca')) +
+    ggplot2::scale_y_continuous(
+        trans='log2',
+        breaks=scales::trans_breaks('log2', function(y) round(2^y))
+    ) +
+    ggplot2::xlab("Protein index, ordered by length") +
+    ggplot2::ylab("Protein length") +
+    ggplot2::ggtitle(sprintf("Lengths of proteomes used in %s phylostratigraph", strata@focal_species))
+
+}
+
+plot_proteome_stats <- function(strata){
+  d <- proteome_report_table(strata) %>%
+    reshape2::melt()
+  ggplot2::ggplot(d) +
+    ggplot2::geom_point(ggplot2::aes_string(x='species', y='value', color='mrca')) +
+    ggplot2::facet_wrap("variable", scales='free') +
+    ggplot2::theme(
+      axis.text.x = ggplot2::element_blank(),
+      axis.ticks.x = ggplot2::element_blank()
+    )
+}
+
 plot_revenant <- function(
   d,
   cutoff      = 40,
