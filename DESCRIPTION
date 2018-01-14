@@ -22,6 +22,7 @@ Imports:
     reshape2,
     rhmmer,
     rlang (>= 0.1.2),
+    SPARQL,
     taxizedb,
     tidyr
 Remotes:

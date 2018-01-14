@@ -4,14 +4,14 @@
 \alias{uniprot_downstream_ids}
 \title{Get the uniprot ids downstream of a node}
 \usage{
-uniprot_downstream_ids(taxid, reference_only = FALSE, delay = FALSE)
+uniprot_downstream_ids(taxid, reference_only = FALSE, ...)
 }
 \arguments{
 \item{taxid}{Ancestral node of clade of interest}
 
 \item{reference_only}{Should only reference proteomes be considered?}
 
-\item{delay}{Sleep for 0.3 seconds before retrieving (polite in loops)}
+\item{...}{Additional args (the logical 'delay', currently)}
 }
 \value{
 A numeric vector of NCBI taxon ids listing all species in this clade

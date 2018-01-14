@@ -2,25 +2,47 @@
 #'
 #' @param taxid Ancestral node of clade of interest
 #' @param reference_only Should only reference proteomes be considered?
-#' @param delay Sleep for 0.3 seconds before retrieving (polite in loops)
+#' @param ... Additional args (the logical 'delay', currently)
 #' @return A numeric vector of NCBI taxon ids listing all species in this clade
 #' for which Uniprot has a complete proteome.
 #' @export
-uniprot_downstream_ids <- function(taxid, reference_only=FALSE, delay=FALSE){
+uniprot_downstream_ids <- function(taxid, reference_only=FALSE, ...){
   ref_str <- if(reference_only){
     'reference:yes'
   } else {
     '*'
   }
-  url_str <- glue::glue(
-    'http://www.uniprot.org/taxonomy/?query=ancestor:{taxid}&format=list&fil=proteome:({ref_str})'
-  )
+  query <- glue::glue('ancestor:{taxid}&fil=proteome:({ref_str})')
+  wrap_uniprot_id_retrieval(db='taxonomy', query=query, cast=as.integer, ...)
+}
+
+#' Get the uniprot ids for organelle proteins of a given taxid
+#'
+#' @param taxid Taxon ID for species of interest 
+#' @param organelle string, one of 'mitochondrion', 'chloroplast'
+#' @param ... Additional args (the logical 'delay', currently)
+#' @return A numeric vector of NCBI taxon ids
+#' @export
+uniprot_organelle_ids <- function(taxid, organelle='Mitochondrion', ...){
+  query <- glue::glue('organelle:{organelle}+organism:{taxid}')
+  wrap_uniprot_id_retrieval(db='uniprot', query=query, ...)
+}
+
+#' Internal funcion for wrapping ID retrieval from UniProt
+#'
+#' @param db UniProt database to search
+#' @param query UniProt query string
+#' @param delay Sleep for 0.3 seconds before retrieving (polite in loops)
+#' @param cast A function for type casting the resulting IDs (e.g. as_integer)
+#' @return vector of IDs or other literals (nothing structured)
+wrap_uniprot_id_retrieval <- function(db, query, delay=FALSE, cast=identity){
+  url <- glue::glue('https://www.uniprot.org/{db}/?query={query}&format=list')
   if(delay)
     Sys.sleep(0.3)
-  con <- curl::curl(url_str)
-  children <- readLines(con) %>% as.integer
+  con <- curl::curl(url)
+  ids <- readLines(con) %>% cast 
   close(con)
-  children
+  ids 
 }
 
 #' Make reference-species preferring weight vector for diverse_subtree
