@@ -49,12 +49,21 @@ clean_phyid <- function(tree, id, len=NULL, type='auto'){
   }
   index <- if(type == 'auto'){
     # If all ids match node/tip names, assume they are names ...
-    if(all(id %in% tree_names(tree))){
+    id_name <- if(all(id %in% tree_names(tree))){
       match(id, tree_names(tree))
+    }
     # if all the ids are integers, assume they are indices
-    } else if(is_integer(id)) {
+    id_index <- if(is_integer(id)) {
       as.integer(id)
-    # otherwise, die screaming
+    }
+    if(!(is.null(id_name) || is.null(id_index))){
+      stop("Cannot automatically resolve tree id.",
+           "It could be either a phylo object index or a taxon name.",
+           "Please specify the type.")
+    } else if(!is.null(id_name)){
+      id_name
+    } else if(!is.null(id_index)){
+      id_index
     } else {
       stop("Could not interpret ids")
     }

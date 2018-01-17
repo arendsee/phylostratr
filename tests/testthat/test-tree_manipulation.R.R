@@ -51,9 +51,10 @@ test_that("clean_phyid", {
   expect_error(clean_phyid(atree, 'unicorn', type='name'))
   # types can distinguish between integrel names and integrel ids 
   # use names when possible ('2' is the name of a node in prok)
-  expect_equal(clean_phyid(prok, 2, type='auto'), 87)
   expect_equal(clean_phyid(prok, 2, type='name'), 87)
   expect_equal(clean_phyid(prok, 2, type='index'), 2)
+  # die if ambiguous 
+  expect_error(clean_phyid(prok, 2, type='auto'))
 })
 
 test_that("children", {
