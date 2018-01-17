@@ -118,17 +118,18 @@ strata_apply <- function(strata, f, ...){
 strata_fold <- function(strata, f, ...){
   is_valid_strata(strata)
 
+  # Get list of internal IDs
   lin <- lineage(strata@tree, strata@focal_species, type='name')[-1]
 
   outgroups <- lapply(lin, function(ancestor){
-    tree_names(strata@tree)[sisters(strata@tree, ancestor)] %>%
-      subtree(tree=strata@tree, collapse=FALSE, descend=TRUE) %>%
+    tree_names(strata@tree)[sisters(strata@tree, ancestor, type='index')] %>%
+      subtree(tree=strata@tree, collapse=FALSE, descend=TRUE, type='name') %>%
       f(...)
   })
 
-  names(outgroups) <- tree_names(strata@tree)[parent(strata@tree, lin)]
+  names(outgroups) <- tree_names(strata@tree)[parent(strata@tree, lin, type='index')]
   outgroups <- outgroups[!sapply(outgroups, is.null)]
-  outgroups[[strata@focal_species]] <- f(subtree(strata@tree, strata@focal_species), ...)
+  outgroups[[strata@focal_species]] <- f(subtree(strata@tree, strata@focal_species, type='name'), ...)
 
   outgroups
 }

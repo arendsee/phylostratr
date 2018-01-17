@@ -145,10 +145,10 @@ nleafs <- function(tree){
 #' @export
 lineage <- function(tree, id, use_name=FALSE, type='auto'){
   id <- clean_phyid(tree, id, len=1, type=type)
-  id <- if(is_root(tree, id)){
+  id <- if(is_root(tree, id, type='index')){
     id
   } else {
-    c(lineage(tree, parent(tree, id)), id)
+    c(lineage(tree, parent(tree, id, type='index'), type='index'), id)
   }
   if(use_name){
     tree_names(tree)[id]
@@ -194,10 +194,12 @@ children <- function(tree, id, type='auto'){
 #'
 #' @param tree phylo object
 #' @param id vector of ids or names
+#' @param type id type: ['name', 'id', 'auto']
 #' @return logical vector
 #' @export
-is_root <- function(tree, id=1:tree_size(tree)){
-  is.na(parent(tree, id))
+is_root <- function(tree, id=1:tree_size(tree), type='auto'){
+  id <- clean_phyid(tree, id, type=type)
+  is.na(parent(tree, id, type='index'))
 }
 
 #' Get the root of a tree
@@ -206,10 +208,11 @@ is_root <- function(tree, id=1:tree_size(tree)){
 #' find all of them.
 #'
 #' @param tree phylo object
+#' @param ... Arguments passed to \code{is_root}
 #' @return index of the root node (or nodes if there are more than one)
 #' @export
-get_root <- function(tree){
-  which(is_root(tree))
+get_root <- function(tree, ...){
+  which(is_root(tree, ...))
 }
 
 #' Get all nodes (leafs and ancestors) descending from, and including, a set of ids
@@ -309,7 +312,7 @@ subtree <- function(tree, id, collapse=TRUE, descend=TRUE, type='auto'){
 #' @export
 sisters <- function(tree, id, type='auto'){
   id <- clean_phyid(tree, id, len=1, type=type)
-  if(is_root(tree, id)){
+  if(is_root(tree, id, type='index')){
     integer(0)
   } else {
     setdiff(children(tree, parent(tree, id)), id)

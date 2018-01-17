@@ -4,12 +4,14 @@
 \alias{is_root}
 \title{Vectorized tree root finder}
 \usage{
-is_root(tree, id = 1:tree_size(tree))
+is_root(tree, id = 1:tree_size(tree), type = "auto")
 }
 \arguments{
 \item{tree}{phylo object}
 
 \item{id}{vector of ids or names}
+
+\item{type}{id type: ['name', 'id', 'auto']}
 }
 \value{
 logical vector

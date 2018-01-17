@@ -4,10 +4,12 @@
 \alias{get_root}
 \title{Get the root of a tree}
 \usage{
-get_root(tree)
+get_root(tree, ...)
 }
 \arguments{
 \item{tree}{phylo object}
+
+\item{...}{Arguments passed to \code{is_root}}
 }
 \value{
 index of the root node (or nodes if there are more than one)
