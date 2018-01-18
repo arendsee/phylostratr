@@ -2,12 +2,18 @@
 % Please edit documentation in R/tree_manipulation.R
 \name{merge_phylo}
 \alias{merge_phylo}
+\alias{merge_phylo.Strata}
+\alias{merge_phylo.phylo}
 \title{Merge fully named subtrees according to a reference tree}
 \usage{
-merge_phylo(tree, subtrees)
+merge_phylo(x, ...)
+
+\method{merge_phylo}{Strata}(x, ...)
+
+\method{merge_phylo}{phylo}(x, subtrees)
 }
 \arguments{
-\item{tree}{phylo object}
+\item{x}{phylo object}
 
 \item{subtrees}{A list of phylo objects. All nodes and leafs of each tree
 must be named. All names must be from 'tree'.}

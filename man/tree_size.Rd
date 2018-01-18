@@ -2,12 +2,15 @@
 % Please edit documentation in R/tree_manipulation.R
 \name{tree_size}
 \alias{tree_size}
+\alias{tree_size.Strata}
 \title{Get the number of species and ancestors in the tree}
 \usage{
-tree_size(tree)
+tree_size(x)
+
+\method{tree_size}{Strata}(x)
 }
 \arguments{
-\item{tree}{phylo object}
+\item{x}{phylo or Strata object}
 }
 \value{
 integer

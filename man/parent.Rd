@@ -2,12 +2,18 @@
 % Please edit documentation in R/tree_manipulation.R
 \name{parent}
 \alias{parent}
+\alias{parent.Strata}
+\alias{parent.phylo}
 \title{Vectorized node parent getter}
 \usage{
-parent(tree, id = 1:tree_size(tree), type = "auto")
+parent(x, ...)
+
+\method{parent}{Strata}(x, ...)
+
+\method{parent}{phylo}(x, id = 1:tree_size(x), type = "auto")
 }
 \arguments{
-\item{tree}{phylo object}
+\item{x}{phylo object}
 
 \item{id}{vector of ids or names}
 

@@ -2,12 +2,18 @@
 % Please edit documentation in R/tree_manipulation.R
 \name{nleafs}
 \alias{nleafs}
+\alias{nleafs.Strata}
+\alias{nleafs.phylo}
 \title{Get the number of leafs}
 \usage{
-nleafs(tree)
+nleafs(x)
+
+\method{nleafs}{Strata}(x)
+
+\method{nleafs}{phylo}(tree)
 }
 \arguments{
-\item{tree}{phylo object}
+\item{x}{phylo object}
 }
 \description{
 Get the number of leafs

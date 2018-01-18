@@ -2,12 +2,18 @@
 % Please edit documentation in R/tree_manipulation.R
 \name{leafs}
 \alias{leafs}
+\alias{leafs.Strata}
+\alias{leafs.phylo}
 \title{Get leaf indices}
 \usage{
-leafs(tree, byname = FALSE)
+leafs(x, ...)
+
+\method{leafs}{Strata}(x, ...)
+
+\method{leafs}{phylo}(x, byname = FALSE)
 }
 \arguments{
-\item{tree}{phylo object}
+\item{x}{phylo object}
 
 \item{byname}{logical Return leaf labels, rather than indices}
 }

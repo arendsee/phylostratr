@@ -2,12 +2,18 @@
 % Please edit documentation in R/tree_manipulation.R
 \name{sisters}
 \alias{sisters}
+\alias{sisters.Strata}
+\alias{sisters.phylo}
 \title{Get the sisters of a node}
 \usage{
-sisters(tree, id, type = "auto")
+sisters(x, ...)
+
+\method{sisters}{Strata}(x, ...)
+
+\method{sisters}{phylo}(x, id, type = "auto")
 }
 \arguments{
-\item{tree}{phylo object}
+\item{x}{phylo object}
 
 \item{id}{vector of ids or names}
 

@@ -2,12 +2,18 @@
 % Please edit documentation in R/tree_manipulation.R
 \name{descendent_nodes}
 \alias{descendent_nodes}
+\alias{descendent_nodes.Strata}
+\alias{descendent_nodes.phylo}
 \title{Get all nodes (leafs and ancestors) descending from, and including, a set of ids}
 \usage{
-descendent_nodes(tree, id, type = "auto")
+descendent_nodes(x, ...)
+
+\method{descendent_nodes}{Strata}(x, ...)
+
+\method{descendent_nodes}{phylo}(x, id, type = "auto")
 }
 \arguments{
-\item{tree}{phylo object}
+\item{x}{phylo object}
 
 \item{id}{vector of ids or names}
 

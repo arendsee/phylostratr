@@ -2,12 +2,18 @@
 % Please edit documentation in R/tree_manipulation.R
 \name{tree_names}
 \alias{tree_names}
+\alias{tree_names.Strata}
+\alias{tree_names.phylo}
 \title{Get the names of all leafs and nodes in a tree}
 \usage{
-tree_names(tree)
+tree_names(x)
+
+\method{tree_names}{Strata}(x)
+
+\method{tree_names}{phylo}(x)
 }
 \arguments{
-\item{tree}{phylo object}
+\item{x}{phylo object}
 }
 \description{
 Get the names of all leafs and nodes in a tree

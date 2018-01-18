@@ -54,7 +54,7 @@ diverse_subtree <- function(tree, n, weights=NULL, collapse=FALSE){
 
   n <- min(n, nleafs(tree))
 
-  lins <- lapply(1:nleafs(tree), lineage, tree=tree)
+  lins <- lapply(1:nleafs(tree), lineage, x=tree)
 
   for(i in 1:n){
     if(i == 1){
@@ -123,7 +123,7 @@ strata_fold <- function(strata, f, ...){
 
   outgroups <- lapply(lin, function(ancestor){
     tree_names(strata@tree)[sisters(strata@tree, ancestor, type='index')] %>%
-      subtree(tree=strata@tree, collapse=FALSE, descend=TRUE, type='name') %>%
+      subtree(x=strata@tree, collapse=FALSE, descend=TRUE, type='name') %>%
       f(...)
   })
 

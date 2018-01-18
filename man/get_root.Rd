@@ -2,12 +2,18 @@
 % Please edit documentation in R/tree_manipulation.R
 \name{get_root}
 \alias{get_root}
+\alias{get_root.Strata}
+\alias{get_root.phylo}
 \title{Get the root of a tree}
 \usage{
-get_root(tree, ...)
+get_root(x, ...)
+
+\method{get_root}{Strata}(x, ...)
+
+\method{get_root}{phylo}(x, ...)
 }
 \arguments{
-\item{tree}{phylo object}
+\item{x}{phylo object}
 
 \item{...}{Arguments passed to \code{is_root}}
 }

@@ -2,12 +2,18 @@
 % Please edit documentation in R/tree_manipulation.R
 \name{clean_phyid}
 \alias{clean_phyid}
+\alias{clean_phyid.Strata}
+\alias{clean_phyid.phylo}
 \title{Convert node/tip name to id, check size}
 \usage{
-clean_phyid(tree, id, len = NULL, type = "auto")
+clean_phyid(x, ...)
+
+\method{clean_phyid}{Strata}(x, ...)
+
+\method{clean_phyid}{phylo}(x, id, len = NULL, type = "auto")
 }
 \arguments{
-\item{tree}{phylo object}
+\item{x}{phylo or Strata object}
 
 \item{id}{integer id or a node label}
 

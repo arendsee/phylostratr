@@ -2,12 +2,21 @@
 % Please edit documentation in R/tree_manipulation.R
 \name{lineage}
 \alias{lineage}
+\alias{lineage.Strata}
+\alias{lineage.phylo}
+\alias{tree_size.phylo}
 \title{Find the ancestors of a node}
 \usage{
-lineage(tree, id, use_name = FALSE, type = "auto")
+lineage(x, ...)
+
+\method{lineage}{Strata}(x, ...)
+
+\method{lineage}{phylo}(x, id, use_name = FALSE, type = "auto")
+
+\method{tree_size}{phylo}(x)
 }
 \arguments{
-\item{tree}{phylo object}
+\item{x}{phylo object}
 
 \item{id}{A single name or index}
 

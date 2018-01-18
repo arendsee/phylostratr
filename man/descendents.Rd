@@ -2,16 +2,22 @@
 % Please edit documentation in R/tree_manipulation.R
 \name{descendents}
 \alias{descendents}
+\alias{descendents.Strata}
+\alias{descendents.phylo}
 \title{Get all leafs descending from a set of ids}
 \usage{
-descendents(tree, id, ...)
+descendents(x, ...)
+
+\method{descendents}{Strata}(x, ...)
+
+\method{descendents}{phylo}(tree, id, ...)
 }
 \arguments{
-\item{tree}{phylo object}
-
-\item{id}{vector of ids or names}
+\item{x}{phylo object}
 
 \item{...}{Arguments sent to descendent_nodes}
+
+\item{id}{vector of ids or names}
 }
 \value{
 integer vector of leaf ids

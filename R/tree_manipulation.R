@@ -1,29 +1,56 @@
+# Strata / phylo compatibility function
+.fmap_strata <- function(x, f, strata_out=FALSE, ...){
+  result <- f(x@tree, ...)
+  if(strata_out){
+    new_data <- lapply(x@data, function(datum){
+      datum[result$tip.label]
+    })
+    x@tree <- result 
+    x@data <- new_data
+    x
+  } else {
+    result
+  }
+}
+
 #' If nodes are not named, give them default names
 #'
 #' In phylostratr, all nodes in a tree need to be named, since the names are
 #' used to merge trees.
 #'
-#' @param tree phylo object
+#' @param x phylo or Strata object
 #' @param default_names node names to use if they are missing. Must be a vector
 #' with a number of elements equal to the number of nodes in the tree.
-#' @return phylo object
+#' @param ... Arguments passed to \code{set_node_names.phylo}
+#' @return phylo or Strata object
 #' @export
-set_node_names <- function(tree, default_names=paste0("n", nodes(tree))){
-  if(is.null(tree$node.label)){
-    tree$node.label <- default_names
+#' @name set_node_names
+set_node_names <- function(x, ...){
+  UseMethod('set_node_names', x)
+}
+
+#' @rdname set_node_names
+set_node_names.Strata <- function(x, ...){
+  .fmap_strata(x, set_node_names, strata_out=TRUE, ...)
+}
+
+#' @rdname set_node_names
+set_node_names.phylo <- function(x, default_names=paste0("n", nodes(x))){
+  if(is.null(x$node.label)){
+    x$node.label <- default_names
   } else {
-    tree$node.label <- ifelse(
-      is.na(tree$node.label),
+    x$node.label <- ifelse(
+      is.na(x$node.label),
       default_names,
-      tree$node.label
+      x$node.label
     )
   }
-  tree
+  x
 }
 
 #' Convert node/tip name to id, check size
 #'
-#' @param tree phylo object
+#' @param x phylo or Strata object
 #' @param id integer id or a node label
 #' @param len require id to be of this length (NULL for no requirement)
 #' @param type ['auto', 'index', or 'name'], is 'index' then the id is expected
@@ -31,7 +58,18 @@ set_node_names <- function(tree, default_names=paste0("n", nodes(tree))){
 #' tip name, if 'auto' the value is assumed to be a name if it is a character
 #' string.
 #' @return on success, return a valid integrel id
-clean_phyid <- function(tree, id, len=NULL, type='auto'){
+#' @name clean_phyid
+clean_phyid <- function(x, ...){
+  UseMethod('clean_phyid', x)
+}
+
+#' @rdname clean_phyid
+clean_phyid.Strata <- function(x, ...){
+  .fmap_strata(x, clean_phyid, ...)
+}
+
+#' @rdname clean_phyid
+clean_phyid.phylo <- function(x, id, len=NULL, type='auto'){
   is_integer <- function(i){
     if(is.character(i)){
       all(grepl("^[0-9]+$", id, perl=TRUE))
@@ -49,8 +87,8 @@ clean_phyid <- function(tree, id, len=NULL, type='auto'){
   }
   index <- if(type == 'auto'){
     # If all ids match node/tip names, assume they are names ...
-    id_name <- if(all(id %in% tree_names(tree))){
-      match(id, tree_names(tree))
+    id_name <- if(all(id %in% tree_names(x))){
+      match(id, tree_names(x))
     }
     # if all the ids are integers, assume they are indices
     id_index <- if(is_integer(id)) {
@@ -74,16 +112,16 @@ clean_phyid <- function(tree, id, len=NULL, type='auto'){
       stop("Could not find requested ids")
     }
   } else if(type == 'name'){
-      if(all(id %in% tree_names(tree))){
-        match(id, tree_names(tree))
+      if(all(id %in% tree_names(x))){
+        match(id, tree_names(x))
       } else {
         stop("Could not find nodes with requested names")
       }
   } else {
     stop('Unsupported type')
   }
-  if(max(index, na.rm=TRUE) > tree_size(tree)){
-    stop("Cannot get node ", max(id, na.rm=TRUE), " for tree of size ", tree_size(tree))
+  if(max(index, na.rm=TRUE) > tree_size(x)){
+    stop("Cannot get node ", max(id, na.rm=TRUE), " for tree of size ", tree_size(x))
   }
   if(min(index, na.rm=TRUE) < 1){
     stop("Invalid id, node ids must be greater than 0")
@@ -91,23 +129,47 @@ clean_phyid <- function(tree, id, len=NULL, type='auto'){
   index
 }
 
+
 #' Get the names of all leafs and nodes in a tree
 #'
-#' @param tree phylo object
+#' @param x phylo object
 #' @export
-tree_names <- function(tree){
-  c(tree$tip.label, tree$node.label)
+#' @name tree_names
+tree_names <- function(x){
+  UseMethod('tree_names', x)
 }
+
+#' @rdname tree_names
+tree_names.Strata <- function(x){
+  .fmap_strata(x, tree_names)
+}
+
+#' @rdname tree_names
+tree_names.phylo <- function(x){
+  c(x$tip.label, x$node.label)
+}
+
 
 #' Get leaf indices
 #'
-#' @param tree phylo object
+#' @param x phylo object
 #' @param byname logical Return leaf labels, rather than indices
 #' @export
-leafs <- function(tree, byname=FALSE){
-  ids <- 1:length(tree$tip.label)
+#' @name leafs
+leafs <- function(x, ...){
+  UseMethod('leafs', x)
+}
+
+#' @rdname leafs
+leafs.Strata <- function(x, ...){
+  .fmap_strata(x, leafs, ...)
+}
+
+#' @rdname leafs
+leafs.phylo <- function(x, byname=FALSE){
+  ids <- 1:length(x$tip.label)
   if(byname){
-    tree$tip.label[ids]
+    x$tip.label[ids]
   } else {
     ids
   }
@@ -115,17 +177,28 @@ leafs <- function(tree, byname=FALSE){
 
 #' Get node indices
 #'
-#' @param tree phylo object
+#' @param x phylo object
 #' @param rebase logical Make indices base 1
 #' @param byname logical Return node labels, rather than indices
 #' @export
-nodes <- function(tree, rebase=FALSE, byname=FALSE){
-  ids <- (length(tree$tip.label)+1):(nleafs(tree) + tree$Nnode)
-  ids_base1 <- ids - nleafs(tree)
+#' @name nodes
+nodes <- function(x, ...){
+  UseMethod('nodes', x)
+}
+
+#' @rdname nodes
+nodes.Strata <- function(x, ...){
+  .fmap_strata(x, nodes, ...)
+}
+
+#' @rdname nodes
+nodes.phylo <- function(x, rebase=FALSE, byname=FALSE){
+  ids <- (length(x$tip.label)+1):(nleafs(x) + x$Nnode)
+  ids_base1 <- ids - nleafs(x)
   if(byname){
-    if(is.null(tree$node.label))
+    if(is.null(x$node.label))
       stop("Cannot get nodes by name since tree has no node labels")
-    tree$node.label[ids_base1]
+    x$node.label[ids_base1]
   } else if(rebase){
     ids_base1
   } else {
@@ -135,15 +208,26 @@ nodes <- function(tree, rebase=FALSE, byname=FALSE){
 
 #' Get the number of leafs
 #'
-#' @param tree phylo object
+#' @param x phylo object
 #' @export
-nleafs <- function(tree){
+#' @name nleafs
+nleafs <- function(x){
+  UseMethod('nleafs', x)
+}
+
+#' @rdname nleafs
+nleafs.Strata <- function(x){
+  .fmap_strata(x, nleafs)
+}
+
+#' @rdname nleafs
+nleafs.phylo <- function(tree){
   length(leafs(tree))
 }
 
 #' Find the ancestors of a node
 #'
-#' @param tree phylo object
+#' @param x phylo object
 #' @param id A single name or index
 #' @param use_name Should names be used rather than internal ids
 #' @param type id type: ['name', 'id', 'auto']
@@ -152,15 +236,26 @@ nleafs <- function(tree){
 #' lineage(atree, 't1')
 #' lineage(atree, 1)
 #' @export
-lineage <- function(tree, id, use_name=FALSE, type='auto'){
-  id <- clean_phyid(tree, id, len=1, type=type)
-  id <- if(is_root(tree, id, type='index')){
+#' @name lineage
+lineage <- function(x, ...){
+  UseMethod('lineage', x)
+}
+
+#' @rdname lineage
+lineage.Strata <- function(x, ...){
+  .fmap_strata(x, lineage, ...)
+}
+
+#' @rdname lineage
+lineage.phylo <- function(x, id, use_name=FALSE, type='auto'){
+  id <- clean_phyid(x, id, len=1, type=type)
+  id <- if(is_root(x, id, type='index')){
     id
   } else {
-    c(lineage(tree, parent(tree, id, type='index'), type='index'), id)
+    c(lineage(x, parent(x, id, type='index'), type='index'), id)
   }
   if(use_name){
-    tree_names(tree)[id]
+    tree_names(x)[id]
   } else {
     id
   }
@@ -168,47 +263,90 @@ lineage <- function(tree, id, use_name=FALSE, type='auto'){
 
 #' Get the number of species and ancestors in the tree
 #'
-#' @param tree phylo object
+#' @param x phylo or Strata object
 #' @return integer
 #' @export
-tree_size <- function(tree){
-  max(nodes(tree))
+#' @name tree_size
+tree_size <- function(x){
+  UseMethod('tree_size', x)
+}
+
+#' @rdname tree_size
+tree_size.Strata <- function(x){
+  .fmap_strata(x, tree_size)
+}
+
+#' @rdname lineage
+tree_size.phylo <- function(x){
+  max(nodes(x))
 }
 
 #' Vectorized node parent getter
 #'
-#' @param tree phylo object
+#' @param x phylo object
 #' @param id vector of ids or names
 #' @param type id type: ['name', 'id', 'auto']
 #' @return vector of parent ids (NA if root)
 #' @export
-parent <- function(tree, id=1:tree_size(tree), type='auto'){
-  id <- clean_phyid(tree, id, type=type)
-  tree$edge[match(id, tree$edge[, 2]), 1]
+#' @name parent
+parent <- function(x, ...){
+  UseMethod('parent', x)
+}
+
+#' @rdname parent
+parent.Strata <- function(x, ...){
+  .fmap_strata(x, parent, ...)
+}
+
+#' @rdname parent
+parent.phylo <- function(x, id=1:tree_size(x), type='auto'){
+  id <- clean_phyid(x, id, type=type)
+  x$edge[match(id, x$edge[, 2]), 1]
 }
 
 #' Get the immediate children of a node
 #'
-#' @param tree phylo object
+#' @param x phylo object
 #' @param id vector of ids or names
 #' @param type id type: ['name', 'id', 'auto']
 #' @return vector of children, (integer(0) if there are no children)
 #' @export
-children <- function(tree, id, type='auto'){
-  id <- clean_phyid(tree, id, len=1, type=type)
-  sort(tree$edge[tree$edge[,1] == id, 2])
+#' @name children
+children <- function(x, ...){
+  UseMethod('children', x)
+}
+
+#' @rdname children
+children.Strata <- function(x, ...){
+  .fmap_strata(x, children, ...)
+}
+
+children <- function(x, id, type='auto'){
+  id <- clean_phyid(x, id, len=1, type=type)
+  sort(x$edge[x$edge[,1] == id, 2])
 }
 
 #' Vectorized tree root finder
 #'
-#' @param tree phylo object
+#' @param x phylo object
 #' @param id vector of ids or names
 #' @param type id type: ['name', 'id', 'auto']
 #' @return logical vector
 #' @export
-is_root <- function(tree, id=1:tree_size(tree), type='auto'){
-  id <- clean_phyid(tree, id, type=type)
-  is.na(parent(tree, id, type='index'))
+#' @name is_root
+is_root <- function(x, ...){
+  UseMethod('is_root', x)
+}
+
+#' @rdname is_root
+is_root.Strata <- function(x, ...){
+  .fmap_strata(x, is_root, ...)
+}
+
+#' @rdname is_root
+is_root <- function(x, id=1:tree_size(x), type='auto'){
+  id <- clean_phyid(x, id, type=type)
+  is.na(parent(x, id, type='index'))
 }
 
 #' Get the root of a tree
@@ -216,27 +354,49 @@ is_root <- function(tree, id=1:tree_size(tree), type='auto'){
 #' There should normally be only one, but if there are more, this function will
 #' find all of them.
 #'
-#' @param tree phylo object
+#' @param x phylo object
 #' @param ... Arguments passed to \code{is_root}
 #' @return index of the root node (or nodes if there are more than one)
 #' @export
-get_root <- function(tree, ...){
-  which(is_root(tree, ...))
+#' @name get_root
+get_root <- function(x, ...){
+  UseMethod('get_root', x)
+}
+
+#' @rdname get_root
+get_root.Strata <- function(x, ...){
+  .fmap_strata(x, get_root, ...)
+}
+
+#' @rdname get_root
+get_root.phylo <- function(x, ...){
+  which(is_root(x, ...))
 }
 
 #' Get all nodes (leafs and ancestors) descending from, and including, a set of ids
 #'
-#' @param tree phylo object
+#' @param x phylo object
 #' @param id vector of ids or names
 #' @param type id type: ['name', 'id', 'auto']
 #' @return integer vector of leaf and node ids
 #' @export
-descendent_nodes <- function(tree, id, type='auto'){
-  id <- clean_phyid(tree, id, type=type)
-  children <- tree$edge[tree$edge[,1] %in% id, 2]
+#' @name descendent_nodes
+descendent_nodes <- function(x, ...){
+  UseMethod('descendent_nodes', x)
+}
+
+#' @rdname descendent_nodes
+descendent_nodes.Strata <- function(x, ...){
+  .fmap_strata(x, descendent_nodes, ...)
+}
+
+#' @rdname descendent_nodes
+descendent_nodes.phylo <- function(x, id, type='auto'){
+  id <- clean_phyid(x, id, type=type)
+  children <- x$edge[x$edge[,1] %in% id, 2]
   ids <-
     if(length(children) > 0)
-      c(id, descendent_nodes(tree, children))
+      c(id, descendent_nodes(x, children))
     else
       id
   sort(ids)
@@ -246,12 +406,23 @@ descendent_nodes <- function(tree, id, type='auto'){
 #'
 #' This is a simple wrapper around \code{descendent_nodes}.
 #'
-#' @param tree phylo object
+#' @param x phylo object
 #' @param id vector of ids or names
 #' @param ... Arguments sent to descendent_nodes
 #' @return integer vector of leaf ids
 #' @export
-descendents <- function(tree, id, ...){
+#' @name descendents
+descendents <- function(x, ...){
+  UseMethod('descendents', x)
+}
+
+#' @rdname descendents
+descendents.Strata <- function(x, ...){
+  .fmap_strata(x, descendents, ...)
+}
+
+#' @rdname descendents
+descendents.phylo <- function(tree, id, ...){
   descendent_nodes(tree, id, ...) %>%
     intersect(leafs(tree)) %>%
     sort
@@ -259,7 +430,7 @@ descendents <- function(tree, id, ...){
 
 #' Select a subset of nodes from a tree
 #'
-#' @param tree phylo object
+#' @param x phylo object
 #' @param id vector of ids or names
 #' @param collapse logical collapse edges around nodes with a single descendent
 #' @param descend logical include all descendents of each id
@@ -270,29 +441,40 @@ descendents <- function(tree, id, ...){
 #' subtree(atree, c('n15', 'n19'))
 #' subtree(atree, c('t7', 't4', 't1'))
 #' @export
-subtree <- function(tree, id, collapse=TRUE, descend=TRUE, type='auto'){
-  id <- clean_phyid(tree, id, type=type)
+#' @name subtree
+subtree <- function(x, ...){
+  UseMethod('subtree', x)
+}
+
+#' @rdname subtree
+subtree.Strata <- function(x, ...){
+  .fmap_strata(x, subtree, ...)
+}
+
+#' @rdname subtree
+subtree <- function(x, id, collapse=TRUE, descend=TRUE, type='auto'){
+  id <- clean_phyid(x, id, type=type)
   if(descend){
-    id <- descendent_nodes(tree, id, type='index')
+    id <- descendent_nodes(x, id, type='index')
   }
-  leaf_ids <- intersect(leafs(tree), id)
-  id <- lapply(leaf_ids, lineage, tree=tree, type='index') %>%
+  leaf_ids <- intersect(leafs(x), id)
+  id <- lapply(leaf_ids, lineage, x=x, type='index') %>%
     do.call(what=c) %>% unique
-  new_edge <- tree$edge[(tree$edge[, 1] %in% id) & (tree$edge[, 2] %in% id), , drop=FALSE]
+  new_edge <- x$edge[(x$edge[, 1] %in% id) & (x$edge[, 2] %in% id), , drop=FALSE]
   new_Nnode <- length(unique(new_edge[, 1])) 
   new_size <- length(unique(c(new_edge[, 1], new_edge[, 2])))
-  leaf_ids <- intersect(leafs(tree), id)
-  node_ids <- intersect(nodes(tree), id)
+  leaf_ids <- intersect(leafs(x), id)
+  node_ids <- intersect(nodes(x), id)
   idmap <- seq_along(c(leaf_ids, node_ids))
   names(idmap) <- c(leaf_ids, node_ids)
   new_edge[, 1] <- idmap[as.character(new_edge[, 1])]
   new_edge[, 2] <- idmap[as.character(new_edge[, 2])]
-  new_tip.label <- tree$tip.label[leaf_ids]
-  new_node.label <- tree$node.label[node_ids - nleafs(tree)]
+  new_tip.label <- x$tip.label[leaf_ids]
+  new_node.label <- x$node.label[node_ids - nleafs(x)]
   new_tree <- list(
     edge        = new_edge,
     tip.label   = new_tip.label,
-    edge.length = tree$edge.length[tree$edge[, 1] %in% id],
+    edge.length = x$edge.length[x$edge[, 1] %in% id],
     Nnode       = new_Nnode,
     node.label  = new_node.label
   )
@@ -314,30 +496,53 @@ subtree <- function(tree, id, collapse=TRUE, descend=TRUE, type='auto'){
 
 #' Get the sisters of a node
 #'
-#' @param tree phylo object
+#' @param x phylo object
 #' @param id vector of ids or names
 #' @param type id type: ['name', 'id', 'auto']
 #' @return integer vector of indices
 #' @export
-sisters <- function(tree, id, type='auto'){
-  id <- clean_phyid(tree, id, len=1, type=type)
-  if(is_root(tree, id, type='index')){
+#' @name sisters
+sisters <- function(x, ...){
+  UseMethod('sisters', x)
+}
+
+#' @rdname sisters
+sisters.Strata <- function(x, ...){
+  .fmap_strata(x, sisters, ...)
+}
+
+#' @rdname sisters
+sisters.phylo <- function(x, id, type='auto'){
+  id <- clean_phyid(x, id, len=1, type=type)
+  if(is_root(x, id, type='index')){
     integer(0)
   } else {
-    setdiff(children(tree, parent(tree, id)), id)
+    setdiff(children(x, parent(x, id)), id)
   }
 }
 
 #' Get list of sister trees for a given node
 #'
-#' @param tree phylo object
+#' @param x phylo object
 #' @param id vector of ids or names
 #' @param type id type: ['name', 'id', 'auto']
+#' @param ... Arguments passed to \code{sister_trees.phylo} 
 #' @return list of phylo objects
 #' @export
-sister_trees <- function(tree, id, type='auto'){
-  sister_ids <- sisters(tree, id, type=type)
-  sister_trees <- lapply(sister_ids, subtree, tree=tree, type='index')
+#' @name sister_trees
+sister_trees <- function(x, ...){
+  UseMethod('sister_trees', x)
+}
+
+#' @rdname sister_trees
+sister_trees.Strata <- function(x, ...){
+  .fmap_strata(x, sister_trees, ...)
+}
+
+#' @rdname sister_trees
+sister_trees.phylo <- function(x, id, type='auto'){
+  sister_ids <- sisters(x, id, type=type)
+  sister_trees <- lapply(sister_ids, subtree, x=x, type='index')
   if(length(sister_trees) > 0){
     names(sister_trees) <- sister_ids
   }
@@ -346,11 +551,22 @@ sister_trees <- function(tree, id, type='auto'){
 
 #' Remove the specified indices, and their descendents, from the tree
 #'
-#' @param tree phylo object
+#' @param x phylo object
 #' @param id vector of indices or names 
 #' @param type id type: ['name', 'id', 'auto']
 #' @export
-prune <- function(tree, id, type='auto'){
+#' @name prune
+prune <- function(x, ...){
+  UseMethod('prune', x)
+}
+
+#' @rdname prune
+prune.Strata <- function(x, ...){
+  .fmap_strata(x, prune, ...)
+}
+
+#' @rdname prune
+prune.phylo <- function(tree, id, type='auto'){
   id <- clean_phyid(tree, id, type=type)
   id <- descendents(tree, id, type='index')
   subtree(tree, setdiff(leafs(tree), id), type='index')
@@ -358,7 +574,7 @@ prune <- function(tree, id, type='auto'){
 
 #' Merge fully named subtrees according to a reference tree
 #'
-#' @param tree phylo object
+#' @param x phylo object
 #' @param subtrees A list of phylo objects. All nodes and leafs of each tree
 #' must be named. All names must be from 'tree'.
 #' @return phylo object
@@ -371,28 +587,50 @@ prune <- function(tree, id, type='auto'){
 #' )
 #' merge_phylo(atree, subtrees)
 #' @export
-merge_phylo <- function(tree, subtrees){
+#' @name merge_phylo
+merge_phylo <- function(x, ...){
+  UseMethod('merge_phylo', x)
+}
+
+#' @rdname merge_phylo
+merge_phylo.Strata <- function(x, ...){
+  stop("Not Implemented")
+}
+
+#' @rdname merge_phylo
+merge_phylo.phylo <- function(x, subtrees){
   lapply(subtrees, tree_names) %>% do.call(what='c') %>% unique %>%
-    subtree(tree=tree, type='name')
+    subtree(x, type='name')
 }
 
 #' Organize the tips with the focal_id on tip
 #'
-#' @param tree phylo object
+#' @param x phylo object
 #' @param focal_id The name of the taxon to be ordered relative to
-make_tree_relative_to <- function(tree, focal_id){
-  if(!any(focal_id %in% tree$tip.label)){
+#' @name make_tree_relative_to
+make_tree_relative_to <- function(x, focal_id){
+  UseMethod('make_tree_relative_to', x)
+}
+
+#' @rdname make_tree_relative_to
+make_tree_relative_to.Strata <- function(x, focal_id){
+  .fmap_strata(x, make_tree_relative_to, focal_id)
+}
+
+#' @rdname make_tree_relative_to
+make_tree_relative_to.phylo <- function(x, focal_id){
+  if(!any(focal_id %in% x$tip.label)){
     stop("'focal_id' is not one of the tips of 'tree'")
   }
-  tip_vector <- lapply(lineage(tree, focal_id, type='name'), function(i){
-    lapply(sister_trees(tree, i, type='index'), function(x) x$tip.label) %>%
+  tip_vector <- lapply(lineage(x, focal_id, type='name'), function(i){
+    lapply(sister_trees(x, i, type='index'), function(x) x$tip.label) %>%
       unlist %>% unname
   }) %>% unlist
   tip_vector <- c(tip_vector, focal_id)
-  if(!setequal(tip_vector, tree$tip.label)){
+  if(!setequal(tip_vector, x$tip.label)){
     stop("Unexpected error in getting tip_vector, probably the focal_id argument bad")
   }
-  ape::rotateConstr(tree, tip_vector)
+  ape::rotateConstr(x, tip_vector)
 }
 
 

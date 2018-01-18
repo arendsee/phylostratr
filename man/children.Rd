@@ -2,12 +2,15 @@
 % Please edit documentation in R/tree_manipulation.R
 \name{children}
 \alias{children}
+\alias{children.Strata}
 \title{Get the immediate children of a node}
 \usage{
-children(tree, id, type = "auto")
+children(x, id, type = "auto")
+
+children.Strata(x, ...)
 }
 \arguments{
-\item{tree}{phylo object}
+\item{x}{phylo object}
 
 \item{id}{vector of ids or names}
 

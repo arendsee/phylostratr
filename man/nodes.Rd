@@ -2,12 +2,18 @@
 % Please edit documentation in R/tree_manipulation.R
 \name{nodes}
 \alias{nodes}
+\alias{nodes.Strata}
+\alias{nodes.phylo}
 \title{Get node indices}
 \usage{
-nodes(tree, rebase = FALSE, byname = FALSE)
+nodes(x, ...)
+
+\method{nodes}{Strata}(x, ...)
+
+\method{nodes}{phylo}(x, rebase = FALSE, byname = FALSE)
 }
 \arguments{
-\item{tree}{phylo object}
+\item{x}{phylo object}
 
 \item{rebase}{logical Make indices base 1}
 

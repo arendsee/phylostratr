@@ -2,12 +2,20 @@
 % Please edit documentation in R/tree_manipulation.R
 \name{sister_trees}
 \alias{sister_trees}
+\alias{sister_trees.Strata}
+\alias{sister_trees.phylo}
 \title{Get list of sister trees for a given node}
 \usage{
-sister_trees(tree, id, type = "auto")
+sister_trees(x, ...)
+
+\method{sister_trees}{Strata}(x, ...)
+
+\method{sister_trees}{phylo}(x, id, type = "auto")
 }
 \arguments{
-\item{tree}{phylo object}
+\item{x}{phylo object}
+
+\item{...}{Arguments passed to \code{sister_trees.phylo}}
 
 \item{id}{vector of ids or names}
 

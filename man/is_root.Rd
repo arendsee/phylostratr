@@ -2,12 +2,18 @@
 % Please edit documentation in R/tree_manipulation.R
 \name{is_root}
 \alias{is_root}
+\alias{is_root.Strata}
+\alias{is_root}
 \title{Vectorized tree root finder}
 \usage{
-is_root(tree, id = 1:tree_size(tree), type = "auto")
+is_root(x, id = 1:tree_size(x), type = "auto")
+
+is_root.Strata(x, ...)
+
+is_root(x, id = 1:tree_size(x), type = "auto")
 }
 \arguments{
-\item{tree}{phylo object}
+\item{x}{phylo object}
 
 \item{id}{vector of ids or names}
 

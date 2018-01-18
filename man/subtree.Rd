@@ -2,12 +2,18 @@
 % Please edit documentation in R/tree_manipulation.R
 \name{subtree}
 \alias{subtree}
+\alias{subtree.Strata}
+\alias{subtree}
 \title{Select a subset of nodes from a tree}
 \usage{
-subtree(tree, id, collapse = TRUE, descend = TRUE, type = "auto")
+subtree(x, id, collapse = TRUE, descend = TRUE, type = "auto")
+
+subtree.Strata(x, ...)
+
+subtree(x, id, collapse = TRUE, descend = TRUE, type = "auto")
 }
 \arguments{
-\item{tree}{phylo object}
+\item{x}{phylo object}
 
 \item{id}{vector of ids or names}
 

@@ -2,12 +2,18 @@
 % Please edit documentation in R/tree_manipulation.R
 \name{prune}
 \alias{prune}
+\alias{prune.Strata}
+\alias{prune.phylo}
 \title{Remove the specified indices, and their descendents, from the tree}
 \usage{
-prune(tree, id, type = "auto")
+prune(x, ...)
+
+\method{prune}{Strata}(x, ...)
+
+\method{prune}{phylo}(tree, id, type = "auto")
 }
 \arguments{
-\item{tree}{phylo object}
+\item{x}{phylo object}
 
 \item{id}{vector of indices or names}
 
