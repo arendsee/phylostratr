@@ -6,9 +6,9 @@
 \alias{prune.phylo}
 \title{Remove the specified indices, and their descendents, from the tree}
 \usage{
-prune(x, ...)
+prune(x, id, ...)
 
-\method{prune}{Strata}(x, ...)
+\method{prune}{Strata}(x, id, ...)
 
 \method{prune}{phylo}(tree, id, type = "auto")
 }

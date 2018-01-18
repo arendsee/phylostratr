@@ -6,18 +6,18 @@
 \alias{sister_trees.phylo}
 \title{Get list of sister trees for a given node}
 \usage{
-sister_trees(x, ...)
+sister_trees(x, id, ...)
 
-\method{sister_trees}{Strata}(x, ...)
+\method{sister_trees}{Strata}(x, id, ...)
 
 \method{sister_trees}{phylo}(x, id, type = "auto")
 }
 \arguments{
 \item{x}{phylo object}
 
-\item{...}{Arguments passed to \code{sister_trees.phylo}}
-
 \item{id}{vector of ids or names}
+
+\item{...}{Arguments passed to \code{sister_trees.phylo}}
 
 \item{type}{id type: ['name', 'id', 'auto']}
 }

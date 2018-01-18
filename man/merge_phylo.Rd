@@ -6,9 +6,9 @@
 \alias{merge_phylo.phylo}
 \title{Merge fully named subtrees according to a reference tree}
 \usage{
-merge_phylo(x, ...)
+merge_phylo(x, subtrees)
 
-\method{merge_phylo}{Strata}(x, ...)
+\method{merge_phylo}{Strata}(x, subtrees)
 
 \method{merge_phylo}{phylo}(x, subtrees)
 }

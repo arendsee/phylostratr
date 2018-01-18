@@ -8,7 +8,7 @@
 \usage{
 subtree(x, id, collapse = TRUE, descend = TRUE, type = "auto")
 
-subtree.Strata(x, ...)
+subtree.Strata(x, id, type = "name", ...)
 
 subtree(x, id, collapse = TRUE, descend = TRUE, type = "auto")
 }

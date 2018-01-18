@@ -6,11 +6,11 @@
 \alias{get_root.phylo}
 \title{Get the root of a tree}
 \usage{
-get_root(x, ...)
+get_root(x)
 
-\method{get_root}{Strata}(x, ...)
+\method{get_root}{Strata}(x)
 
-\method{get_root}{phylo}(x, ...)
+\method{get_root}{phylo}(x)
 }
 \arguments{
 \item{x}{phylo object}

@@ -6,9 +6,9 @@
 \alias{sisters.phylo}
 \title{Get the sisters of a node}
 \usage{
-sisters(x, ...)
+sisters(x, id, ...)
 
-\method{sisters}{Strata}(x, ...)
+\method{sisters}{Strata}(x, id, ...)
 
 \method{sisters}{phylo}(x, id, type = "auto")
 }

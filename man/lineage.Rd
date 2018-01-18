@@ -9,7 +9,8 @@
 \usage{
 lineage(x, ...)
 
-\method{lineage}{Strata}(x, ...)
+\method{lineage}{Strata}(x, id = x@focal_species, type = "name",
+  use_name = TRUE)
 
 \method{lineage}{phylo}(x, id, use_name = FALSE, type = "auto")
 
@@ -20,9 +21,9 @@ lineage(x, ...)
 
 \item{id}{A single name or index}
 
-\item{use_name}{Should names be used rather than internal ids}
-
 \item{type}{id type: ['name', 'id', 'auto']}
+
+\item{use_name}{Should names be used rather than internal ids}
 }
 \description{
 Find the ancestors of a node

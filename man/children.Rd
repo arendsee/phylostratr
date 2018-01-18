@@ -5,9 +5,9 @@
 \alias{children.Strata}
 \title{Get the immediate children of a node}
 \usage{
-children(x, id, type = "auto")
+children(x, ...)
 
-children.Strata(x, ...)
+\method{children}{Strata}(x, id, type = "name")
 }
 \arguments{
 \item{x}{phylo object}

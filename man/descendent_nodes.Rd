@@ -8,7 +8,7 @@
 \usage{
 descendent_nodes(x, ...)
 
-\method{descendent_nodes}{Strata}(x, ...)
+\method{descendent_nodes}{Strata}(x, id, type = "name", ...)
 
 \method{descendent_nodes}{phylo}(x, id, type = "auto")
 }

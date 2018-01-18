@@ -1,17 +1,19 @@
 # Strata / phylo compatibility function
-.fmap_strata <- function(x, f, strata_out=FALSE, ...){
-  result <- f(x@tree, ...)
-  if(strata_out){
-    new_data <- lapply(x@data, function(datum){
-      datum[result$tip.label]
-    })
-    x@tree <- result 
-    x@data <- new_data
-    x
-  } else {
-    result
-  }
+.fmap <- function(x, f, fout=.identity, ...){
+  fout(x, f(x@tree, ...))
 }
+.strata <- function(x, tree){
+  new_data <- lapply(x@data, function(datum){
+    datum[result$tip.label]
+  })
+  x@tree <- tree 
+  x@data <- new_data
+  x
+}
+.name <- function(x, indices){
+  tree_names(x)[indices] 
+}
+.identity <- function(x, result) result
 
 #' If nodes are not named, give them default names
 #'
@@ -31,7 +33,7 @@ set_node_names <- function(x, ...){
 
 #' @rdname set_node_names
 set_node_names.Strata <- function(x, ...){
-  .fmap_strata(x, set_node_names, strata_out=TRUE, ...)
+  .fmap(x, set_node_names, fout=.strata, ...)
 }
 
 #' @rdname set_node_names
@@ -58,18 +60,7 @@ set_node_names.phylo <- function(x, default_names=paste0("n", nodes(x))){
 #' tip name, if 'auto' the value is assumed to be a name if it is a character
 #' string.
 #' @return on success, return a valid integrel id
-#' @name clean_phyid
-clean_phyid <- function(x, ...){
-  UseMethod('clean_phyid', x)
-}
-
-#' @rdname clean_phyid
-clean_phyid.Strata <- function(x, ...){
-  .fmap_strata(x, clean_phyid, ...)
-}
-
-#' @rdname clean_phyid
-clean_phyid.phylo <- function(x, id, len=NULL, type='auto'){
+clean_phyid <- function(x, id, len=NULL, type='auto'){
   is_integer <- function(i){
     if(is.character(i)){
       all(grepl("^[0-9]+$", id, perl=TRUE))
@@ -141,7 +132,7 @@ tree_names <- function(x){
 
 #' @rdname tree_names
 tree_names.Strata <- function(x){
-  .fmap_strata(x, tree_names)
+  .fmap(x, tree_names, fout=.identity)
 }
 
 #' @rdname tree_names
@@ -162,7 +153,7 @@ leafs <- function(x, ...){
 
 #' @rdname leafs
 leafs.Strata <- function(x, ...){
-  .fmap_strata(x, leafs, ...)
+  .fmap(x, leafs, fout=.name, ...)
 }
 
 #' @rdname leafs
@@ -188,7 +179,7 @@ nodes <- function(x, ...){
 
 #' @rdname nodes
 nodes.Strata <- function(x, ...){
-  .fmap_strata(x, nodes, ...)
+  .fmap(x, nodes, fout=.identity, byname=TRUE, ...)
 }
 
 #' @rdname nodes
@@ -217,7 +208,7 @@ nleafs <- function(x){
 
 #' @rdname nleafs
 nleafs.Strata <- function(x){
-  .fmap_strata(x, nleafs)
+  .fmap(x, nleafs, fout=.identity)
 }
 
 #' @rdname nleafs
@@ -242,8 +233,8 @@ lineage <- function(x, ...){
 }
 
 #' @rdname lineage
-lineage.Strata <- function(x, ...){
-  .fmap_strata(x, lineage, ...)
+lineage.Strata <- function(x, id=x@focal_species, type='name', use_name=TRUE){
+  .fmap(x, lineage, fout=.identity, id=id, type=type, use_name=use_name)
 }
 
 #' @rdname lineage
@@ -273,7 +264,7 @@ tree_size <- function(x){
 
 #' @rdname tree_size
 tree_size.Strata <- function(x){
-  .fmap_strata(x, tree_size)
+  .fmap(x, tree_size, fout=.identity)
 }
 
 #' @rdname lineage
@@ -294,8 +285,8 @@ parent <- function(x, ...){
 }
 
 #' @rdname parent
-parent.Strata <- function(x, ...){
-  .fmap_strata(x, parent, ...)
+parent.Strata <- function(x, id=id, type='name'){
+  .fmap(x, parent, fout=.name, id=id, type=type)
 }
 
 #' @rdname parent
@@ -317,11 +308,11 @@ children <- function(x, ...){
 }
 
 #' @rdname children
-children.Strata <- function(x, ...){
-  .fmap_strata(x, children, ...)
+children.Strata <- function(x, id, type='name'){
+  .fmap(x, children, fout=.name, id=id, type=type)
 }
 
-children <- function(x, id, type='auto'){
+children.phylo <- function(x, id, type='auto'){
   id <- clean_phyid(x, id, len=1, type=type)
   sort(x$edge[x$edge[,1] == id, 2])
 }
@@ -340,7 +331,7 @@ is_root <- function(x, ...){
 
 #' @rdname is_root
 is_root.Strata <- function(x, ...){
-  .fmap_strata(x, is_root, ...)
+  .fmap(x, is_root, fout=.identity, ...)
 }
 
 #' @rdname is_root
@@ -359,18 +350,18 @@ is_root <- function(x, id=1:tree_size(x), type='auto'){
 #' @return index of the root node (or nodes if there are more than one)
 #' @export
 #' @name get_root
-get_root <- function(x, ...){
+get_root <- function(x){
   UseMethod('get_root', x)
 }
 
 #' @rdname get_root
-get_root.Strata <- function(x, ...){
-  .fmap_strata(x, get_root, ...)
+get_root.Strata <- function(x){
+  .fmap(x, get_root, fout=.name)
 }
 
 #' @rdname get_root
-get_root.phylo <- function(x, ...){
-  which(is_root(x, ...))
+get_root.phylo <- function(x){
+  which(is_root(x))
 }
 
 #' Get all nodes (leafs and ancestors) descending from, and including, a set of ids
@@ -386,8 +377,8 @@ descendent_nodes <- function(x, ...){
 }
 
 #' @rdname descendent_nodes
-descendent_nodes.Strata <- function(x, ...){
-  .fmap_strata(x, descendent_nodes, ...)
+descendent_nodes.Strata <- function(x, id, type='name', ...){
+  .fmap(x, descendent_nodes, fout=.name, id=id, type=type, ...)
 }
 
 #' @rdname descendent_nodes
@@ -418,13 +409,13 @@ descendents <- function(x, ...){
 
 #' @rdname descendents
 descendents.Strata <- function(x, ...){
-  .fmap_strata(x, descendents, ...)
+  .fmap(x, descendents, fout=.name, ...)
 }
 
 #' @rdname descendents
-descendents.phylo <- function(tree, id, ...){
-  descendent_nodes(tree, id, ...) %>%
-    intersect(leafs(tree)) %>%
+descendents.phylo <- function(x, id, ...){
+  descendent_nodes(x, id, ...) %>%
+    intersect(leafs(x)) %>%
     sort
 }
 
@@ -442,13 +433,13 @@ descendents.phylo <- function(tree, id, ...){
 #' subtree(atree, c('t7', 't4', 't1'))
 #' @export
 #' @name subtree
-subtree <- function(x, ...){
+subtree <- function(x, id, ...){
   UseMethod('subtree', x)
 }
 
 #' @rdname subtree
-subtree.Strata <- function(x, ...){
-  .fmap_strata(x, subtree, ...)
+subtree.Strata <- function(x, id, type='name', ...){
+  .fmap(x, subtree, fout=.strata, id=id, type=type, ...)
 }
 
 #' @rdname subtree
@@ -502,13 +493,13 @@ subtree <- function(x, id, collapse=TRUE, descend=TRUE, type='auto'){
 #' @return integer vector of indices
 #' @export
 #' @name sisters
-sisters <- function(x, ...){
+sisters <- function(x, id, ...){
   UseMethod('sisters', x)
 }
 
 #' @rdname sisters
-sisters.Strata <- function(x, ...){
-  .fmap_strata(x, sisters, ...)
+sisters.Strata <- function(x, id, ...){
+  .fmap(x, sisters, id=id, ...)
 }
 
 #' @rdname sisters
@@ -530,13 +521,13 @@ sisters.phylo <- function(x, id, type='auto'){
 #' @return list of phylo objects
 #' @export
 #' @name sister_trees
-sister_trees <- function(x, ...){
+sister_trees <- function(x, id, ...){
   UseMethod('sister_trees', x)
 }
 
 #' @rdname sister_trees
-sister_trees.Strata <- function(x, ...){
-  .fmap_strata(x, sister_trees, ...)
+sister_trees.Strata <- function(x, id, ...){
+  .fmap(x, sister_trees, id=id, ...)
 }
 
 #' @rdname sister_trees
@@ -556,13 +547,13 @@ sister_trees.phylo <- function(x, id, type='auto'){
 #' @param type id type: ['name', 'id', 'auto']
 #' @export
 #' @name prune
-prune <- function(x, ...){
+prune <- function(x, id, ...){
   UseMethod('prune', x)
 }
 
 #' @rdname prune
-prune.Strata <- function(x, ...){
-  .fmap_strata(x, prune, ...)
+prune.Strata <- function(x, id, ...){
+  .fmap(x, prune, id=id, ...)
 }
 
 #' @rdname prune
@@ -588,19 +579,21 @@ prune.phylo <- function(tree, id, type='auto'){
 #' merge_phylo(atree, subtrees)
 #' @export
 #' @name merge_phylo
-merge_phylo <- function(x, ...){
+merge_phylo <- function(x, subtrees){
   UseMethod('merge_phylo', x)
 }
 
 #' @rdname merge_phylo
-merge_phylo.Strata <- function(x, ...){
+merge_phylo.Strata <- function(x, subtrees){
   stop("Not Implemented")
 }
 
 #' @rdname merge_phylo
 merge_phylo.phylo <- function(x, subtrees){
-  lapply(subtrees, tree_names) %>% do.call(what='c') %>% unique %>%
-    subtree(x, type='name')
+  lapply(subtrees, tree_names) %>%
+    do.call(what='c') %>%
+    unique %>%
+    subtree(x=x, type='name')
 }
 
 #' Organize the tips with the focal_id on tip
@@ -614,7 +607,7 @@ make_tree_relative_to <- function(x, focal_id){
 
 #' @rdname make_tree_relative_to
 make_tree_relative_to.Strata <- function(x, focal_id){
-  .fmap_strata(x, make_tree_relative_to, focal_id)
+  .fmap(x, make_tree_relative_to, focal_id)
 }
 
 #' @rdname make_tree_relative_to

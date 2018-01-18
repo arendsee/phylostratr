@@ -8,7 +8,7 @@
 \usage{
 parent(x, ...)
 
-\method{parent}{Strata}(x, ...)
+\method{parent}{Strata}(x, id = id, type = "name")
 
 \method{parent}{phylo}(x, id = 1:tree_size(x), type = "auto")
 }

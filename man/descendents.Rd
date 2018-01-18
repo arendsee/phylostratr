@@ -10,7 +10,7 @@ descendents(x, ...)
 
 \method{descendents}{Strata}(x, ...)
 
-\method{descendents}{phylo}(tree, id, ...)
+\method{descendents}{phylo}(x, id, ...)
 }
 \arguments{
 \item{x}{phylo object}
