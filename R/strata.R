@@ -88,24 +88,39 @@ diverse_subtree <- function(tree, n, weights=NULL, collapse=FALSE){
 strata_apply <- function(strata, f, ...){
   outgroups <- strata_fold(strata, f, ...)
 
-  stopifnot(all(sapply(outgroups, class) == 'phylo'))
+  merge_trees <- function(trees){
+    lapply(trees, tree2edgelist) %>%
+      do.call(what=rbind) %>%
+      unique %>%
+      edgelist_to_phylo %>%
+      ape::collapse.singles()
+  }
 
-  final <- lapply(outgroups, tree2edgelist) %>%
-    do.call(what=rbind) %>%
-    unique %>%
-    edgelist_to_phylo %>%
-    ape::collapse.singles()
+  merge_data <- function(x,y){
+    if(identical(x, list())){
+      return(y)
+    }
+    stopifnot(identical(names(x), names(y)))
+    z <- list()
+    for(field in names(x)){
+      z[[field]] <- c(x[[field]], y[[field]]) 
+    }
+    z
+  }
 
-  new_data <- lapply(strata@data, function(x){
-    x[final$tip.label]
-  })
-
-  new_strata <- strata
-
-  new_strata@data <- new_data
-  new_strata@tree <- final
-
-  new_strata
+  if(all(sapply(outgroups, class) == 'phylo')){
+    strata@tree <- merge_trees(outgroups)
+    strata@data <- lapply(strata@data, function(x){
+      x[strata@tree$tip.label]
+    })
+    strata
+  } else if(all(sapply(outgroups, class) == 'Strata')) {
+    strata@tree <- lapply(outgroups, function(x) x@tree) %>% merge_trees 
+    strata@data <- lapply(outgroups, function(x) x@data) %>% Reduce(f=merge_data, init=list()) 
+    strata
+  } else {
+    stop("'f' in 'strata_apply' must map to a tree of Strata object")
+  }
 }
 
 #' Apply f to each outgroup branch ascending node id, returning a list 
@@ -123,13 +138,13 @@ strata_fold <- function(strata, f, ...){
 
   outgroups <- lapply(lin, function(ancestor){
     sisters(strata@tree, ancestor, type='index') %>%
-      subtree(x=strata@tree, collapse=FALSE, descend=TRUE, type='index') %>%
+      subtree(x=strata, collapse=FALSE, descend=TRUE, type='index') %>%
       f(...)
   })
 
   names(outgroups) <- tree_names(strata@tree)[parent(strata@tree, lin, type='index')]
   outgroups <- outgroups[!sapply(outgroups, is.null)]
-  outgroups[[strata@focal_species]] <- f(subtree(strata@tree, strata@focal_species, type='name'), ...)
+  outgroups[[strata@focal_species]] <- f(subtree(strata, strata@focal_species, type='name'), ...)
 
   outgroups
 }

@@ -10,12 +10,14 @@ prune(x, id, ...)
 
 \method{prune}{Strata}(x, id, ...)
 
-\method{prune}{phylo}(tree, id, type = "auto")
+\method{prune}{phylo}(x, id, type = "auto", ...)
 }
 \arguments{
 \item{x}{phylo object}
 
 \item{id}{vector of indices or names}
+
+\item{...}{Arguments sent to \code{prune.phylo}}
 
 \item{type}{id type: ['name', 'id', 'auto']}
 }

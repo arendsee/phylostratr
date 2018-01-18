@@ -10,10 +10,12 @@ descendent_nodes(x, ...)
 
 \method{descendent_nodes}{Strata}(x, id, type = "name", ...)
 
-\method{descendent_nodes}{phylo}(x, id, type = "auto")
+\method{descendent_nodes}{phylo}(x, id, type = "auto", ...)
 }
 \arguments{
 \item{x}{phylo object}
+
+\item{...}{Arguments passed on to \code{descendent_nodes.phylo}}
 
 \item{id}{vector of ids or names}
 

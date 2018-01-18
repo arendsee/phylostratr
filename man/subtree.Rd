@@ -3,25 +3,28 @@
 \name{subtree}
 \alias{subtree}
 \alias{subtree.Strata}
-\alias{subtree}
+\alias{subtree.phylo}
 \title{Select a subset of nodes from a tree}
 \usage{
-subtree(x, id, collapse = TRUE, descend = TRUE, type = "auto")
+subtree(x, id, ...)
 
-subtree.Strata(x, id, type = "name", ...)
+\method{subtree}{Strata}(x, id, type = "name", ...)
 
-subtree(x, id, collapse = TRUE, descend = TRUE, type = "auto")
+\method{subtree}{phylo}(x, id, collapse = TRUE, descend = TRUE,
+  type = "auto", ...)
 }
 \arguments{
 \item{x}{phylo object}
 
 \item{id}{vector of ids or names}
 
+\item{...}{Arguments sent to \code{subtree.phylo}}
+
+\item{type}{id type: ['name', 'id', 'auto']}
+
 \item{collapse}{logical collapse edges around nodes with a single descendent}
 
 \item{descend}{logical include all descendents of each id}
-
-\item{type}{id type: ['name', 'id', 'auto']}
 }
 \value{
 phylo object

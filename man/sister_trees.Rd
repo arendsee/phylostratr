@@ -10,7 +10,7 @@ sister_trees(x, id, ...)
 
 \method{sister_trees}{Strata}(x, id, ...)
 
-\method{sister_trees}{phylo}(x, id, type = "auto")
+\method{sister_trees}{phylo}(x, id, type = "auto", ...)
 }
 \arguments{
 \item{x}{phylo object}

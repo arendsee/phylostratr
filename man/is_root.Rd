@@ -3,17 +3,19 @@
 \name{is_root}
 \alias{is_root}
 \alias{is_root.Strata}
-\alias{is_root}
+\alias{is_root.phylo}
 \title{Vectorized tree root finder}
 \usage{
-is_root(x, id = 1:tree_size(x), type = "auto")
+is_root(x, ...)
 
-is_root.Strata(x, ...)
+\method{is_root}{Strata}(x, ...)
 
-is_root(x, id = 1:tree_size(x), type = "auto")
+\method{is_root}{phylo}(x, id = 1:tree_size(x), type = "auto", ...)
 }
 \arguments{
 \item{x}{phylo object}
+
+\item{...}{Arguments passed on to \code{is_root.phylo}}
 
 \item{id}{vector of ids or names}
 

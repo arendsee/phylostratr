@@ -15,7 +15,7 @@ descendents(x, ...)
 \arguments{
 \item{x}{phylo object}
 
-\item{...}{Arguments sent to descendent_nodes}
+\item{...}{Arguments sent to \code{descendent_nodes}}
 
 \item{id}{vector of ids or names}
 }

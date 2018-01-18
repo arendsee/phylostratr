@@ -10,10 +10,12 @@ leafs(x, ...)
 
 \method{leafs}{Strata}(x, ...)
 
-\method{leafs}{phylo}(x, byname = FALSE)
+\method{leafs}{phylo}(x, byname = FALSE, ...)
 }
 \arguments{
 \item{x}{phylo object}
+
+\item{...}{Arguments passed on to \code{leafs.phylo}}
 
 \item{byname}{logical Return leaf labels, rather than indices}
 }

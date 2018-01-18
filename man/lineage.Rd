@@ -10,14 +10,16 @@
 lineage(x, ...)
 
 \method{lineage}{Strata}(x, id = x@focal_species, type = "name",
-  use_name = TRUE)
+  use_name = TRUE, ...)
 
-\method{lineage}{phylo}(x, id, use_name = FALSE, type = "auto")
+\method{lineage}{phylo}(x, id, use_name = FALSE, type = "auto", ...)
 
 \method{tree_size}{phylo}(x)
 }
 \arguments{
 \item{x}{phylo object}
+
+\item{...}{Arguments passed on to \code{lineage.phylo}}
 
 \item{id}{A single name or index}
 

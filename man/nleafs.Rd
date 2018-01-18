@@ -10,7 +10,7 @@ nleafs(x)
 
 \method{nleafs}{Strata}(x)
 
-\method{nleafs}{phylo}(tree)
+\method{nleafs}{phylo}(x)
 }
 \arguments{
 \item{x}{phylo object}

@@ -10,10 +10,12 @@ nodes(x, ...)
 
 \method{nodes}{Strata}(x, ...)
 
-\method{nodes}{phylo}(x, rebase = FALSE, byname = FALSE)
+\method{nodes}{phylo}(x, rebase = FALSE, byname = FALSE, ...)
 }
 \arguments{
 \item{x}{phylo object}
+
+\item{...}{Arguments passed on to \code{nodes.phylo}}
 
 \item{rebase}{logical Make indices base 1}
 

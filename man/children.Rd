@@ -7,10 +7,12 @@
 \usage{
 children(x, ...)
 
-\method{children}{Strata}(x, id, type = "name")
+\method{children}{Strata}(x, id, type = "name", ...)
 }
 \arguments{
 \item{x}{phylo object}
+
+\item{...}{Arguments passed on to \code{children.phylo}}
 
 \item{id}{vector of ids or names}
 

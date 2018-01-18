@@ -10,12 +10,14 @@ sisters(x, id, ...)
 
 \method{sisters}{Strata}(x, id, ...)
 
-\method{sisters}{phylo}(x, id, type = "auto")
+\method{sisters}{phylo}(x, id, type = "auto", ...)
 }
 \arguments{
 \item{x}{phylo object}
 
 \item{id}{vector of ids or names}
+
+\item{...}{Arguments sent to \code{sisters.phylo}}
 
 \item{type}{id type: ['name', 'id', 'auto']}
 }
