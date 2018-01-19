@@ -228,3 +228,28 @@ use_recommended_prokaryotes <- function(x){
   x@tree <- y
   x
 }
+
+#' Extract an ID map from uniprot fasta files
+#'
+#' This assumes the fasta files respect the UniProt fasta header format.
+#'
+#' @param strata Strata object 
+#' @return Strata object with 'idmap' data field
+#' @export
+uniprot_add_idmap <- function(strata){
+  is_valid_strata(strata, required='faa')
+  strata@data$idmap <- lapply(strata@data$faa, function(x){
+     Biostrings::readAAStringSet(x) %>%
+       names %>%
+       strsplit('\\|') %>%
+       purrr::transpose() %>%
+       lapply(unlist) %>%
+       {tibble::data_frame(
+         db = .[[1]],
+         uniprot_id = .[[2]],
+         other_id = sub(" .*", "", .[[3]])
+       )}
+  })
+  names(strata@data$idmap) <- names(strata@data$faa)
+  strata
+}

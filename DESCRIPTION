@@ -19,6 +19,7 @@ Imports:
     gridExtra,
     magrittr,
     methods,
+    purrr,
     readr,
     reshape2,
     rhmmer,
