@@ -2,7 +2,7 @@
 % Please edit documentation in R/diagnostics.R
 \name{proteome_stats_table}
 \alias{proteome_stats_table}
-\title{Build a table of proteome stratistics}
+\title{Build a table of proteome statistics}
 \usage{
 proteome_stats_table(strata)
 }
@@ -13,5 +13,5 @@ proteome_stats_table(strata)
 data.frame with the fields 'species', 'protein_length', 'mrca', 'ps', and 'index'.
 }
 \description{
-Build a table of proteome stratistics
+Build a table of proteome statistics
 }

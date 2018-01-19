@@ -159,7 +159,8 @@ leafs <- function(x, ...){
 #' @rdname leafs
 #' @export
 leafs.Strata <- function(x, ...){
-  .fmap(x, leafs, fout=.name, ...)
+  # BAD THINGS happen if you pass byname=TRUE on 
+  .fmap(x, leafs, fout=.name, ..., byname=FALSE)
 }
 
 #' @rdname leafs

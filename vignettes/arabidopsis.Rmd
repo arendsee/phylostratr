@@ -99,9 +99,10 @@ strata@data$faa[['3702']] <- '/db/araport11/Araport11_genes.201606.pep.fasta'
 
 # BLAST against each target genome (this will take a few hours)
 # TODO: don't hard code the threads
-results <- strata_blast(strata, blast_args=list(nthreads=8)) %>%
-  strata_besthits %>%
-  merge_besthits
+strata <- strata_blast(strata, blast_args=list(nthreads=8)) %>% strata_besthits
+
+# Merge results into a single hittable
+results <- merge_besthits(strata)
 ```
 
 The `results` variable is saved as a `phylostratr` dataset, and can be loaded

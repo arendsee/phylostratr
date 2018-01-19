@@ -19,7 +19,7 @@ add_proteome_stats <- function(strata, overwrite=FALSE){
 }
 
 
-#' Build a table of proteome stratistics 
+#' Build a table of proteome statistics 
 #'
 #' @param strata Strata object
 #' @return data.frame with the fields 'species', 'protein_length', 'mrca', 'ps', and 'index'.
@@ -42,4 +42,47 @@ proteome_stats_table <- function(strata){
     }) %>%
     do.call(what=rbind) %>%
     merge(get_phylostrata_map(strata), by='species')
+}
+
+#' Add organelle ID lists for each proteome
+#'
+#' @param strata A Strata object where leafs are NCBI taxa represented in UniProt
+#' @param overwrite logical. If TRUE, then the 'proteome_stats' field will be
+#' overwritten if it already exists.
+#' @return A Strata object with a new 'organelle' data field
+#' @export
+add_organelle_proteins <- function(strata, overwrite=FALSE){
+  is_valid_strata(strata)
+
+  if(overwrite || !('organelle' %in% names(strata@data))){
+    ids <- leafs(strata)
+    # TODO: add test is_taxid, I should implement this in taxizedb
+    strata@data$organelle <- lapply(ids, function(id){
+      list(
+        mitochondrion = uniprot_organelle_ids(id, delay=TRUE, organelle='Mitochondrion'),
+        chloroplast   = uniprot_organelle_ids(id, delay=TRUE, organelle='Chloroplast')
+      )
+    })
+    names(strata@data$organelle) <- ids
+  }
+
+  strata
+}
+
+#' Build a table of organelle count statistics 
+#'
+#' @param strata Strata object
+#' @param ... Additional arguments passed to \code{add_organelle_proteins}
+#' @return data.frame with the fields 'species', 'n_mitochondrial', 'n_chloroplast', 'mrca', and 'ps'.
+#' @export
+organelle_table <- function(strata, ...){
+  strata <- add_organelle_proteins(strata, ...)
+  tuplify(strata@data$organelle) %>% {
+    data.frame(
+      species = sapply(., function(x) x$name),
+      n_mitochondrial = sapply(., function(x) length(x$value$mitochondrion)),
+      n_chloroplast   = sapply(., function(x) length(x$value$chloroplast))
+    )
+  } %>%
+  merge(get_phylostrata_map(strata), by='species')
 }

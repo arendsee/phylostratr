@@ -41,6 +41,11 @@ is_valid_strata <- function(strata, required=NULL){
 #' # do not to include the 't1' species
 #' diverse_subtree(atree, 4, weights=c(t1=0))
 diverse_subtree <- function(tree, n, weights=NULL, collapse=FALSE){
+
+  if(class(tree) == 'Strata'){
+    tree <- tree@tree
+  }
+
   if(n < 1){
     stop('Must select at least one species')
   }
@@ -254,7 +259,7 @@ strata_convert <- function(strata, target='tip', to='id'){
 }
 
 get_phylostrata_map <- function(strata){
-  map <- strata_fold(strata, leafs, byname=TRUE) %>%
+  map <- strata_fold(strata, leafs) %>%
     tuplify %>%
     lapply(function(x){
       tibble::data_frame(
