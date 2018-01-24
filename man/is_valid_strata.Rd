@@ -4,7 +4,7 @@
 \alias{is_valid_strata}
 \title{Assert a Strata object is valid, die on failure}
 \usage{
-is_valid_strata(strata, required = NULL)
+is_valid_strata(strata, required = NULL, check_focal = TRUE)
 }
 \arguments{
 \item{strata}{Strata object}

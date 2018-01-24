@@ -2,8 +2,8 @@
 #'
 #' @param required A character vector of required data fields
 #' @param strata Strata object
-is_valid_strata <- function(strata, required=NULL){
-  if(!(strata@focal_species %in% strata@tree$tip.label)){
+is_valid_strata <- function(strata, required=NULL, check_focal=TRUE){
+  if(check_focal && !(strata@focal_species %in% strata@tree$tip.label)){
     stop("Invalid Strata object, the focal species '", strata@focal_species, "' is not found in the tree")
   }
   for(field in names(strata@data)){
@@ -161,7 +161,9 @@ strata_fold <- function(strata, f, ...){
 #' @return Strata object
 #' @export
 add_taxa <- function(strata, taxa){
-  is_valid_strata(strata)
+  is_valid_strata(strata, check_focal=FALSE)
+
+  # TODO: assert that all IDs are NCBI taxonomy IDs
 
   strata@tree <- unique(c(taxa, tree_names(strata@tree))) %>%
     taxizedb::classification() %>%
