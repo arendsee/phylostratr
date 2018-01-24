@@ -29,3 +29,19 @@ check_hit_table <- function(d, has_mrca=FALSE, has_ps=FALSE){
 check_noise <- function(x) {
   # This is a stub
 }
+
+check_focal_species <- function(x) {
+  # TODO: assert that it is a valid NCBI taxonomy ID
+
+  # assert that it has not children, warn if it does
+  nkids <- nrow(taxizedb::children(x)[[1]])
+  if(nkids > 0){
+    warning("The focal species is not a leaf in the tree. This may be fine. But
+            if any of the children of the focal species (e.g. subspecies) are
+            in the analysis, the program will crash later, since the focal
+            species is assumed to be a terminal node. The solution, in this
+            case, is to replace the focal species to the appropriate
+            subspecies. For example, use 'Apis mellifera mellifera', instead
+            'Apis mellifera'")
+  }
+}

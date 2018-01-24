@@ -13,8 +13,6 @@ Imports:
     ggplot2,
     ggtree (>= 1.11.2),
     scales,
-    treeio (>= 1.3.2),
-    tidytree,
     glue,
     gridExtra,
     magrittr,

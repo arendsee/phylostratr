@@ -99,7 +99,7 @@ strata@data$faa[['3702']] <- '/db/araport11/Araport11_genes.201606.pep.fasta'
 
 # BLAST against each target genome (this will take a few hours)
 # TODO: don't hard code the threads
-strata <- strata_blast(strata, blast_args=list(nthreads=8)) %>% strata_besthits
+strata <- strata_blast(strata, blast_args=list(nthreads=2)) %>% strata_besthits
 
 # Merge results into a single hittable
 results <- merge_besthits(strata)
@@ -119,8 +119,18 @@ To get gene list according to phylostrata:
 # TODO: add locus mrca
 phylostrata <- stratify(arabidopsis)
 head(phylostrata)
+```
 
+We can also map UniProt IDs to PFAM domains.
 
+```{r, eval=FALSE}
+strata <- strata_uniprot_pfam_map(strata)
+```
+
+We can also add proteome summary data. 
+
+```{r, eval=FALSE}
+strata <- add_proteome_stats(strata)
 ```
 
 And get the number of genes in each phylostrata

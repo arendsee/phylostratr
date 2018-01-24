@@ -223,7 +223,7 @@ use_recommended_prokaryotes <- function(x){
   root <- taxizedb::classification(2759)[[1]]$id %>% lineage_to_ancestor_tree
   # bind the prokaryotes to 'cellular_organism'
   y <- ape::bind.tree(root, prokaryote_sample)
-  # bind the eukaryote intput tree to 'Eukaryota'
+  # bind the eukaryote input tree to 'Eukaryota'
   y <- ape::bind.tree(y, x@tree, where=which(tree_names(y) == '2759'))
   x@tree <- y
   x
