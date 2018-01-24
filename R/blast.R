@@ -192,5 +192,5 @@ merge_besthits <- function(strata){
     x$value
   }) %>%
   do.call(what=rbind) %>%
-  dplyr::mutate(ps = as.integer(max(.data$ps) - .data$ps + 1))
+  dplyr::mutate(ps = as.integer(.data$ps))
 }
