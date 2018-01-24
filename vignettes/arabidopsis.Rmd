@@ -87,7 +87,6 @@ strata %>%
 ```
 
 ```{r, eval=FALSE}
-
 ## Replace the UniProt Arabidopsis thaliana proteome with the Araport11 proteome.
 ## The path below is specific to my pipeline, you can just use the UniProt genes,
 ## if you want. The problem with them is that they include all previous variants

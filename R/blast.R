@@ -182,58 +182,15 @@ strata_besthits <- function(strata){
 merge_besthits <- function(strata){
   is_valid_strata(strata, required='besthit')
 
-  besthits_strata <- strata@data$besthit
-  strata_names <- lineage(strata@tree, strata@focal_species, type='name')
-  strata_names <- tree_names(strata@tree)[strata_names]
-  ps <- seq_along(strata_names)
-
-  besthits <- lapply(ps, function(i){
-    taxa <- sister_trees(strata@tree, strata_names[i], type='name') %>%
-      lapply(function(sis){ sis$tip.label }) %>%
-      unlist %>% unname
-    do.call(rbind, besthits_strata[taxa]) %>% {
-      if(length(.) > 0 && nrow(.) > 0){
-        .$mrca <- strata_names[i]
-        .$ps <- i
-      } else {
-        .$mrca <- integer(0)
-        .$ps <- integer(0)
-      }
-      as.data.frame(.)
-    } %>% { rownames(.) <- NULL; . }
+  strata_fold(strata, function(s){
+    do.call(what=rbind, s@data$besthit)
   }) %>%
-    Filter(f=function(x){nrow(x) > 0}) %>%
-    do.call(what=rbind) %>%
-    {
-      d <- .
-      mrca_map <- d %>%
-        dplyr::select(.data$staxid, .data$mrca, .data$ps) %>%
-        dplyr::distinct()
-      d %>%
-        dplyr::select(-.data$mrca, -.data$ps) %>%
-        tidyr::complete_(c('qseqid', 'staxid')) %>%
-        merge(mrca_map, by='staxid')
-    }
-
-  # Merge in the focal species
-  besthits_strata[[strata@focal_species]] %>%
-    {
-      .$mrca <- strata@focal_species
-      .$ps <- as.integer(max(ps)+1)
-      .
-    } %>%
-    dplyr::select(
-      .data$staxid,
-      .data$qseqid,
-      .data$sseqid,
-      .data$qstart,
-      .data$qend,
-      .data$sstart,
-      .data$send,
-      .data$evalue,
-      .data$score,
-      .data$mrca,
-      .data$ps
-    ) %>%
-    rbind(besthits)
+  tuplify %>%
+  lapply(function(x){
+    x$value$mrca <- x$name
+    x$value$ps   <- x$position
+    x$value
+  }) %>%
+  do.call(what=rbind) %>%
+  dplyr::mutate(ps = as.integer(max(.data$ps) - .data$ps + 1))
 }
