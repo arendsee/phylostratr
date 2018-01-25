@@ -63,6 +63,7 @@ thaliana* as follows:
 ## 1. Select relatives to search
 
 ```{r, eval=FALSE}
+library(taxizedb)
 library(phylostratr)
 library(magrittr)
 
@@ -104,38 +105,39 @@ strata <- strata_blast(strata, blast_args=list(nthreads=2)) %>% strata_besthits
 results <- merge_besthits(strata)
 ```
 
-The `results` variable is saved as a `phylostratr` dataset, and can be loaded
-as below:
+Now we can merge additional data:
 
 ```{r, eval=FALSE}
-data(arabidopsis)
-head(arabidopsis)
+# Note, this will take awhile
+strata <- strata %>%
+    # add map of UniProt IDs to PFAM domains
+    strata_uniprot_pfam_map %>%
+    # add proteome summary data
+    add_proteome_stats %>%
+    # add list of proteins that are encoded in the organelle genomes 
+    add_organelle_proteins
 ```
 
-To get gene list according to phylostrata:
-
 ```{r, eval=FALSE}
-# TODO: add locus mrca
-phylostrata <- stratify(arabidopsis)
-head(phylostrata)
+prot <- proteome_stats_table(strata)
+plot_proteome_stats(strata) %>% ggplotify
+plot_proteome_lengths(strata) %>% ggplotly
 ```
 
-We can also map UniProt IDs to PFAM domains.
-
 ```{r, eval=FALSE}
-strata <- strata_uniprot_pfam_map(strata)
-```
-
-We can also add proteome summary data. 
-
-```{r, eval=FALSE}
-strata <- add_proteome_stats(strata)
+# We are particularly interested in plant organelles, since they are large and
+# often forgotten in proteome datasets. 
+subtree(strata, name2taxid('Viridiplantae')) %>%
+    # and we replace the taxon IDs with scientific names
+    strata_convert(target='all', to='name')
+    # summarize the numbers of organelle genes present per species
+    organelle_table %>%
+    # sort by ascending phylostratum age
+    dplyr::arrange(-.data$ps)
 ```
 
 And get the number of genes in each phylostrata
 
 ```{r, eval=FALSE}
-summary(phylostrata$mrca_name)
+table(stratify(results)$mrca_name)
 ```
-
-Note that this is a reduced dataset, with only 1/100 of the genes represented.
