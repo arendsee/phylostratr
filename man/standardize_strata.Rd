@@ -8,8 +8,6 @@ standardize_strata(strata_tables)
 }
 \arguments{
 \item{strata_tables}{phylostrata tables, all must the column 'mrca_name'}
-
-\item{focal_species}{NCBI taxonomy ID for the focal species}
 }
 \value{
 list of standardized phylostrata tables

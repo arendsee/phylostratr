@@ -1,6 +1,8 @@
 #' Assert a Strata object is valid, die on failure
 #'
 #' @param required A character vector of required data fields
+#' @param check_focal logical, if TRUE, then presence of the focal species in
+#' the tree is checked
 #' @param strata Strata object
 is_valid_strata <- function(strata, required=NULL, check_focal=TRUE){
   if(check_focal && !(strata@focal_species %in% strata@tree$tip.label)){

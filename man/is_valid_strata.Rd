@@ -10,6 +10,9 @@ is_valid_strata(strata, required = NULL, check_focal = TRUE)
 \item{strata}{Strata object}
 
 \item{required}{A character vector of required data fields}
+
+\item{check_focal}{logical, if TRUE, then presence of the focal species in
+the tree is checked}
 }
 \description{
 Assert a Strata object is valid, die on failure
