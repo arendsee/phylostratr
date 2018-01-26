@@ -253,6 +253,8 @@ prune_phylostrata <- function(strata_table, strata_names){
   }
 
   mrca_levels <- levels(strata_table$mrca_name)
+  id2name_map <- dplyr::distinct(strata_table[, c('mrca', 'mrca_name')])
+
   indices <- as.integer(strata_table$mrca_name)
 
   indices_to_drop <- intersect(strata_names, mrca_levels) %>%
@@ -264,10 +266,53 @@ prune_phylostrata <- function(strata_table, strata_names){
     mrca_levels <- mrca_levels[-i]
   }
 
+  # TODO: I am making the mistake of storing the same information several
+  # times: ps, mrca, and mrca_name. Then everytime I change one I have to
+  # change them all. I should add a phylostratigrph object that handles all
+  # this for me.
   strata_table$mrca_name <- ifelse(indices > 0, mrca_levels[indices], mrca_levels[1]) 
+  strata_table$mrca <- NULL
+  strata_table <- merge(strata_table, id2name_map)
   strata_table$mrca_name <- factor(strata_table$mrca_name, levels=mrca_levels)
+  strata_table$ps <- as.integer(strata_table$mrca_name)
   strata_table
 
+}
+
+#' Standardize two or more phylostrata tables 
+#'
+#' Each table is subset with the union of sequence IDs. Also all strata that
+#' are not shared between all input tables are dropped, with the genes
+#' reassigned to older strata as needed. 
+#'
+#' @param strata_tables phylostrata tables, all must the column 'mrca_name'
+#' @return list of standardized phylostrata tables 
+standardize_strata <- function(strata_tables){
+
+  # Get intersection of all sequence IDs
+  common_ids <- Reduce(
+    f = function(x,y){intersect(x$qseqid, y$qseqid)},
+    x = strata_tables[-1],
+    init = strata_tables[[1]]
+  )
+
+  # Get the phylostrata common to all studies
+  common_strata <- Reduce(
+    f = function(x,y){intersect(levels(x$mrca_name), levels(y$mrca_name))},
+    x = strata_tables[-1],
+    init = strata_tables[[1]]
+  )
+
+  tuplify(strata_tables) %>%
+    lapply(function(x){
+      d <- x$value
+      d$group <- x$name
+      d <- subset(d, d$qseqid %in% common_ids)
+      d <- prune_phylostrata(d, setdiff(levels(d$mrca_name), common_strata))
+      x$value <- d
+      x
+    }) %>%
+    untuplify
 }
 
 #' Convert strata data, tip, and node names to and from NCBI taxonomy IDs

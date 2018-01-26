@@ -46,3 +46,11 @@ tuplify <- function(x){
     list(name=names(x)[i], value=x[[i]], position=i)
   })
 }
+
+# Undo the tuplify function, returning a named list
+untuplify <- function(xs){
+  tuple_names <- sapply(xs, function(x) x$name)
+  xs <- lapply(xs, function(x) x$value)
+  names(xs) <- tuple_names
+  xs
+}
