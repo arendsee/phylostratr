@@ -233,6 +233,43 @@ stratify <- function(
     dplyr::mutate(mrca_name = strata_names[.data$ps])
 }
 
+#' Given a strata table, remove given strata 
+#'
+#' The genes in a stratum that is removed will be reassigned to the parent
+#' stratum. If the stratum is the root stratum, the genes will instead be
+#' reassigned to the child stratum.
+#' 
+#' Note that removing strata will result in non-monophyletic branches.
+#'
+#' @param strata_table data.frame with the factored column 'mrca_name'
+#' @param strata_names character vector of strata to drop
+#' @export
+prune_phylostrata <- function(strata_table, strata_names){
+  if(!('mrca_name' %in% names(strata_table))){
+    stop("strata_table must have the column mrca_name")
+  }
+  if(!is.factor(strata_table$mrca_name)){
+    stop("strata_table$mrca_name must be a factor ordered by descending age")
+  }
+
+  mrca_levels <- levels(strata_table$mrca_name)
+  indices <- as.integer(strata_table$mrca_name)
+
+  indices_to_drop <- intersect(strata_names, mrca_levels) %>%
+    {which(mrca_levels %in% .)} %>%
+    sort(decreasing=TRUE)
+
+  for(i in indices_to_drop){
+    indices <- ifelse(indices >= i, indices-1, indices)
+    mrca_levels <- mrca_levels[-i]
+  }
+
+  strata_table$mrca_name <- ifelse(indices > 0, mrca_levels[indices], mrca_levels[1]) 
+  strata_table$mrca_name <- factor(strata_table$mrca_name, levels=mrca_levels)
+  strata_table
+
+}
+
 #' Convert strata data, tip, and node names to and from NCBI taxonomy IDs
 #'
 #' @param strata Strata object
