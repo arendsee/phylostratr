@@ -238,6 +238,10 @@ plot_proteome_lengths <- function(strata, normalize=FALSE){
 
 }
 
+#' Plot summary statistics for all proteomes 
+#'
+#' @param strata Strata object
+#' @export
 plot_proteome_stats <- function(strata){
   d <- proteome_report_table(strata) %>%
     reshape2::melt()

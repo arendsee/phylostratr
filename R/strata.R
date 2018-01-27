@@ -288,6 +288,7 @@ prune_phylostrata <- function(strata_table, strata_names){
 #'
 #' @param strata_tables phylostrata tables, all must the column 'mrca_name'
 #' @return list of standardized phylostrata tables 
+#' @export
 standardize_strata <- function(strata_tables){
 
   # Get intersection of all sequence IDs
