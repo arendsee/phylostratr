@@ -545,9 +545,11 @@ replace_branch <- function(x, y, node){
   # Replace it with out custom tree
   x@tree <- ape::bind.tree(x@tree, y@tree, where=which(tree_names(x@tree) == node))
   # Merge all data
-  x@data <- lapply(names(x@data), function(field){
-    x@data[[field]] <- append(x@data[[field]], y@data[[field]])
+  fields <- names(x@data)
+  x@data <- lapply(fields, function(field){
+    append(x@data[[field]], y@data[[field]])
   })
+  names(x@data) <- fields
 
   x
 }
