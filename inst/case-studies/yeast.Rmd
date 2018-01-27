@@ -96,9 +96,50 @@ proteome_report_table(strata2) %>%
 
 ## Finding genes that skip strata
 
+Here we find all genes that are missing in one or more phylostrata younger than
+their oldest match. 
+
 ```{r}
-saveRDS(results, 'z.Rda')
-find_revenants(results, classifier=classify_by_evalue(1e-5))
+revenants <- find_revenants(results)
+```
+
+Here is a summary of the number of genes that skip $n_skipped$ strata. 
+
+```{r}
+revenants %>%
+    dplyr::distinct(qseqid, n) %>%
+    dplyr::group_by(n) %>%
+    dplyr::count() %>%
+    dplyr::select(n_skipped=n, n_total=nn) %>%
+    knitr::kable()
+```
+
+The following table specifies which strata where skipped for all genes skipping
+more than 4 strata. The genes with names other than `NM_XXXXXXXXX.X` are all
+mitochondrial genes.
+
+```{r}
+revenants %>%
+    dplyr::filter(n > 4) %>%
+    dplyr::select(qseqid, ps, basal_ps, n) %>%
+    dplyr::arrange(-ps) %>%
+    dplyr::group_by(qseqid) %>%
+    dplyr::summarize(basal_ps=basal_ps[1], skipped_ps = paste(ps, collapse=",")) %>%
+    dplyr::arrange(-basal_ps) %>%
+    knitr::kable()
+```
+
+We can break this dataset down to show the number of genes that have no hits to
+any species in a given stratum (`mrca`) but do have hits to older strata. In
+the table below, we see that `s2`, a stratum represented by *S. arboricola*,
+has skipped far more often than the surrounding strata.
+
+```{r}
+revenants %>%
+    dplyr::arrange(-ps) %>%
+    dplyr::group_by(mrca) %>%
+    dplyr::summarize(missing_genes = n()) %>%
+    dplyr::mutate(mrca = partial_id_to_name(mrca))
 ```
 
 ## Steps in building the tree 
