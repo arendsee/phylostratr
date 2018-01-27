@@ -1,0 +1,128 @@
+# Yeast case study
+
+First we collect UniProt proteomes for diverse representation across the phylostrata 
+
+```{r}
+require(phylostratr)
+require(magrittr)
+require(dplyr)
+require(knitr)
+require(taxizedb)
+```
+
+```{r, cache=TRUE}
+focal_taxid <- 4932
+# set weights on species selection
+weights <- c(
+  '1355160' = 0,   # these three are deprecated
+  '245562'  = 0,
+  '1094981' = 0,
+  '284813'  = 1.1, # these are the reference replacements
+  '766039'  = 1.1,
+  '237561'  = 1.1
+)
+focal_taxid <- '4932'
+strata <- focal_taxid %>%
+  # Get all UniProt proteomes
+  uniprot_strata %>%
+  # build a tree of all UniProt genomes
+  # Select a diverse subset of 5 or fewer representatives from each stratum.
+  # Only do this above the Saccharomyces genus, since we will later replace
+  # Saccharomyces with out own tree.
+  strata_apply(f=diverse_subtree, n=5, weights=weights) %>%
+  # add prokaryote stratum
+  use_recommended_prokaryotes %>%
+  # download UniProt sequences (this may take 10+ minutes)
+  uniprot_fill_strata
+```
+
+Next we replace the Saccharomyces genus with our own tree describing the
+phylogenetic relationships between the species. We also provide our own
+proteome sequence.
+
+```{r, cache=TRUE}
+saccharomyces <- Strata(
+    tree = ape::read.tree(system.file('extdata', 'yeast', 'tree', package='phylostratr')),
+    data = list(faa=list(
+             # The user is responsible for collecting these data 
+             Saccharomyces_cerevisiae   = 'yeast/cerevisiae.faa',
+             Saccharomyces_paradoxus    = 'yeast/paradoxus.faa',
+             Saccharomyces_mikatae      = 'yeast/mikatae.faa',
+             Saccharomyces_kudriavzevii = 'yeast/kudriavzevii.faa',
+             Saccharomyces_arboricola   = 'yeast/arboricola.faa',
+             Saccharomyces_eubayanus    = 'yeast/eubayanus.faa',
+             Saccharomyces_uvarum       = 'yeast/uvarum.faa'
+           )),
+    focal_species = 'Saccharomyces_cerevisiae'
+) %>% strata_convert(target='tip', to='id')
+
+strata <- replace_branch(strata, y=saccharomyces, node='4930') 
+```
+
+Now we can BLAST the focal species genome against the other species. This step
+is exactly the same as the one in the Arabidopsis study.
+
+```{r, sc_blast, cache=TRUE}
+strata  <- strata_blast(strata, blast_args=list(nthreads=2)) %>% strata_besthits
+results <- merge_besthits(strata)
+strata  <- strata %>%
+    strata_uniprot_pfam_map %>%
+    add_proteome_stats
+```
+
+## Proteome stats tables
+
+```{r, at_proteome_stats, cache=TRUE}
+prot <- proteome_stats_table(strata)
+strata2 <- strata_convert(strata, target='all', to='name')
+```
+
+```{r, fig.width=8, fig.height=6}
+plot_proteome_stats(strata2)
+```
+
+```{r, fig.width=8, fig.height=6}
+plot_proteome_lengths(strata2)
+```
+
+```{r, at_protreport, cache=FALSE, results='asis'}
+protreport <- proteome_report_table(strata) %>%
+  merge(get_phylostrata_map(strata)) %>%
+  dplyr::mutate(
+    species = taxizedb::taxid2name(species),
+    mrca    = taxizedb::taxid2name(mrca)
+  ) %>%
+  dplyr::filter(ps > 3) %>%
+  knitr::kable()
+```
+
+
+## Steps in building the tree 
+
+```{r, cache=TRUE}
+# just the order
+sc_order <-
+  focal_taxid %>%
+  uniprot_strata %>%
+  subtree(name2taxid('Saccharomycetales'))
+
+# tree after filtering
+sc_filtered <- sc_order %>% 
+  strata_apply(f=diverse_subtree, n=5, weights=weights) %>%
+  uniprot_fill_strata
+
+# replace Saccharomyces branch with the users tree 
+sc_final <- replace_branch(sc_filtered, saccharomyces, '4930')
+```
+
+```{r, fig.cap="Step 1: The NCBI common tree for all species in the Saccharomycetales family that are represented in UniProt proteomes"}
+plot(sc_order@tree, show.node.label=TRUE)
+```
+
+```{r, fig.cap="Step 2: The NCBI common tree after sampling a diverse subset of species"}
+plot(sc_filtered@tree, show.node.label=TRUE)
+```
+
+```{r, fig.cap="Step 3: The tree after replacing the Saccharomyces branch with a custom tree"}
+plot(sc_final@tree, show.node.label=TRUE)
+```

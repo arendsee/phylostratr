@@ -1,0 +1,149 @@
+# Arabidopsis case study
+
+Future versions of `phylostratr` are not guaranteed to be backwards compatible
+with the current version. 
+
+## Build the tree and collect the proteomes
+
+```{r}
+library(reshape2)
+library(taxizedb)
+library(dplyr)
+library(phylostratr)
+library(magrittr)
+```
+
+```{r at_prep, cache=TRUE}
+
+focal_taxid <- '3702'
+strata <-
+  # Get stratified relatives represented in UniProt
+  uniprot_strata(focal_taxid, from=2) %>%
+  # Select a diverse subset of 5 or fewer representatives from each stratum.
+  strata_apply(f=diverse_subtree, n=5, weights=uniprot_weight_by_ref()) %>%
+  # Use a prebuilt set of prokaryotic species
+  use_recommended_prokaryotes %>%
+  # Add yeast and human proteomes
+  add_taxa(c('4932', '9606')) %>%
+  # Download genomes, storing the filenames
+  uniprot_fill_strata
+
+## Replace the UniProt Arabidopsis thaliana proteome with the Araport11 proteome.
+## The path below is specific to my pipeline, you can just use the UniProt genes,
+## if you want. The problem with them is that they include all previous variants
+## of the gene models, raising to 89135 genes. Since `A. thaliana` is the focal
+## species, it is important to be very explicit about version of the proteome.
+strata@data$faa[['3702']] <- '/db/araport11/Araport11_genes.201606.pep.fasta'
+```
+
+## BLAST focal species against all target species
+
+```{r, at_blast, cache=TRUE}
+# BLAST against each target genome (this will take many hours)
+strata <- strata_blast(strata, blast_args=list(nthreads=2)) %>% strata_besthits
+
+# Merge results into a single hittable
+results <- merge_besthits(strata)
+
+# Get metadata. Note, this will take awhile
+strata <- strata %>%
+    # add map of UniProt IDs to PFAM domains
+    strata_uniprot_pfam_map %>%
+    # add proteome summary data
+    add_proteome_stats %>%
+    # add list of proteins that are encoded in the organelle genomes 
+    add_organelle_proteins
+```
+
+## Proteome stats tables
+
+```{r, at_proteome_stats, cache=TRUE}
+prot <- proteome_stats_table(strata)
+strata2 <- strata_convert(strata, target='all', to='name')
+```
+
+```{r, fig.width=8, fig.height=6}
+plot_proteome_stats(strata2)
+```
+
+```{r, fig.width=8, fig.height=6}
+plot_proteome_lengths(strata2)
+```
+
+```{r, at_protreport, cache=FALSE}
+protreport <- proteome_report_table(strata) %>%
+  merge(get_phylostrata_map(strata)) %>%
+  dplyr::mutate(
+    species = taxizedb::taxid2name(species),
+    mrca    = taxizedb::taxid2name(mrca)
+  ) %>%
+  dplyr::filter(ps > 3)
+
+protreport %>% dplyr::arrange(q75) %>% {rbind(head(., 5), tail(.,5))}
+```
+
+## Compare to phylostratigraphy results from 2014 
+
+Here I will load the phylostratigraphy results I obtained in the 2014 TIPs
+paper and compare them to the new results from the `phylostratr` algorithm. The
+algorithms and cutoffs are the same, but the search space is different. Also,
+in the new study, I am using the Araport11 anotation of *Arabidopsis thaliana*,
+whereas in the TIPs study, I used TAIR10.
+
+```{r, at_tips_prep, cache=TRUE}
+# Get the strata from the current analysis
+pstr_strata <- stratify(results)
+## Get and clean the TIPS data 
+# TODO: rather than use the local file, retrieve the table from the TIPs supplementary material 
+tips_strata <- read_tsv('~/research/DATASETS/strata-models.tab')
+# Add NCBI taxonomy ID to tips data
+tips_strata$mrca <- taxizedb::name2taxid(tips_strata$name)
+# match column naming conventions
+tips_strata <- dplyr::select(tips_strata, qseqid, mrca, ps, mrca_name=name)
+# underscores to spaces 
+tips_strata$mrca_name <- sub('_', ' ', tips_strata$mrca_name)
+# get a lineage map for Arabidopsis
+strata_map <- taxizedb::classification('3702')[[1]]
+# factor the backbone
+tips_strata$mrca_name <- droplevels(factor(tips_strata$mrca_name, levels=strata_map$name))
+```
+
+Now, since the two phylostratigraphy experiments used different annotations of
+Arabidopsis, I will take the intersection. The model IDs shared between the
+annotations still refer to the same things. There is a dedicated function for
+this:
+
+```{r, at_tips_summary, cache=TRUE}
+ps <- standardize_strata(list(
+    p2014 = tips_strata,
+    p2018 = pstr_strata
+))
+
+# Now to compare the counts between the two studies:
+all_strata <- do.call(rbind, ps) %>%
+    merge(strata_map, by.x='mrca', by.y='id') %>%
+    dplyr::select(qseqid=qseqid, mrca=mrca, mrca_name=name, group=group) %>%
+    dplyr::mutate(mrca_name = droplevels(factor(mrca_name, levels=strata_map$name)))
+
+# Now we can compare the values between the two studies
+strata_summary <- all_strata %>%
+    dplyr::group_by(group, mrca_name) %>%
+    dplyr::summarize(count = n())
+```
+
+```{r}
+# I can rephrase this with the groups in columns:
+dcast(strata_summary, mrca_name ~ group, value.var='count')
+```
+
+
+# System Info
+
+```{r}
+# BLAST version
+system2('blastp', '-version')
+
+# R package versions and system info
+require(devtools)
+session_info()
+```
