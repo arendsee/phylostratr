@@ -1,3 +1,7 @@
+#' Generate a summary table of proteome stats
+#'
+#' @param strata Strata object
+#' @export
 proteome_report_table <- function(strata){
   d <- proteome_stats_table(strata)
 

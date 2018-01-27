@@ -98,7 +98,22 @@ dev.off()
 We can perform a domain analysis
 
 ```{r, eval=FALSE}
-strata <- strata_uniprot_pfam_map(strata)
+# Note, this will take awhile
+strata <- strata %>%
+    # add map of UniProt IDs to PFAM domains
+    strata_uniprot_pfam_map %>%
+    # add proteome summary data
+    add_proteome_stats %>%
+    # add list of proteins that are encoded in the organelle genomes 
+    add_organelle_proteins
+
+prot <- proteome_stats_table(strata)
+strata2 <- strata_convert(strata, target='all', to='name'
+g1 <- plot_proteome_stats(strata2)
+g2 <- plot_proteome_lengths(strata2)
+# make interactive in browser 
+plotly::ggplotly(g1)
+plotly::ggplotly(g2)
 ```
 
 

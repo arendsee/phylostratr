@@ -343,6 +343,9 @@ strata_convert <- function(strata, target='tip', to='id'){
   strata
 }
 
+#' Get a phylostrata map from a Strata object
+#'
+#' @export
 get_phylostrata_map <- function(strata){
   map <- strata_fold(strata, leafs) %>%
     tuplify %>%
