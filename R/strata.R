@@ -322,15 +322,18 @@ standardize_strata <- function(strata_tables){
 #' @param strata Strata object
 #' @param target What to convert, may be 'tip', 'node', or 'all'
 #' @param to What to convert to, may be 'id' or 'name'
+#' @param FUN a custom function to convert names
 #' @return Strata object with new names
 #' @export
-strata_convert <- function(strata, target='tip', to='id'){
-  FUN <- switch(
-    to,
-    id = taxizedb::name2taxid,
-    name = taxizedb::taxid2name,
-    stop("Illegal 'to' value: must be either 'id' or 'name'")
-  )
+strata_convert <- function(strata, target='tip', to='id', FUN=NULL){
+  if(is.null(FUN)){
+    FUN <- switch(
+      to,
+      id = taxizedb::name2taxid,
+      name = taxizedb::taxid2name,
+      stop("Illegal 'to' value: must be either 'id' or 'name'")
+    )
+  }
   if(target == 'tip' || target == 'all'){
     strata@tree$tip.label <- FUN(strata@tree$tip.label)
     for(item in names(strata@data)){
@@ -342,6 +345,17 @@ strata_convert <- function(strata, target='tip', to='id'){
     strata@tree$node.label <- FUN(strata@tree$node.label)
   }
   strata
+}
+
+#' Convert vector of mixed IDs and names to a vector of names
+#'
+#' @param x character vector
+#' @return Vector of names
+#' @export
+partial_id_to_name <- function(x){
+  is_id <- grepl('^[0-9]+$', x, perl=TRUE)
+  x[is_id] <- taxizedb::taxid2name(x[is_id])
+  x
 }
 
 #' Get a phylostrata map from a Strata object

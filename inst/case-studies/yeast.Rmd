@@ -2,10 +2,11 @@
 
 First we collect UniProt proteomes for diverse representation across the phylostrata 
 
-```{r}
+```{r, message=FALSE}
 require(phylostratr)
 require(magrittr)
 require(dplyr)
+require(readr)
 require(knitr)
 require(taxizedb)
 ```
@@ -62,7 +63,7 @@ strata <- replace_branch(strata, y=saccharomyces, node='4930')
 Now we can BLAST the focal species genome against the other species. This step
 is exactly the same as the one in the Arabidopsis study.
 
-```{r, sc_blast, cache=TRUE}
+```{r, sc_blast, cache=TRUE, message=FALSE}
 strata  <- strata_blast(strata, blast_args=list(nthreads=2)) %>% strata_besthits
 results <- merge_besthits(strata)
 strata  <- strata %>%
@@ -73,8 +74,7 @@ strata  <- strata %>%
 ## Proteome stats tables
 
 ```{r, at_proteome_stats, cache=TRUE}
-prot <- proteome_stats_table(strata)
-strata2 <- strata_convert(strata, target='all', to='name')
+strata2 <- strata_convert(strata, target='all', FUN=partial_id_to_name)
 ```
 
 ```{r, fig.width=8, fig.height=6}
@@ -86,16 +86,12 @@ plot_proteome_lengths(strata2)
 ```
 
 ```{r, at_protreport, cache=FALSE, results='asis'}
-protreport <- proteome_report_table(strata) %>%
-  merge(get_phylostrata_map(strata)) %>%
-  dplyr::mutate(
-    species = taxizedb::taxid2name(species),
-    mrca    = taxizedb::taxid2name(mrca)
-  ) %>%
-  dplyr::filter(ps > 3) %>%
+map <- get_phylostrata_map(strata2)
+protreport <- proteome_report_table(strata2) %>%
+  merge(map) %>%
+  dplyr::arrange(-ps) %>%
   knitr::kable()
 ```
-
 
 ## Steps in building the tree 
 
@@ -125,4 +121,17 @@ plot(sc_filtered@tree, show.node.label=TRUE)
 
 ```{r, fig.cap="Step 3: The tree after replacing the Saccharomyces branch with a custom tree"}
 plot(sc_final@tree, show.node.label=TRUE)
+```
+
+# System Info
+
+```{r}
+# BLAST version
+system2('blastp', '-version', stdout=TRUE)
+```
+
+```{r}
+# R package versions and system info
+require(devtools)
+session_info()
 ```

@@ -4,7 +4,7 @@
 \alias{strata_convert}
 \title{Convert strata data, tip, and node names to and from NCBI taxonomy IDs}
 \usage{
-strata_convert(strata, target = "tip", to = "id")
+strata_convert(strata, target = "tip", to = "id", FUN = NULL)
 }
 \arguments{
 \item{strata}{Strata object}
@@ -12,6 +12,8 @@ strata_convert(strata, target = "tip", to = "id")
 \item{target}{What to convert, may be 'tip', 'node', or 'all'}
 
 \item{to}{What to convert to, may be 'id' or 'name'}
+
+\item{FUN}{a custom function to convert names}
 }
 \value{
 Strata object with new names

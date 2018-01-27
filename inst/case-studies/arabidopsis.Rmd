@@ -5,16 +5,16 @@ with the current version.
 
 ## Build the tree and collect the proteomes
 
-```{r}
+```{r, message=FALSE}
 library(reshape2)
 library(taxizedb)
 library(dplyr)
+library(readr)
 library(phylostratr)
 library(magrittr)
 ```
 
 ```{r at_prep, cache=TRUE}
-
 focal_taxid <- '3702'
 strata <-
   # Get stratified relatives represented in UniProt
@@ -38,7 +38,7 @@ strata@data$faa[['3702']] <- '/db/araport11/Araport11_genes.201606.pep.fasta'
 
 ## BLAST focal species against all target species
 
-```{r, at_blast, cache=TRUE}
+```{r, at_blast, cache=TRUE, message=FALSE}
 # BLAST against each target genome (this will take many hours)
 strata <- strata_blast(strata, blast_args=list(nthreads=2)) %>% strata_besthits
 
@@ -79,7 +79,7 @@ protreport <- proteome_report_table(strata) %>%
   ) %>%
   dplyr::filter(ps > 3)
 
-protreport %>% dplyr::arrange(q75) %>% {rbind(head(., 5), tail(.,5))}
+protreport %>% dplyr::arrange(q75) %>% knitr::kable()
 ```
 
 ## Compare to phylostratigraphy results from 2014 
@@ -94,7 +94,7 @@ whereas in the TIPs study, I used TAIR10.
 # Get the strata from the current analysis
 pstr_strata <- stratify(results)
 ## Get and clean the TIPS data 
-# TODO: rather than use the local file, retrieve the table from the TIPs supplementary material 
+# You will need to retrieve the supplementary data from the (2014 Arendsee) to run this step. 
 tips_strata <- read_tsv('~/research/DATASETS/strata-models.tab')
 # Add NCBI taxonomy ID to tips data
 tips_strata$mrca <- taxizedb::name2taxid(tips_strata$name)
@@ -131,19 +131,8 @@ strata_summary <- all_strata %>%
     dplyr::summarize(count = n())
 ```
 
-```{r}
+```{r, result='asis', cache=FALSE}
 # I can rephrase this with the groups in columns:
-dcast(strata_summary, mrca_name ~ group, value.var='count')
-```
-
-
-# System Info
-
-```{r}
-# BLAST version
-system2('blastp', '-version')
-
-# R package versions and system info
-require(devtools)
-session_info()
+dcast(strata_summary, mrca_name ~ group, value.var='count') %>%
+    knitr::kable()
 ```
