@@ -521,6 +521,37 @@ subtree.phylo <- function(x, id, collapse=TRUE, descend=TRUE, type='auto', ...){
   new_tree
 }
 
+
+#' Replace a branch on a Strata
+#'
+#' @param x Strata object
+#' @param y Strata object
+#' @param node The name of a node in x where y will be placed
+#' @export
+replace_branch <- function(x, y, node){
+  #### TODO: generalize this to work with phylo objects as well
+  if(!(class(y) == 'Strata')){
+    stop("The branch being added must be a Strata object")
+  }
+  if(!(setequal(names(x@data), names(y@data)))){
+    stop("Cannot combine Strata because they have different data fields")
+  }
+
+  # tree with added children
+  x <- prune(x, node, type='name')
+  ##### TODO: add check for whether inputs are names or ids
+  x <- add_taxa(x, node)
+
+  # Replace it with out custom tree
+  x@tree <- ape::bind.tree(x@tree, y@tree, where=which(tree_names(x@tree) == node))
+  # Merge all data
+  x@data <- lapply(names(x@data), function(field){
+    x@data[[field]] <- append(x@data[[field]], y@data[[field]])
+  })
+
+  x
+}
+
 #' Get the sisters of a node
 #'
 #' @param x phylo object
@@ -596,7 +627,7 @@ prune <- function(x, id, ...){
 #' @rdname prune
 #' @export
 prune.Strata <- function(x, id, ...){
-  .fmap(x, prune, id=id, ...)
+  .fmap(x, prune, id=id, fout=.strata, ...)
 }
 
 #' @rdname prune

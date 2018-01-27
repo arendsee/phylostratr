@@ -120,8 +120,12 @@ strata <- strata %>%
 
 ```{r, eval=FALSE}
 prot <- proteome_stats_table(strata)
-plot_proteome_stats(strata) %>% ggplotify
-plot_proteome_lengths(strata) %>% ggplotly
+strata2 <- strata_convert(strata, target='all', to='name'
+g1 <- plot_proteome_stats(strata2)
+g2 <- plot_proteome_lengths(strata2)
+# make interactive in browser 
+plotly::ggplotly(g1)
+plotly::ggplotly(g2)
 ```
 
 ```{r, eval=FALSE}

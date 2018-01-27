@@ -166,7 +166,6 @@ add_taxa <- function(strata, taxa){
   is_valid_strata(strata, check_focal=FALSE)
 
   # TODO: assert that all IDs are NCBI taxonomy IDs
-
   strata@tree <- unique(c(taxa, tree_names(strata@tree))) %>%
     taxizedb::classification() %>%
     lineages_to_phylo

@@ -77,12 +77,7 @@ phylogenetic relationships among the species in the *Saccharomyces* genus,
 this allows for finer phylostratigraphic analysis.
 
 ```{r, eval=FALSE}
-# Remove the Saccharomyces branch
-strata@tree <- prune(strata@tree, '4930', type='name')
-strata <- add_taxa(strata, '4930')
-# Replace it with out custom tree (4892 is the parent of 4930)
-strata@tree <- ape::bind.tree(strata@tree, saccharomyces@tree, where=which(tree_names(strata@tree) == '4930'))
-strata@data$faa <- append(strata@data$faa, saccharomyces@data$faa)
+strata <- replace_branch(strata, y=saccharomyces, node='4930') 
 ```
 
 Next we run BLAST
@@ -104,4 +99,27 @@ We can perform a domain analysis
 
 ```{r, eval=FALSE}
 strata <- strata_uniprot_pfam_map(strata)
+```
+
+
+## Plot building for paper
+
+This material will probably not stay in this vignette.  
+
+### Build a tree with colored pieces 
+
+```{r, eval=FALSE}
+# just the order
+sc_order <-
+  focal_taxid %>%
+  uniprot_strata %>%
+  subtree(name2taxid('Saccharomycetales'))
+
+# tree after filtering
+sc_filtered <- sc_order %>% 
+  strata_apply(f=diverse_subtree, n=5, weights=weights) %>%
+  uniprot_fill_strata
+
+# replace Saccharomyces branch with the users tree 
+sc_final <- replace_branch(sc_filtered, saccharomyces, '4930')
 ```
