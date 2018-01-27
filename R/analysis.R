@@ -16,7 +16,7 @@ find_revenants <- function(d, classifier=classify_by_evalue(1e-5)){
     dplyr::mutate(has_hit = classifier(d)) %>%
     dplyr::select(.data$staxid, .data$qseqid, .data$ps, .data$mrca, .data$has_hit) %>%
     dplyr::group_by(.data$qseqid) %>%
-    dplyr::mutate(basal_ps = min(c(.data$focal_ps, .data$ps[.data$has_hit]))) %>%
+    dplyr::mutate(basal_ps = min(c(focal_ps, .data$ps[.data$has_hit]))) %>%
     dplyr::group_by(.data$qseqid, .data$ps) %>%
     dplyr::mutate(mrca_has_hit = any(.data$has_hit)) %>%
     dplyr::group_by(.data$qseqid) %>%

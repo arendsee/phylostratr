@@ -9,6 +9,7 @@ require(dplyr)
 require(readr)
 require(knitr)
 require(taxizedb)
+require(ape)
 ```
 
 ```{r, cache=TRUE}
@@ -73,7 +74,7 @@ strata  <- strata %>%
 
 ## Proteome stats tables
 
-```{r, at_proteome_stats, cache=TRUE}
+```{r, at_proteome_stats}
 strata2 <- strata_convert(strata, target='all', FUN=partial_id_to_name)
 ```
 
@@ -85,12 +86,19 @@ plot_proteome_stats(strata2)
 plot_proteome_lengths(strata2)
 ```
 
-```{r, at_protreport, cache=FALSE, results='asis'}
+```{r, at_protreport, cache=FALSE}
 map <- get_phylostrata_map(strata2)
-protreport <- proteome_report_table(strata2) %>%
+proteome_report_table(strata2) %>%
   merge(map) %>%
   dplyr::arrange(-ps) %>%
   knitr::kable()
+```
+
+## Finding genes that skip strata
+
+```{r}
+saveRDS(results, 'z.Rda')
+find_revenants(results, classifier=classify_by_evalue(1e-5))
 ```
 
 ## Steps in building the tree 
