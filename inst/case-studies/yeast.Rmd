@@ -64,7 +64,7 @@ strata <- replace_branch(strata, y=saccharomyces, node='4930')
 Now we can BLAST the focal species genome against the other species. This step
 is exactly the same as the one in the Arabidopsis study.
 
-```{r, sc_blast, cache=TRUE, message=FALSE}
+```{r, sc_blast, cache=TRUE, message=FALSE, warning=FALSE}
 strata  <- strata_blast(strata, blast_args=list(nthreads=2)) %>% strata_besthits
 results <- merge_besthits(strata)
 strata  <- strata %>%
@@ -78,34 +78,36 @@ strata  <- strata %>%
 strata2 <- strata_convert(strata, target='all', FUN=partial_id_to_name)
 ```
 
-```{r, fig.width=8, fig.height=6}
+```{r, fig.width=8, fig.height=6, dpi=300}
 plot_proteome_stats(strata2)
 ```
 
-```{r, fig.width=8, fig.height=6}
+```{r, fig.width=8, fig.height=6, dpi=300}
 plot_proteome_lengths(strata2)
 ```
+
+Here is a summary of the proteomes.
 
 ```{r, at_protreport, cache=FALSE}
 map <- get_phylostrata_map(strata2)
 proteome_report_table(strata2) %>%
   merge(map) %>%
   dplyr::arrange(-ps) %>%
+  dplyr::select(species, ps, N, min, q25, median, q75, max) %>%
   knitr::kable()
 ```
 
 ## Finding genes that skip strata
 
-Here we find all genes that are missing in one or more phylostrata younger than
-their oldest match. 
+Since the code is identical to that in the Arabidopsis study, it is elided here. 
 
-```{r}
+```{r, echo=FALSE}
 revenants <- find_revenants(results)
 ```
 
 Here is a summary of the number of genes that skip $n_skipped$ strata. 
 
-```{r}
+```{r, echo=FALSE}
 revenants %>%
     dplyr::distinct(qseqid, n) %>%
     dplyr::group_by(n) %>%
@@ -118,7 +120,7 @@ The following table specifies which strata where skipped for all genes skipping
 more than 4 strata. The genes with names other than `NM_XXXXXXXXX.X` are all
 mitochondrial genes.
 
-```{r}
+```{r, echo=FALSE}
 revenants %>%
     dplyr::filter(n > 4) %>%
     dplyr::select(qseqid, ps, basal_ps, n) %>%
@@ -134,12 +136,13 @@ any species in a given stratum (`mrca`) but do have hits to older strata. In
 the table below, we see that `s2`, a stratum represented by *S. arboricola*,
 has skipped far more often than the surrounding strata.
 
-```{r}
+```{r, echo=FALSE}
 revenants %>%
     dplyr::arrange(-ps) %>%
     dplyr::group_by(mrca) %>%
     dplyr::summarize(missing_genes = n()) %>%
-    dplyr::mutate(mrca = partial_id_to_name(mrca))
+    dplyr::mutate(mrca = partial_id_to_name(mrca)) %>%
+    knitr::kable()
 ```
 
 ## Steps in building the tree 
@@ -160,16 +163,16 @@ sc_filtered <- sc_order %>%
 sc_final <- replace_branch(sc_filtered, saccharomyces, '4930')
 ```
 
-```{r, fig.cap="Step 1: The NCBI common tree for all species in the Saccharomycetales family that are represented in UniProt proteomes"}
-plot(sc_order@tree, show.node.label=TRUE)
+```{r, dpi=300, fig.cap="Step 1: The NCBI common tree for all species in the Saccharomycetales family that are represented in UniProt proteomes"}
+plot(sc_order@tree, show.node.label=TRUE, cex=0.45)
 ```
 
-```{r, fig.cap="Step 2: The NCBI common tree after sampling a diverse subset of species"}
-plot(sc_filtered@tree, show.node.label=TRUE)
+```{r, dpi=300, fig.cap="Step 2: The NCBI common tree after sampling a diverse subset of species"}
+plot(sc_filtered@tree, show.node.label=TRUE, cex=0.45)
 ```
 
-```{r, fig.cap="Step 3: The tree after replacing the Saccharomyces branch with a custom tree"}
-plot(sc_final@tree, show.node.label=TRUE)
+```{r, dpi=300, fig.cap="Step 3: The tree after replacing the Saccharomyces branch with a custom tree"}
+plot(sc_final@tree, show.node.label=TRUE, cex=0.45)
 ```
 
 # System Info
