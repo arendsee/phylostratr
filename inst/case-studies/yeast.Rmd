@@ -87,8 +87,6 @@ plot_proteome_stats(strata2)
 plot_proteome_lengths(strata2)
 ```
 
-Here is a summary of the proteomes.
-
 ```{r, at_protreport, cache=FALSE}
 proteome_report_table(strata2) %>%
   merge(get_phylostrata_map(strata2)) %>%
@@ -97,6 +95,12 @@ proteome_report_table(strata2) %>%
   knitr::kable()
 ```
 
+Table: Proteome statistics for all proteomes in the analysis. **N**: total
+number of proteins in the UniProt proteome (these may be redundant). **ps**:
+phylostratum level, where 1 is *cellular organisms*. **min**, **q25**,
+**median**, **q75**, **max**: summaries of the protein lengths in each
+proteome. 
+
 ## Finding genes that skip strata
 
 Since the code is identical to that in the Arabidopsis study, it is elided here. 
@@ -104,8 +108,6 @@ Since the code is identical to that in the Arabidopsis study, it is elided here.
 ```{r, echo=FALSE, cache=TRUE}
 revenants <- find_revenants(results)
 ```
-
-Here is a summary of the number of genes that skip $n_skipped$ strata. 
 
 ```{r, echo=FALSE, cache=TRUE}
 revenants %>%
@@ -116,9 +118,9 @@ revenants %>%
     knitr::kable()
 ```
 
-The following table specifies which strata where skipped for all genes skipping
-more than 4 strata. The genes with names other than `NM_XXXXXXXXX.X` are all
-mitochondrial genes.
+Table: A summary of the number of genes (**n_total**) where a given number
+(**n_skipped**) of strata are passed before the oldest stratum with a predicted
+homolog is reached. 
 
 ```{r, echo=FALSE, cache=TRUE}
 revenants %>%
@@ -131,10 +133,10 @@ revenants %>%
     knitr::kable()
 ```
 
-We can break this dataset down to show the number of genes that have no hits to
-any species in a given stratum (`mrca`) but do have hits to older strata. In
-the table below, we see that `s2`, a stratum represented by *S. arboricola*,
-has skipped far more often than the surrounding strata.
+Table: Here we identify the strata that where skipped for all genes skipping
+more than 4 strata. The genes with names other than `NM_XXXXXXXXX.X` are all
+mitochondrial genes.
+
 
 ```{r, echo=FALSE, cache=TRUE}
 revenants %>%
@@ -144,6 +146,12 @@ revenants %>%
     dplyr::mutate(mrca = partial_id_to_name(mrca)) %>%
     knitr::kable()
 ```
+
+Table: We can break this dataset down to show the number of genes that have no
+hits to any species in a given stratum (`mrca`) but do have hits to older
+strata. In the table below, we see that `s2`, a stratum represented by *S.
+arboricola*, has skipped far more often than the surrounding strata.
+
 
 ## Steps in building the tree 
 

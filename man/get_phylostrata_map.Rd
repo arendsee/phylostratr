@@ -6,6 +6,13 @@
 \usage{
 get_phylostrata_map(strata)
 }
+\arguments{
+\item{strata}{Strata object}
+}
+\value{
+data.frame with columns 'species', 'mrca', an 'ps', where 'mrca' is
+a factor of phylostrata with levels ordered by age
+}
 \description{
 Get a phylostrata map from a Strata object
 }
