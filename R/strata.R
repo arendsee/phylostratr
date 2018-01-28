@@ -360,6 +360,9 @@ partial_id_to_name <- function(x){
 
 #' Get a phylostrata map from a Strata object
 #'
+#' @param strata Strata object
+#' @return data.frame with columns 'species', 'mrca', an 'ps', where 'mrca' is
+#' a factor of phylostrata with levels ordered by age
 #' @export
 get_phylostrata_map <- function(strata){
   map <- strata_fold(strata, leafs) %>%
