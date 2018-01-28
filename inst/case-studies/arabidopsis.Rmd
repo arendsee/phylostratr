@@ -25,7 +25,7 @@ strata <-
   use_recommended_prokaryotes %>%
   # Add yeast and human proteomes
   add_taxa(c('4932', '9606')) %>%
-  # Download genomes, storing the filenames
+  # Download proteomes, storing the filenames
   uniprot_fill_strata
 
 ## Replace the UniProt Arabidopsis thaliana proteome with the Araport11 proteome.
@@ -38,8 +38,35 @@ strata@data$faa[['3702']] <- '/db/araport11/Araport11_genes.201606.pep.fasta'
 
 ## BLAST focal species against all target species
 
+The next step is to BLAST the *A. thaliana* proteins against each target
+proteome. This may take a few days to run. You may instead consider running the
+BLAST on a cluster. `phylostratr` expects one tabular file of BLAST results for
+each comparison against each species. The files should head headers and should
+contain the following fields: `qseqid`, `sseqid`, `qstart`, `qend`, `sstart`,
+`send`, `evalue`, `score`. Currently `phylostratr` does not actually use all
+this information, but it will in the future. The name of the BLAST result files
+should have the form `<target_name>.tab`, where `<target_name>` is the name
+stored in the `phylostratr` `Strata` object.
+
+While the details will depend on your needs and the particulars of your system,
+you will want something of this general form:
+
+``` sh
+for target in <list of targets>
+do
+    echo -e 'qseqid\tsseqid\tqstart\tqend\tsstart\tsend\tevalue\tscore' > <target>.tab
+    blastp \
+        -query <focal_species> \
+        -db <target_database> \
+        -outfmt '6 qseqid sseqid qstart qend sstart send evalue score' >> <target>.tab
+done
+```
+
+Then move the resulting files into the working directory where you are running
+`phylostratr`. Then you may proceed with the following code (if everything went
+well, it will automatically read these BLAST results).
+
 ```{r, at_blast, cache=TRUE, message=FALSE, warning=FALSE}
-# BLAST against each target genome (this will take many hours)
 strata <- strata_blast(strata, blast_args=list(nthreads=2)) %>% strata_besthits
 
 # Merge results into a single hittable
@@ -47,11 +74,11 @@ results <- merge_besthits(strata)
 
 # Get metadata. Note, this will take awhile
 strata <- strata %>%
-    # add map of UniProt IDs to PFAM domains
+    # for each species, add map of UniProt IDs to PFAM domains
     strata_uniprot_pfam_map %>%
-    # add proteome summary data
+    # for each species, add proteome summary data
     add_proteome_stats %>%
-    # add list of proteins that are encoded in the organelle genomes 
+    # for each species, add list of organelle encoded UniProt proteins
     add_organelle_proteins
 ```
 
