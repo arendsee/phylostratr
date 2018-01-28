@@ -77,6 +77,7 @@ proteome_report_table(strata2) %>%
   dplyr::select(species, ps, N, min, q25, median, q75, max) %>%
   knitr::kable()
 ```
+
 Table: Proteome statistics for all proteomes in the analysis. **N**: total
 number of proteins in the UniProt proteome (these may be redundant). **ps**:
 phylostratum level, where 1 is *cellular organisms*. **min**, **q25**,
@@ -102,6 +103,7 @@ revenants %>%
     dplyr::select(n_skipped=n, n_total=nn) %>%
     knitr::kable()
 ```
+
 Table: A summary of the number of genes (**n_total**) where a given number
 (**n_skipped**) of strata are passed before the oldest stratum with a predicted
 homolog is reached. 
@@ -116,6 +118,7 @@ revenants %>%
     dplyr::arrange(-basal_ps) %>%
     knitr::kable()
 ```
+
 Table: Here we identify the strata that where skipped for all genes skipping
 more than 4 strata. The genes with names other than `NM_XXXXXXXXX.X` are all
 mitochondrial genes.
@@ -129,6 +132,7 @@ revenants %>%
     dplyr::select(mrca, missing_genes) %>%
     knitr::kable()
 ```
+
 Table: We can break this dataset down to show the number of genes that have no
 hits to any species in a given stratum (`mrca`) but do have hits to older
 strata. In the table below, we see that `s2`, a stratum represented by *S.
@@ -188,6 +192,7 @@ strata_summary <- all_strata %>%
 dcast(strata_summary, mrca_name ~ group, value.var='count') %>%
     knitr::kable()
 ```
+
 Table: A comparison between (Arendsee, 2014) and this study's stratification of
 *A. thaliana* genes. 
 
