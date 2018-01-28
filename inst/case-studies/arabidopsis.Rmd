@@ -62,38 +62,39 @@ prot <- proteome_stats_table(strata)
 strata2 <- strata_convert(strata, target='all', to='name')
 ```
 
-```{r, fig.width=8, fig.height=6}
+```{r at_prot_stat, fig.width=8, fig.height=6}
 plot_proteome_stats(strata2)
 ```
 
-```{r, fig.width=8, fig.height=6}
+```{r at_prot_length, fig.width=8, fig.height=6}
 plot_proteome_lengths(strata2)
 ```
 
 ```{r, at_protreport, cache=FALSE}
-protreport <- proteome_report_table(strata) %>%
-  merge(get_phylostrata_map(strata)) %>%
-  dplyr::mutate(
-    species = taxizedb::taxid2name(species),
-    mrca    = taxizedb::taxid2name(mrca)
-  ) %>%
-  dplyr::filter(ps > 3)
-
-protreport %>% dplyr::arrange(q75) %>% knitr::kable()
+proteome_report_table(strata2) %>%
+  merge(get_phylostrata_map(strata2)) %>%
+  dplyr::arrange(-ps) %>%
+  dplyr::select(species, ps, N, min, q25, median, q75, max) %>%
+  knitr::kable()
 ```
+
+
+--------------------------------------------------------------------------------
+
+
 
 ## Finding genes that skip strata
 
 Here we find all genes that are missing in one or more phylostrata younger than
 their oldest match. 
 
-```{r}
+```{r, cache=TRUE}
 revenants <- find_revenants(results)
 ```
 
 Here is a summary of the number of genes that skip $n\_skipped$ strata. 
 
-```{r}
+```{r, cache=TRUE}
 revenants %>%
     dplyr::distinct(qseqid, n) %>%
     dplyr::group_by(n) %>%
@@ -105,7 +106,7 @@ revenants %>%
 The following table specifies which strata where skipped for all genes skipping
 more than 4 strata.
 
-```{r}
+```{r, cache=TRUE}
 revenants %>%
     dplyr::filter(n > 4) %>%
     dplyr::select(qseqid, ps, basal_ps, n) %>%
@@ -119,7 +120,7 @@ revenants %>%
 We can break this dataset down to show the number of genes that have no hits to
 any species in a given stratum (`mrca`) but do have hits to older strata.
 
-```{r}
+```{r, cache=TRUE}
 revenants %>%
     dplyr::group_by(mrca) %>%
     dplyr::summarize(missing_genes = n(), ps=ps[1]) %>%
@@ -128,6 +129,8 @@ revenants %>%
     dplyr::select(mrca, missing_genes) %>%
     knitr::kable()
 ```
+
+--------------------------------------------------------------------------------
 
 ## Compare to phylostratigraphy results from 2014 
 
@@ -178,8 +181,12 @@ strata_summary <- all_strata %>%
     dplyr::summarize(count = n())
 ```
 
-```{r, result='asis', cache=FALSE}
+```{r, cache=FALSE}
 # I can rephrase this with the groups in columns:
 dcast(strata_summary, mrca_name ~ group, value.var='count') %>%
     knitr::kable()
 ```
+
+--------------------------------------------------------------------------------
+
+
