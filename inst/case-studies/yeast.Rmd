@@ -90,7 +90,6 @@ plot_proteome_lengths(strata2)
 Here is a summary of the proteomes.
 
 ```{r, at_protreport, cache=FALSE}
-
 proteome_report_table(strata2) %>%
   merge(get_phylostrata_map(strata2)) %>%
   dplyr::arrange(-ps) %>%
@@ -146,8 +145,6 @@ revenants %>%
     knitr::kable()
 ```
 
--------------------------------------------------------------------------------
-
 ## Steps in building the tree 
 
 ```{r, cache=TRUE}
@@ -177,9 +174,6 @@ plot(sc_filtered@tree, show.node.label=TRUE, cex=0.45)
 ```{r sc_tree3, dpi=300, fig.cap="Step 3: The tree after replacing the Saccharomyces branch with a custom tree"}
 plot(sc_final@tree, show.node.label=TRUE, cex=0.45)
 ```
-
--------------------------------------------------------------------------------
-
 
 # System Info
 
