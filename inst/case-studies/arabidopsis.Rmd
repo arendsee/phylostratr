@@ -78,11 +78,6 @@ proteome_report_table(strata2) %>%
   knitr::kable()
 ```
 
-
---------------------------------------------------------------------------------
-
-
-
 ## Finding genes that skip strata
 
 Here we find all genes that are missing in one or more phylostrata younger than
@@ -129,8 +124,6 @@ revenants %>%
     dplyr::select(mrca, missing_genes) %>%
     knitr::kable()
 ```
-
---------------------------------------------------------------------------------
 
 ## Compare to phylostratigraphy results from 2014 
 
