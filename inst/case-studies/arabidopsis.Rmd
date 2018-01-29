@@ -1,8 +1,5 @@
 # Arabidopsis case study
 
-Future versions of `phylostratr` are not guaranteed to be backwards compatible
-with the current version. 
-
 ## Build the tree and collect the proteomes
 
 ```{r, message=FALSE}
@@ -28,12 +25,12 @@ strata <-
   # Download proteomes, storing the filenames
   uniprot_fill_strata
 
-## Replace the UniProt Arabidopsis thaliana proteome with the Araport11 proteome.
-## The path below is specific to my pipeline, you can just use the UniProt genes,
-## if you want. The problem with them is that they include all previous variants
-## of the gene models, raising to 89135 genes. Since `A. thaliana` is the focal
-## species, it is important to be very explicit about version of the proteome.
-strata@data$faa[['3702']] <- '/db/araport11/Araport11_genes.201606.pep.fasta'
+# Replace the UniProt Arabidopsis thaliana proteome with the Araport11 proteome.
+# You will need to replace the filename with the path to your own file. You can
+# use the UniProt genes, however UniProt includes multiple versions of each gene,
+# raising the total to 89135 genes. Since A. thaliana is the focal species, it
+# is important to be very explicit about version of the proteome.
+strata@data$faa[['3702']] <- 'Araport11_genes.201606.pep.fasta'
 ```
 
 ## BLAST focal species against all target species
@@ -89,20 +86,18 @@ prot <- proteome_stats_table(strata)
 strata2 <- strata_convert(strata, target='all', to='name')
 ```
 
-```{r at_prot_stat, fig.width=8, fig.height=6, fig.cap="Plot of proteome statistics, where **N** is total proteins, **ps** is phylostratum level, and the other values are statistics of the protein lengths for each species"}
-plot_proteome_stats(strata2)
-```
-
-```{r at_prot_length, fig.width=8, fig.height=6, fig.cap="Protein length versus count"}
-plot_proteome_lengths(strata2)
+```{r at_prot_stat, eval=FALSE}
+# You can explore the proteome stats interactively with plotly:
+ggplotly(plot_proteome_stats(strata2))
+ggplotly(plot_proteome_lengths(strata2))
 ```
 
 ```{r, at_protreport, cache=FALSE}
 proteome_report_table(strata2) %>%
   merge(get_phylostrata_map(strata2)) %>%
-  dplyr::arrange(-ps) %>%
-  dplyr::select(species, ps, N, min, q25, median, q75, max) %>%
-  knitr::kable()
+  arrange(-ps) %>%
+  select(species, ps, N, min, q25, median, q75, max) %>%
+  kable()
 ```
 
 Table: Proteome statistics for all proteomes in the analysis. **N**: total
@@ -113,16 +108,14 @@ proteome.
 
 ## Finding genes that skip strata
 
-Here we find all genes that are missing in one or more phylostrata younger than
-their oldest match. 
-
 ```{r, cache=TRUE}
+# Find all genes that are missing in one or more phylostrata younger than their
+# oldest match.
 revenants <- find_revenants(results)
 ```
 
-Here is a summary of the number of genes that skip $n\_skipped$ strata. 
-
 ```{r, cache=TRUE}
+# Summarize of the number of genes that skip $n\_skipped$ strata.
 revenants %>%
     dplyr::distinct(qseqid, n) %>%
     dplyr::group_by(n) %>%
@@ -136,6 +129,7 @@ Table: A summary of the number of genes (**n_total**) where a given number
 homolog is reached. 
 
 ```{r, cache=TRUE}
+# Show the skipped phylostrata for genes skipping more than 4 
 revenants %>%
     dplyr::filter(n > 4) %>%
     dplyr::select(qseqid, ps, basal_ps, n) %>%
@@ -147,8 +141,7 @@ revenants %>%
 ```
 
 Table: Here we identify the strata that where skipped for all genes skipping
-more than 4 strata. The genes with names other than `NM_XXXXXXXXX.X` are all
-mitochondrial genes.
+more than 4 strata.
 
 ```{r, cache=TRUE}
 revenants %>%
@@ -156,29 +149,33 @@ revenants %>%
     dplyr::summarize(missing_genes = n(), ps=ps[1]) %>%
     dplyr::arrange(-ps) %>%
     dplyr::mutate(mrca = partial_id_to_name(mrca)) %>%
-    dplyr::select(mrca, missing_genes) %>%
+    dplyr::select(mrca, ps, missing_genes) %>%
     knitr::kable()
 ```
 
-Table: We can break this dataset down to show the number of genes that have no
-hits to any species in a given stratum (`mrca`) but do have hits to older
-strata. In the table below, we see that `s2`, a stratum represented by *S.
-arboricola*, has skipped far more often than the surrounding strata.
+Table: The number of genes that have no hits to any species in a given stratum
+(`mrca`, Most Recent Common Ancestor) but do have hits to older strata. Strata
+may have unexpectedly high number of "missing genes" for interesting biological
+reasons, for example, the branch may include degenerate intracellular
+parasites. But more likely, it is due to poor annotations of the stratum
+representatives; this is the case for the Spermatophyta stratum, which is
+represented only by *Picea glauca*. 
 
 ## Compare to phylostratigraphy results from 2014 
 
-Here I will load the phylostratigraphy results I obtained in the 2014 TIPs
-paper and compare them to the new results from the `phylostratr` algorithm. The
+Here I will load the phylostratigraphy results from (Arendsee et al., 2014) and
+compare them to the new results from the `phylostratr` algorithm. The
 algorithms and cutoffs are the same, but the search space is different. Also,
-in the new study, I am using the Araport11 anotation of *Arabidopsis thaliana*,
-whereas in the TIPs study, I used TAIR10.
+in the new study, I use the Araport11 anotation of *Arabidopsis thaliana*,
+whereas in (Arendsee et al., 2014) TAIR10 was used.
 
-```{r, at_tips_prep, cache=TRUE}
+```{r, at_tips_prep, cache=TRUE, message=FALSE}
 # Get the strata from the current analysis
 pstr_strata <- stratify(results)
-## Get and clean the TIPS data 
-# You will need to retrieve the supplementary data from the (2014 Arendsee) to run this step. 
-tips_strata <- read_tsv('~/research/DATASETS/strata-models.tab')
+# Get and clean the (Arendsee et al., 2014) data 
+# You will need to retrieve the supplementary data from the  (Arendsee et al.,
+# 2014) to run this step. 
+tips_strata <- read_tsv('strata-models.tab')
 # Add NCBI taxonomy ID to tips data
 tips_strata$mrca <- taxizedb::name2taxid(tips_strata$name)
 # match column naming conventions
@@ -193,8 +190,8 @@ tips_strata$mrca_name <- droplevels(factor(tips_strata$mrca_name, levels=strata_
 
 Now, since the two phylostratigraphy experiments used different annotations of
 Arabidopsis, I will take the intersection. The model IDs shared between the
-annotations still refer to the same things. There is a dedicated function for
-this:
+annotations refer to the same models, phylostratr has a dedicated
+function for this:
 
 ```{r, at_tips_summary, cache=TRUE}
 ps <- standardize_strata(list(
@@ -202,26 +199,24 @@ ps <- standardize_strata(list(
     p2018 = pstr_strata
 ))
 
-# Now to compare the counts between the two studies:
+# Compare the counts between the two studies:
 all_strata <- do.call(rbind, ps) %>%
     merge(strata_map, by.x='mrca', by.y='id') %>%
     dplyr::select(qseqid=qseqid, mrca=mrca, mrca_name=name, group=group) %>%
     dplyr::mutate(mrca_name = droplevels(factor(mrca_name, levels=strata_map$name)))
 
-# Now we can compare the values between the two studies
+# Compare the values between the two studies
 strata_summary <- all_strata %>%
     dplyr::group_by(group, mrca_name) %>%
     dplyr::summarize(count = n())
-```
 
-```{r, cache=FALSE}
-# I can rephrase this with the groups in columns:
+# make the table
 dcast(strata_summary, mrca_name ~ group, value.var='count') %>%
     knitr::kable()
 ```
 
-Table: A comparison between (Arendsee, 2014) and this study's stratification of
-*A. thaliana* genes. 
+Table: A comparison between (Arendsee et al., 2014, `p2014`) and this study's
+(`p2018`) stratification of *A. thaliana* genes. 
 
 --------------------------------------------------------------------------------
 

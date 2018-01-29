@@ -1,7 +1,7 @@
 
 # Yeast case study
 
-First we collect UniProt proteomes for diverse representation across the phylostrata 
+Build tree and collect proteomes
 
 ```{r, message=FALSE}
 require(phylostratr)
@@ -77,17 +77,6 @@ strata  <- strata %>%
 
 ```{r, at_proteome_stats}
 strata2 <- strata_convert(strata, target='all', FUN=partial_id_to_name)
-```
-
-```{r sc_plot_stat, fig.width=8, fig.height=6, dpi=300}
-plot_proteome_stats(strata2)
-```
-
-```{r sc_plot_length, fig.width=8, fig.height=6, dpi=300}
-plot_proteome_lengths(strata2)
-```
-
-```{r, at_protreport, cache=FALSE}
 proteome_report_table(strata2) %>%
   merge(get_phylostrata_map(strata2)) %>%
   dplyr::arrange(-ps) %>%
@@ -95,15 +84,16 @@ proteome_report_table(strata2) %>%
   knitr::kable()
 ```
 
-Table: Proteome statistics for all proteomes in the analysis. **N**: total
-number of proteins in the UniProt proteome (these may be redundant). **ps**:
-phylostratum level, where 1 is *cellular organisms*. **min**, **q25**,
-**median**, **q75**, **max**: summaries of the protein lengths in each
-proteome. 
+Table: Proteome statistics for all proteomes in the *S. cerevisiae* analysis. 
+**N**: total number of proteins in the UniProt proteome (these may be
+redundant). **ps**: phylostratum level, where 1 is *cellular organisms*.
+**min**, **q25**, **median**, **q75**, **max**: summaries of the protein
+lengths in each proteome. 
 
 ## Finding genes that skip strata
 
-Since the code is identical to that in the Arabidopsis study, it is elided here. 
+Since the code is identical to that in the Arabidopsis study, it is not
+printed.
 
 ```{r, echo=FALSE, cache=TRUE}
 revenants <- find_revenants(results)
@@ -171,16 +161,16 @@ sc_filtered <- sc_order %>%
 sc_final <- replace_branch(sc_filtered, saccharomyces, '4930')
 ```
 
-```{r sc_tree1, dpi=300, fig.cap="Step 1: The NCBI common tree for all species in the Saccharomycetales family that are represented in UniProt proteomes"}
-plot(sc_order@tree, show.node.label=TRUE, cex=0.45)
+```{r sc_tree1, dpi=300, fig.cap="Step 1: The entire NCBI common tree for all species in the Saccharomycetales family that are represented in UniProt proteomes"}
+plot(sc_order@tree, show.node.label=TRUE, cex=0.45, type='cladogram')
 ```
 
-```{r sc_tree2, dpi=300, fig.cap="Step 2: The NCBI common tree after sampling a diverse subset of species"}
-plot(sc_filtered@tree, show.node.label=TRUE, cex=0.45)
+```{r sc_tree2, dpi=300, fig.cap="Step 2: The Saccharomycetales clade tree after sampling a diverse subset of species from the tree in Step 1"}
+plot(sc_filtered@tree, show.node.label=TRUE, cex=0.45, type='cladogram')
 ```
 
-```{r sc_tree3, dpi=300, fig.cap="Step 3: The tree after replacing the Saccharomyces branch with a custom tree"}
-plot(sc_final@tree, show.node.label=TRUE, cex=0.45)
+```{r sc_tree3, dpi=300, fig.cap="Step 3: The tree after replacing the Saccharomyces genus branch with a custom tree"}
+plot(sc_final@tree, show.node.label=TRUE, cex=0.45, type='cladogram')
 ```
 
 # System Info
