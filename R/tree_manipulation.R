@@ -680,6 +680,7 @@ merge_phylo.phylo <- function(x, subtrees){
 #' @param x phylo object
 #' @param focal_id The name of the taxon to be ordered relative to
 #' @name make_tree_relative_to
+#' @export
 make_tree_relative_to <- function(x, focal_id){
   UseMethod('make_tree_relative_to', x)
 }

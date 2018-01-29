@@ -11,6 +11,7 @@ require(readr)
 require(knitr)
 require(taxizedb)
 require(ape)
+require(reshape2)
 ```
 
 ```{r, cache=TRUE}
@@ -43,7 +44,7 @@ Next we replace the Saccharomyces genus with our own tree describing the
 phylogenetic relationships between the species. We also provide our own
 proteome sequence.
 
-```{r, cache=TRUE}
+```{r sc_custom_tree, fig.width=5, fig.height=5, fig.cap="Custom tree for Saccharomyces genus. The internal nodes s1-s5 are arbitrary names for the new internal nodes that are absent from the NCBI common tree."}
 saccharomyces <- Strata(
     tree = ape::read.tree(system.file('extdata', 'yeast', 'tree', package='phylostratr')),
     data = list(faa=list(
@@ -57,9 +58,15 @@ saccharomyces <- Strata(
              Saccharomyces_uvarum       = 'yeast/uvarum.faa'
            )),
     focal_species = 'Saccharomyces_cerevisiae'
-) %>% strata_convert(target='tip', to='id')
+) 
+plot(saccharomyces@tree, show.node.label=TRUE)
+```
 
-strata <- replace_branch(strata, y=saccharomyces, node='4930') 
+```{r}
+# Convert names to NCBI taxon IDs
+saccharomyces <- strata_convert(saccharomyces, target='tip', to='id')
+# Replace the NCBI common tree Saccharomyces branch with our custom tree 
+strata <- replace_branch(strata, y=saccharomyces, node='4930')
 ```
 
 Now we can BLAST the focal species genome against the other species. This step
@@ -108,9 +115,9 @@ revenants %>%
     knitr::kable()
 ```
 
-Table: A summary of the number of genes (**n_total**) where a given number
-(**n_skipped**) of strata are passed before the oldest stratum with a predicted
-homolog is reached. 
+Table: A summary of the number of *S. cerevisiae* genes (**n_total**) where a
+given number (**n_skipped**) of strata are passed before the oldest stratum
+with a predicted homolog is reached. 
 
 ```{r, echo=FALSE, cache=TRUE}
 revenants %>%
@@ -123,9 +130,9 @@ revenants %>%
     knitr::kable()
 ```
 
-Table: Here we identify the strata that where skipped for all genes skipping
-more than 4 strata. The genes with names other than `NM_XXXXXXXXX.X` are all
-mitochondrial genes.
+Table: Here we identify the strata that where skipped for all *S. cerevisiae*
+genes skipping more than 4 strata. The genes with names other than
+`NM_XXXXXXXXX.X` are all mitochondrial genes.
 
 
 ```{r, echo=FALSE, cache=TRUE}
@@ -137,10 +144,10 @@ revenants %>%
     knitr::kable()
 ```
 
-Table: We can break this dataset down to show the number of genes that have no
-hits to any species in a given stratum (`mrca`) but do have hits to older
-strata. In the table below, we see that `s2`, a stratum represented by *S.
-arboricola*, has skipped far more often than the surrounding strata.
+Table: The number of *S. cerevisiae* genes that have no hits to any species in
+a given stratum (`mrca`) but do have hits to older strata. In the table below,
+we see that `s2`, a stratum represented by *S.  arboricola*, has skipped far
+more often than the surrounding strata.
 
 
 ## Steps in building the tree 
@@ -161,17 +168,83 @@ sc_filtered <- sc_order %>%
 sc_final <- replace_branch(sc_filtered, saccharomyces, '4930')
 ```
 
-```{r sc_tree1, dpi=300, fig.cap="Step 1: The entire NCBI common tree for all species in the Saccharomycetales family that are represented in UniProt proteomes"}
-plot(sc_order@tree, show.node.label=TRUE, cex=0.45, type='cladogram')
+```{r sc_tree1, dpi=300, echo=FALSE, fig.cap="Step 1: The entire NCBI common tree for all species in the Saccharomycetales family that are represented in UniProt proteomes"}
+plot(
+    make_tree_relative_to(sc_order@tree, '4932'),
+    show.node.label=TRUE,
+    cex=0.45,
+    type='cladogram'
+)
 ```
 
-```{r sc_tree2, dpi=300, fig.cap="Step 2: The Saccharomycetales clade tree after sampling a diverse subset of species from the tree in Step 1"}
-plot(sc_filtered@tree, show.node.label=TRUE, cex=0.45, type='cladogram')
+```{r sc_tree2, dpi=300, echo=FALSE,, fig.cap="Step 2: The Saccharomycetales clade tree after sampling a diverse subset of species from the tree in Step 1"}
+plot(
+    make_tree_relative_to(sc_filtered@tree, '4932'),
+    show.node.label=TRUE,
+    cex=0.45,
+    type='cladogram'
+)
 ```
 
-```{r sc_tree3, dpi=300, fig.cap="Step 3: The tree after replacing the Saccharomyces genus branch with a custom tree"}
-plot(sc_final@tree, show.node.label=TRUE, cex=0.45, type='cladogram')
+```{r sc_tree3, dpi=300, echo=FALSE,, fig.cap="Step 3: The tree after replacing the Saccharomyces genus branch with a custom tree"}
+plot(
+    make_tree_relative_to(sc_final@tree, '4932'),
+    show.node.label=TRUE,
+    cex=0.45,
+    type='cladogram'
+)
 ```
+
+## Comparison to (Carvunis et al., 2012)
+
+The (Carvunis et al., 2012, c2012) phylostratigraphic analysis was based on far
+less data than is now available. We compare these results to the current study
+(a2018).
+
+```{r, message=FALSE}
+strata_names <- levels(get_phylostrata_map(strata)$mrca)
+strata_names <- factor(strata_names, levels=strata_names)
+a2018 <- stratify(results, strata_names = strata_names)
+
+# c2012 youngest 4 strata are stored in the `phylostratr` package:
+c2012_file <- system.file('extdata', 'carvunis2012_strata.tab', package='phylostratr')
+c2012 <- read_tsv(c2012_file)
+
+# The oldest stratum uses S. bayanus, a species not included in the current
+# study, so we drop this stratum. 
+c2012 <- subset(c2012, conservation_level < 4)
+
+common_ids <- intersect(c2012$refseq_id, a2018$qseqid)
+
+c2012 <- subset(c2012, refseq_id %in% common_ids)
+a2018 <- subset(a2018, qseqid %in% common_ids)
+
+# The c2012 `conservation_level`s 1-3 correspond to phylostrata 15,14, and 13,
+# respectively. 
+c2012$ps <- c('1'=15L, '2'=14L, '3'=13L)[c2012$conservation_level]
+c2012 <- select(c2012, qseqid=refseq_id, ps)
+c2012$group <- 'c2012'
+a2018 <- select(a2018, qseqid, ps)
+a2018$group <- 'a2018'
+```
+
+```{r}
+map <- get_phylostrata_map(strata) %>% select(mrca, ps) %>% distinct
+rbind(c2012, a2018) %>%
+  dplyr::group_by(group, ps) %>%
+  dplyr::summarize(count = n()) %>%
+  dcast(ps ~ group, value.var='count') %>%
+  merge(map) %>%
+  mutate(
+    c2012 = ifelse(is.na(c2012), '-', c2012),
+    mrca = partial_id_to_name(as.character(mrca))
+  ) %>%
+  select(Phylostratum = mrca, Level = ps, a2018, c2012) %>%
+  knitr::kable()
+```
+
+Table: Distribution across strata of genes common to the current *S.
+cerevisiae* analysis and the youngest 3 strata from (Carvunis et al. 2012). 
 
 # System Info
 
@@ -185,3 +258,4 @@ system2('blastp', '-version', stdout=TRUE)
 require(devtools)
 session_info()
 ```
+

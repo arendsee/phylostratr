@@ -100,7 +100,7 @@ proteome_report_table(strata2) %>%
   kable()
 ```
 
-Table: Proteome statistics for all proteomes in the analysis. **N**: total
+Table: Proteome statistics for all proteomes in the *A. thaliana* analysis. **N**: total
 number of proteins in the UniProt proteome (these may be redundant). **ps**:
 phylostratum level, where 1 is *cellular organisms*. **min**, **q25**,
 **median**, **q75**, **max**: summaries of the protein lengths in each
@@ -124,9 +124,9 @@ revenants %>%
     knitr::kable()
 ```
 
-Table: A summary of the number of genes (**n_total**) where a given number
-(**n_skipped**) of strata are passed before the oldest stratum with a predicted
-homolog is reached. 
+Table: A summary of the number of *A. thaliana* genes (**n_total**) where a
+given number (**n_skipped**) of strata are passed before the oldest stratum
+with a predicted homolog is reached. 
 
 ```{r, cache=TRUE}
 # Show the skipped phylostrata for genes skipping more than 4 
@@ -140,8 +140,8 @@ revenants %>%
     knitr::kable()
 ```
 
-Table: Here we identify the strata that where skipped for all genes skipping
-more than 4 strata.
+Table: Here we identify which strata were skipped for each of the *A. thaliana*
+genes that skipped more than 4 strata.
 
 ```{r, cache=TRUE}
 revenants %>%
@@ -149,17 +149,17 @@ revenants %>%
     dplyr::summarize(missing_genes = n(), ps=ps[1]) %>%
     dplyr::arrange(-ps) %>%
     dplyr::mutate(mrca = partial_id_to_name(mrca)) %>%
-    dplyr::select(mrca, ps, missing_genes) %>%
+    dplyr::select(Phylostratum = mrca, Level = ps, missing_genes) %>%
     knitr::kable()
 ```
 
-Table: The number of genes that have no hits to any species in a given stratum
-(`mrca`, Most Recent Common Ancestor) but do have hits to older strata. Strata
-may have unexpectedly high number of "missing genes" for interesting biological
-reasons, for example, the branch may include degenerate intracellular
-parasites. But more likely, it is due to poor annotations of the stratum
-representatives; this is the case for the Spermatophyta stratum, which is
-represented only by *Picea glauca*. 
+Table: The number of *A. thaliana* genes that have no hits to any species in a
+given phylostratum but do have hits to older strata. Strata may have
+unexpectedly high number of "missing genes" for interesting biological reasons,
+for example, the branch may include degenerate intracellular parasites. But
+more likely, it is due to poor annotations of the stratum representatives; this
+is the case for the Spermatophyta stratum, which is represented only by *Picea
+glauca*. 
 
 ## Compare to phylostratigraphy results from 2014 
 
@@ -171,21 +171,19 @@ whereas in (Arendsee et al., 2014) TAIR10 was used.
 
 ```{r, at_tips_prep, cache=TRUE, message=FALSE}
 # Get the strata from the current analysis
-pstr_strata <- stratify(results)
-# Get and clean the (Arendsee et al., 2014) data 
-# You will need to retrieve the supplementary data from the  (Arendsee et al.,
-# 2014) to run this step. 
-tips_strata <- read_tsv('strata-models.tab')
+a2018 <- stratify(results)
+# Get and clean the (Arendsee et al., 2014) data (stored in phylostratr package)
+a2014 <- read_tsv(system.file('extdata', 'arendsee2014_strata.tab', package='phylostratr'))
 # Add NCBI taxonomy ID to tips data
-tips_strata$mrca <- taxizedb::name2taxid(tips_strata$name)
+a2014$mrca <- taxizedb::name2taxid(a2014$name)
 # match column naming conventions
-tips_strata <- dplyr::select(tips_strata, qseqid, mrca, ps, mrca_name=name)
+a2014 <- dplyr::select(a2014, qseqid, mrca, ps, mrca_name=name)
 # underscores to spaces 
-tips_strata$mrca_name <- sub('_', ' ', tips_strata$mrca_name)
+a2014$mrca_name <- sub('_', ' ', a2014$mrca_name)
 # get a lineage map for Arabidopsis
 strata_map <- taxizedb::classification('3702')[[1]]
 # factor the backbone
-tips_strata$mrca_name <- droplevels(factor(tips_strata$mrca_name, levels=strata_map$name))
+a2014$mrca_name <- droplevels(factor(a2014$mrca_name, levels=strata_map$name))
 ```
 
 Now, since the two phylostratigraphy experiments used different annotations of
@@ -195,8 +193,8 @@ function for this:
 
 ```{r, at_tips_summary, cache=TRUE}
 ps <- standardize_strata(list(
-    p2014 = tips_strata,
-    p2018 = pstr_strata
+    a2014 = a2014,
+    a2018 = a2018
 ))
 
 # Compare the counts between the two studies:
@@ -215,8 +213,8 @@ dcast(strata_summary, mrca_name ~ group, value.var='count') %>%
     knitr::kable()
 ```
 
-Table: A comparison between (Arendsee et al., 2014, `p2014`) and this study's
-(`p2018`) stratification of *A. thaliana* genes. 
+Table: A comparison between (Arendsee et al., 2014, `a2014`) and this study's
+(`a2018`) stratification of *A. thaliana* genes. 
 
 --------------------------------------------------------------------------------
 
