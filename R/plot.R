@@ -22,17 +22,24 @@ eval_bins <- function(d, scheme=scheme2){
 plot_one_obo_tree <- function(
   tree,
   stat,
+  phylostrata = NULL,
   color_scheme=scheme2
 ){
   d <- stat
   d$evalue_bin <- factor(eval_bins(stat, color_scheme))
-  d <- reshape2::dcast(d, staxid ~ qseqid, value.var='evalue_bin')
+  if(!is.null(phylostrata)){
+    id_levels <- dplyr::select(phylostrata, qseqid, level=ps)
+    d <- merge(d, id_levels) %>% arrange(-level, qseqid) %>% select(-level)
+  }
+  name_order <- unique(d$qseqid) 
+  d <- reshape2::dcast(d, staxid ~ qseqid, value.var='evalue_bin', fill=5)
   rownames(d) <- d[, 1]
   d <- d[, -1]  
+  d <- d[, name_order]
   g <- ggtree::ggtree(tree, layout='slanted', ladderize=FALSE) +
     ggtree::geom_tiplab(size=1, color="black")
   g <- ggtree::gheatmap(g, d, offset=14, width=6, colnames=TRUE,
-                   colnames_angle=-45, hjust=0,
+                   colnames_angle=-90, hjust=0,
                    font.size=1) +
     ggplot2::scale_fill_manual(
       values = color_scheme$color,
