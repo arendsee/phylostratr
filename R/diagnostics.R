@@ -54,13 +54,20 @@ proteome_stats_table <- function(strata){
 add_organelle_proteins <- function(strata, overwrite=FALSE){
   is_valid_strata(strata)
 
+  get_organelle_ids <- function(id, ...){
+    intersect(
+      uniprot_organelle_ids(id, delay=TRUE, ...),
+      extract_uniprot_id_from_fasta(strata@data$faa[[id]])
+    )
+  }
+
   if(overwrite || !('organelle' %in% names(strata@data))){
     ids <- leafs(strata)
     # TODO: add test is_taxid, I should implement this in taxizedb
     strata@data$organelle <- lapply(ids, function(id){
       list(
-        mitochondrion = uniprot_organelle_ids(id, delay=TRUE, organelle='Mitochondrion'),
-        chloroplast   = uniprot_organelle_ids(id, delay=TRUE, organelle='Chloroplast')
+        mitochondrion = get_organelle_ids(id, organelle='Mitochondrion'),
+        chloroplast   = get_organelle_ids(id, organelle='Chloroplast')
       )
     })
     names(strata@data$organelle) <- ids
@@ -77,6 +84,7 @@ add_organelle_proteins <- function(strata, overwrite=FALSE){
 #' @export
 organelle_table <- function(strata, ...){
   strata <- add_organelle_proteins(strata, ...)
+
   tuplify(strata@data$organelle) %>% {
     data.frame(
       species = sapply(., function(x) x$name),

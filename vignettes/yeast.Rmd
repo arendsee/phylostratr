@@ -83,12 +83,11 @@ strata <- replace_branch(strata, y=saccharomyces, node='4930')
 Next we run BLAST
 
 ```{r, eval=FALSE}
-results <- strata_blast(
-    strata     = strata,
-    blast_args = list(nthreads=8)
-) %>%
-  strata_besthits %>%
-  merge_besthits
+strata <- strata %>%
+  strata_blast(blast_args = list(nthreads=8)) %>%
+  strata_besthits
+
+results <- merge_besthits(strata)
 
 pdf('all-yeast.pdf')
 plot_obo_trees(results, tree=strata@tree, focal_id=focal_taxid)
@@ -116,6 +115,13 @@ plotly::ggplotly(g1)
 plotly::ggplotly(g2)
 ```
 
+```{r, eval=FALSE}
+# TODO: fix this, currently this is an awful hack, stratify should take a
+# character string of levels and return factored mrca and mrca_names
+strata_names <- levels(get_phylostrata_map(strata)$mrca)
+strata_names <- factor(strata_names, levels=strata_names)
+phylostrata <- stratify(results, strata_names = strata_names)
+```
 
 ## Plot building for paper
 

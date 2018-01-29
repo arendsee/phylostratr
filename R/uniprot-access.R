@@ -45,6 +45,27 @@ wrap_uniprot_id_retrieval <- function(db, query, delay=FALSE, cast=identity){
   ids 
 }
 
+#' Parse a UniProt ID from a FASTA file
+#'
+#' UniProt FASTA files have the initial pattern:
+#'   <db>|<UniProt ID>|<alternative ID> <desc>'
+#'
+#' Here we parse out the UniProt ID. If the FASTA header does not match the
+#' pattern, we return NULL
+#'
+#' @param fastafile A protein FASTA file, assumed to be UniProt format
+#' @return character vector of UniProt IDs IF this is a UniProt FASTA, NULL otherwise
+#' @export
+extract_uniprot_id_from_fasta <- function(fastafile){
+  headers <- names(Biostrings::readAAStringSet(fastafile))
+  if(all(grepl('^..\\|', headers))){
+    sub('^...([^\\|]+).*', '\\1', headers) 
+  } else {
+    # This is not a UniProt FASTA file
+    NULL
+  }
+}
+
 #' Make reference-species preferring weight vector for diverse_subtree
 #'
 #' @param weight How much to prefer the reference species. The default, 1.05,
