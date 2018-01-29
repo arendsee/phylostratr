@@ -44,7 +44,7 @@ Next we replace the Saccharomyces genus with our own tree describing the
 phylogenetic relationships between the species. We also provide our own
 proteome sequence.
 
-```{r sc_custom_tree, fig.width=5, fig.height=5, fig.cap="Custom tree for Saccharomyces genus. The internal nodes s1-s5 are arbitrary names for the new internal nodes that are absent from the NCBI common tree."}
+```{r sc_custom_tree, dpi=300, fig.cap="Custom tree for Saccharomyces genus. The internal nodes s1-s5 are arbitrary names for the new internal nodes that are absent from the NCBI common tree."}
 saccharomyces <- Strata(
     tree = ape::read.tree(system.file('extdata', 'yeast', 'tree', package='phylostratr')),
     data = list(faa=list(

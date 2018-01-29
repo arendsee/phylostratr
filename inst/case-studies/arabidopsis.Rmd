@@ -36,32 +36,35 @@ strata@data$faa[['3702']] <- 'Araport11_genes.201606.pep.fasta'
 ## BLAST focal species against all target species
 
 The next step is to BLAST the *A. thaliana* proteins against each target
-proteome. This may take a few days to run. You may instead consider running the
-BLAST on a cluster. `phylostratr` expects one tabular file of BLAST results for
-each comparison against each species. The files should head headers and should
-contain the following fields: `qseqid`, `sseqid`, `qstart`, `qend`, `sstart`,
-`send`, `evalue`, `score`. Currently `phylostratr` does not actually use all
-this information, but it will in the future. The name of the BLAST result files
-should have the form `<target_name>.tab`, where `<target_name>` is the name
-stored in the `phylostratr` `Strata` object.
+proteome.
+
+This will probably take a long time to finish. We strongly recommend running it
+on a cluster with the search against each target proteome as a separate job or
+using [GNU Parallel](http://www.gnu.org/software/parallel) to speed up the
+process ([see
+guide](https://gif.biotech.iastate.edu/running-blast-jobs-parallel)).
+`phylostratr` expects one tabular file of BLAST results for each comparison
+against each species. The files should head headers and should contain the
+following fields: `qseqid`, `sseqid`, `qstart`, `qend`, `sstart`, `send`,
+`evalue`, `score` The name of the BLAST result files should have the form
+`<target_name>.tab`, where `<target_name>` is the name stored in the
+`phylostratr` `Strata` object.
 
 While the details will depend on your needs and the particulars of your system,
-you will want something of this general form:
+for each target you will want something of this general form:
 
 ``` sh
-for target in <list of targets>
-do
-    echo -e 'qseqid\tsseqid\tqstart\tqend\tsstart\tsend\tevalue\tscore' > <target>.tab
-    blastp \
-        -query <focal_species> \
-        -db <target_database> \
-        -outfmt '6 qseqid sseqid qstart qend sstart send evalue score' >> <target>.tab
-done
+echo -e 'qseqid\tsseqid\tqstart\tqend\tsstart\tsend\tevalue\tscore' > <target>.tab
+blastp \
+    -query <focal_species> \
+    -db <target_database> \
+    -outfmt '6 qseqid sseqid qstart qend sstart send evalue score' >> <target>.tab
 ```
 
 Then move the resulting files into the working directory where you are running
 `phylostratr`. Then you may proceed with the following code (if everything went
 well, it will automatically read these BLAST results).
+
 
 ```{r, at_blast, cache=TRUE, message=FALSE, warning=FALSE}
 strata <- strata_blast(strata, blast_args=list(nthreads=2)) %>% strata_besthits
