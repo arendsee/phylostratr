@@ -19,15 +19,6 @@ eval_bins <- function(d, scheme=scheme2){
   # d$evalue_label <- c(scheme$cutoff, "1+")[evalue_bin]
   # d
 
-plot_tree <- function(x){
-  if(class(x) == "Strata"){
-    x <- x@tree
-  }
-  ggtree::ggtree(x, layout='slanted', ladderize=FALSE) +
-    ggtree::geom_tiplab(size=2) +
-    ggtree::geom_nodelab(size=2)
-}
-
 plot_one_obo_tree <- function(
   tree,
   stat,
@@ -251,7 +242,10 @@ plot_proteome_stats <- function(strata){
     ggplot2::theme(
       axis.text.x = ggplot2::element_blank(),
       axis.ticks.x = ggplot2::element_blank()
-    )
+    ) +
+    ggplot2::xlab("Species") +
+    ggplot2::ylab("Protein length") +
+    ggplot2::ggtitle(sprintf("Lengths of proteomes used in %s phylostratigraph", strata@focal_species))
 }
 
 plot_revenant <- function(

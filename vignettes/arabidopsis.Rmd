@@ -100,7 +100,7 @@ results <- merge_besthits(strata)
 strata %>%
     strata_convert(target='all', to='name') %>%
     sort_strata %>%
-    plot_tree
+    plot
 ```
 
 Now we can merge additional data:

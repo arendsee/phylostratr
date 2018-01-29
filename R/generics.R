@@ -20,3 +20,16 @@ print.Strata <- function(x, ...){
 setMethod("show", "Strata",
   function(object) print(object)
 )
+
+#' Plot a Strata object
+#'
+#' @param x Strata object
+#' @param ... Additional arguments sent to ggtree
+plot.Strata <- function(x, ...){
+  if(class(x) == "Strata"){
+    x <- x@tree
+  }
+  ggtree::ggtree(x, layout='slanted', ladderize=FALSE) +
+    ggtree::geom_tiplab(size=2) +
+    ggtree::geom_nodelab(size=2)
+}
