@@ -3,21 +3,24 @@
 
 # phylostratr
 
-I'll fill this out after I submit the paper. In the meantime, see the vignette.
+Predict and explore the age of genes using phylostratigraphic methods.
 
+## Installation
 
-## TODO
+You can install from CRAN with:
 
- - [ ] Add handling for custom trees (not just the NCBI common tree)
+```{r github-installation, eval=FALSE}
+library(devtools)
+install_github("arendsee/phylostratr")
+```
 
- - [ ] Resurrect the noise analysis
+## Dependencies
 
- - [ ] Add reverse protein analysis
+ * NCBI BLAST+
 
- - [ ] Resurrect the revenant hunters and plotters
+## Funding
 
- - [ ] Use datadr for execution
+This work is funded by the National Science Foundation grant:
 
- - [ ] Use SQLite for storing BLAST results
-
- - [ ] Generate a report (both archive and excel)
+[NSF-IOS 1546858](https://www.nsf.gov/awardsearch/showAward?AWD_ID=1546858)
+Orphan Genes: An Untapped Genetic Reservoir of Novel Traits
