@@ -25,6 +25,7 @@ setMethod("show", "Strata",
 #'
 #' @param x Strata object
 #' @param ... Additional arguments sent to ggtree
+#' @export
 plot.Strata <- function(x, ...){
   if(class(x) == "Strata"){
     x <- x@tree
