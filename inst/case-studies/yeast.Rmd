@@ -97,6 +97,7 @@ redundant). **ps**: phylostratum level, where 1 is *cellular organisms*.
 **min**, **q25**, **median**, **q75**, **max**: summaries of the protein
 lengths in each proteome. 
 
+
 ## Finding genes that skip strata
 
 Since the code is identical to that in the Arabidopsis study, it is not

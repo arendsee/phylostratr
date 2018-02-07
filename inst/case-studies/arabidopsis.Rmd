@@ -109,6 +109,24 @@ phylostratum level, where 1 is *cellular organisms*. **min**, **q25**,
 **median**, **q75**, **max**: summaries of the protein lengths in each
 proteome. 
 
+## Identification of organelle proteins 
+
+
+```{r}
+# Select just the plant species 
+subtree(strata, name2taxid('Viridiplantae')) %>%
+    # replace the taxon IDs with scientific names
+    strata_convert(target='all', to='name') %>%
+    # summarize the numbers of organelle genes present per species
+    organelle_table %>%
+    # sort by ascending phylostratum age
+    dplyr::arrange(-.data$ps, .data$species) %>%
+    kable()
+```
+
+Table: Number of organelle-encoded proteins appearing in each plant target species. 
+
+
 ## Finding genes that skip strata
 
 ```{r, cache=TRUE}

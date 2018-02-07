@@ -131,7 +131,7 @@ plotly::ggplotly(g2)
 # often forgotten in proteome datasets. 
 subtree(strata, name2taxid('Viridiplantae')) %>%
     # and we replace the taxon IDs with scientific names
-    strata_convert(target='all', to='name')
+    strata_convert(target='all', to='name') %>%
     # summarize the numbers of organelle genes present per species
     organelle_table %>%
     # sort by ascending phylostratum age
