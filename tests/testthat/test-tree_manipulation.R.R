@@ -203,3 +203,15 @@ test_that("backbone trees are cool", {
   expect_equal(tree_names(one_tree)[parent(one_tree, "t5")], "n18") 
   expect_equal(tree_names(one_tree)[parent(one_tree, "n16")], "n13") 
 })
+
+test_that("replace_branch works", {
+  expect_true({
+    data(saccharomyces)
+    x = saccharomyces
+    y = subtree(saccharomyces, 's2')
+    y = strata_convert(y, target='tip', to='name')
+    x = replace_branch(x, y, "s2")
+    setequal(x@tree$node.label, c("Saccharomyces", "s1", "s2", "s3", "s4", "s5")) &&
+    setequal(children(x, "Saccharomyces"), c("s1", "s2"))
+  })
+})

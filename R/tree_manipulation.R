@@ -528,6 +528,12 @@ subtree.phylo <- function(x, id, collapse=TRUE, descend=TRUE, type='auto', ...){
 #' @param y Strata object
 #' @param node The name of a node in x where y will be placed
 #' @export
+#' @examples
+#' data(saccharomyces)
+#' x = saccharomyces
+#' y = subtree(saccharomyces, 's2')
+#' y = strata_convert(y, target='tip', to='name')
+#' x = replace_branch(x, y, "s2")
 replace_branch <- function(x, y, node){
   #### TODO: generalize this to work with phylo objects as well
   if(!(class(y) == 'Strata')){
@@ -537,21 +543,26 @@ replace_branch <- function(x, y, node){
     stop("Cannot combine Strata because they have different data fields")
   }
 
-  # tree with added children
-  x <- prune(x, node, type='name')
-  ##### TODO: add check for whether inputs are names or ids
-  x <- add_taxa(x, node)
+  if(x@focal_species %in% descendents(x, node, type='name')){
+    x@focal_species <- y@focal_species
+  }
+
+  parent_node <- parent(x, node)
+
+  # tree with removed children 
+  x2 <- prune(x, node, type='name', collapse=FALSE)
+  x2@tree <- bind.tip(x2@tree, tip.label=node, where=which(tree_names(x2) == parent_node)) 
 
   # Replace it with out custom tree
-  x@tree <- ape::bind.tree(x@tree, y@tree, where=which(tree_names(x@tree) == node))
+  x2@tree <- ape::bind.tree(x2@tree, y@tree, where=which(tree_names(x2) == node))
   # Merge all data
-  fields <- names(x@data)
-  x@data <- lapply(fields, function(field){
-    append(x@data[[field]], y@data[[field]])
+  fields <- names(x2@data)
+  x2@data <- lapply(fields, function(field){
+    append(x2@data[[field]], y@data[[field]])
   })
-  names(x@data) <- fields
+  names(x2@data) <- fields
 
-  x
+  x2
 }
 
 #' Get the sisters of a node
@@ -637,7 +648,7 @@ prune.Strata <- function(x, id, ...){
 prune.phylo <- function(x, id, type='auto', ...){
   id <- clean_phyid(x, id, type=type)
   id <- descendents(x, id, type='index')
-  subtree(x, setdiff(leafs(x), id), type='index')
+  subtree(x, setdiff(leafs(x), id), type='index', ...)
 }
 
 #' Merge fully named subtrees according to a reference tree

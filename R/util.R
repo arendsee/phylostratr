@@ -54,3 +54,18 @@ untuplify <- function(xs){
   names(xs) <- tuple_names
   xs
 }
+
+# This example of the torturous tree munging in ape is borrowed from:
+# http://blog.phytools.org/2012/11/adding-single-tip-to-tree.html
+bind.tip <- function(tree, tip.label, edge.length=NULL, where=NULL){
+  if(is.null(where)) where <- length(tree$tip) + 1
+  tip <- list(
+    edge        = matrix(c(2,1),1,2),
+    tip.label   = tip.label,
+    edge.length = edge.length,
+    Nnode       = 1
+  )
+  class(tip) <- "phylo"
+  obj <- ape::bind.tree(tree, tip, where = where)
+  return(obj)
+}

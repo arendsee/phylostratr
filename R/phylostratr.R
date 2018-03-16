@@ -2,6 +2,7 @@
 #' @importFrom rlang .data
 #' @importFrom utils head tail
 #' @importFrom methods new
+#' @importFrom graphics plot
 #' @importFrom stats median quantile
 #' @importFrom grDevices dev.off pdf
 utils::globalVariables(c("%>%", "%$%", "."))

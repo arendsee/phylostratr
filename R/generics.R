@@ -30,7 +30,5 @@ plot.Strata <- function(x, ...){
   if(class(x) == "Strata"){
     x <- x@tree
   }
-  ggtree::ggtree(x, layout='slanted', ladderize=FALSE) +
-    ggtree::geom_tiplab(size=2) +
-    ggtree::geom_nodelab(size=2)
+  plot(x, show.node.label=TRUE, ...)
 }
