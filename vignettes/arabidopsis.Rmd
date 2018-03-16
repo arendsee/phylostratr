@@ -67,17 +67,20 @@ library(taxizedb)
 library(phylostratr)
 library(magrittr)
 
+weights=uniprot_weight_by_ref()
 focal_taxid <- '3702'
 strata <-
   # Get stratified relatives represented in UniProt
   uniprot_strata(focal_taxid, from=2) %>%
   # Select a diverse subset of 5 or fewer representatives from each stratum.
-  strata_apply(f=diverse_subtree, n=5, weights=uniprot_weight_by_ref()) %>%
+  strata_apply(f=diverse_subtree, n=5, weights=weights) %>%
   # Use a prebuilt set of prokaryotic species
   use_recommended_prokaryotes %>%
   add_taxa(c('4932', '9606')) %>%
   # Download genomes, storing the filenames
   uniprot_fill_strata
+
+strata <- prune(strata, '105231', type='name')
 
 ## Replace the UniProt Arabidopsis thaliana proteome with the Araport11 proteome.
 ## The path below is specific to my pipeline, you can just use the UniProt genes,
@@ -142,4 +145,14 @@ And get the number of genes in each phylostrata
 
 ```{r, eval=FALSE}
 table(stratify(results)$mrca_name)
+```
+
+```{r, eval=FALSE}
+ph <- stratify(results)
+ph$locus <- sub('\\.[0-9]+', '', ph$qseqid, perl=TRUE)
+ph %>%
+    dplyr::select(-qseqid) %>%
+    dplyr::distinct() %>%
+    dplyr::group_by(mrca_name, ps) %>%
+    dplyr::summarize(n = length(ps))
 ```
