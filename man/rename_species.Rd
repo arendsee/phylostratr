@@ -20,6 +20,7 @@ Strata object with the same number of species
 Rename a species in a Strata object
 }
 \examples{
+\dontrun{
 data(saccharomyces)
 x <- rename_species(saccharomyces, "Saccharomyces_arboricola", "Sa")
 is_valid_strata(x)
@@ -27,4 +28,5 @@ is_valid_strata(x)
 x <- rename_species(saccharomyces,
   c("Saccharomyces_arboricola", "Saccharomyces_cerevisiae"), c("Sa", "Sc"))
 is_valid_strata(x)
+}
 }

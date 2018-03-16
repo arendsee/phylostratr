@@ -146,6 +146,22 @@ strata_blast <- function(
   strata
 }
 
+#' Get the "besthit" table for a given species
+#'
+#' @param strata Strata object
+#' @param taxid A species name or taxonomy ID
+#' @return data.frame of best hits (\code{get_max_hit})
+#' @export
+#' @examples
+#' \dontrun{
+#' strata@data$besthits[["Unicorn"]] <- get_besthit(strata, "Unicorn")
+#' }
+get_besthit <- function(strata, taxid){
+  is_valid_strata(strata, required=c('faa', 'blast_result'))
+  blast_file <- strata@data$blast_result[[taxid]]
+  readr::read_tsv(blast_file) %>% get_max_hit
+}
+
 #' Load each blast result and filter out the best hit against each query gene
 #'
 #' @param strata Strata object with 'blast_result' vector in data
@@ -165,10 +181,7 @@ strata_besthits <- function(strata){
     score  = numeric(0)
   )
   taxa <- names(strata@data$blast_result)
-  strata@data$besthit <- lapply(taxa, function(taxid){
-    blast_file <- strata@data$blast_result[[taxid]]
-    readr::read_tsv(blast_file) %>% get_max_hit
-  })
+  strata@data$besthit <- lapply(taxa, get_besthit, strata=strata)
   names(strata@data$besthit) <- taxa
   strata
 }

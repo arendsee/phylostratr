@@ -15,9 +15,6 @@ eval_bins <- function(d, scheme=scheme2){
   evalue[is.na(evalue)] <- Inf
   .bincode(evalue, c(-Inf, scheme$cutoff, Inf))
 }
-  # d$evalue_color <- scheme$color[evalue_bin]
-  # d$evalue_label <- c(scheme$cutoff, "1+")[evalue_bin]
-  # d
 
 plot_one_obo_tree <- function(
   tree,
@@ -28,8 +25,11 @@ plot_one_obo_tree <- function(
   d <- stat
   d$evalue_bin <- factor(eval_bins(stat, color_scheme))
   if(!is.null(phylostrata)){
-    id_levels <- dplyr::select(phylostrata, qseqid, level=ps)
-    d <- merge(d, id_levels) %>% arrange(-level, qseqid) %>% select(-level)
+    id_levels <- dplyr::select(.data$phylostrata, .data$qseqid, level=.data$ps)
+    d <- d %>%
+      merge(id_levels) %>%
+      dplyr::arrange(-.data$level, .data$qseqid) %>%
+      dplyr::select(-.data$level)
   }
   name_order <- unique(d$qseqid) 
   d <- reshape2::dcast(d, staxid ~ qseqid, value.var='evalue_bin', fill=5)
