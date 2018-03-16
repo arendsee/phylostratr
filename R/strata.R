@@ -194,7 +194,8 @@ get_mrca_names <- function(hittable){
     dplyr::distinct() %>%
     dplyr::arrange(.data$ps) %>%
     { .$mrca } %>%
-    taxizedb::taxid2name() %>%
+    # convert to name if possible
+    partial_id_to_name %>%
     { factor(., levels=unname(.)) }
 }
 
