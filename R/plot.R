@@ -87,7 +87,7 @@ plot_obo_trees <- function(hits, tree=NULL, n=50, focal_id=NULL, to_name=TRUE, s
     indices <- i:min(i+n-1, N)
     stat <- do.call(what=rbind, dat[indices])
     if(to_name){
-      stat$staxid <- taxizedb::taxid2name(stat$staxid)
+      stat$staxid <- partial_id_to_name(stat$staxid)
     }
     plot_one_obo_tree(tree, stat, scheme)
   })
