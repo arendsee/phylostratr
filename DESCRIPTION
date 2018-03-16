@@ -28,8 +28,7 @@ Imports:
 Remotes:
     arendsee/taxizedb,
     arendsee/rhmmer,
-    GuangchuangYu/ggtree,
-    GuangchuangYu/treeio
+    GuangchuangYu/ggtree
 License: GPL-3 + file LICENSE
 Encoding: UTF-8
 LazyData: true
