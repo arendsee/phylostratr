@@ -31,3 +31,7 @@
 #' atree$node.label <- paste0("n", 1:atree$Nnode + nleafs(atree))
 #' @format phylo
 "atree"
+
+#' A custom Strata object for the Saccharomyces genus
+#' @format Strata
+"saccharomyces"
