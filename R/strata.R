@@ -5,6 +5,9 @@
 #' the tree is checked
 #' @param strata Strata object
 is_valid_strata <- function(strata, required=NULL, check_focal=TRUE){
+  if(class(strata) != "Strata"){
+    stop("Expected Strata object, got '", class(strata), "'")
+  }
   if(check_focal && !(strata@focal_species %in% strata@tree$tip.label)){
     stop("Invalid Strata object, the focal species '", strata@focal_species, "' is not found in the tree")
   }
