@@ -25,11 +25,11 @@ plot_one_obo_tree <- function(
   d <- stat
   d$evalue_bin <- factor(eval_bins(stat, color_scheme))
   if(!is.null(phylostrata)){
-    id_levels <- dplyr::select(phylostrata, .data$qseqid, level=.data$ps)
+    id_levels <- dplyr::select(phylostrata, .data$qseqid, .data$ps)
     d <- d %>%
       merge(id_levels) %>%
-      dplyr::arrange(-.data$level, .data$qseqid) %>%
-      dplyr::select(-.data$level)
+      dplyr::arrange(-.data$ps, .data$qseqid) %>%
+      dplyr::select(-.data$ps)
   }
   name_order <- unique(d$qseqid) 
   d <- reshape2::dcast(d, staxid ~ qseqid, value.var='evalue_bin', fill=5)
