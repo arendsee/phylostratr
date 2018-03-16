@@ -396,3 +396,29 @@ sort_strata <- function(strata){
   strata@tree <- make_tree_relative_to(strata@tree, strata@focal_species)
   strata
 }
+
+#' Rename a species in a Strata object
+#'
+#' @param strata Strata object
+#' @param old_name character vector of names that are currently in the Strata object
+#' @param new_name character vector of names to replace the old_name vector
+#' @return Strata object with the same number of species
+#' @examples
+#' data(saccharomyces)
+#' x <- rename_species(saccharomyces, "Saccharomyces_arboricola", "Sa")
+#' is_valid_strata(x)
+#'
+#' x <- rename_species(saccharomyces,
+#'   c("Saccharomyces_arboricola", "Saccharomyces_cerevisiae"), c("Sa", "Sc"))
+#' is_valid_strata(x)
+rename_species <- function(strata, old_name, new_name){
+  # assert that strata is a Strata object
+  # assert that the length of old_name is equal to the length of new_name
+  # assert that all old_name are in the tree
+
+  # change names in data
+  # change names in tree
+  # if focal species is in old_name, change the focal_species
+
+  # return strata
+}
