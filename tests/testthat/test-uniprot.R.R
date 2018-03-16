@@ -11,6 +11,10 @@ test_that("Can access uniprot downstream IDs", {
   })
 })
 
+test_that("uniprot_map2pfam handles missing stuff gracefully", {
+  expect_warning(uniprot_map2pfam("asdf"))
+})
+
 virus <- NULL
 test_that("Can retrieve UniProt proteomes", {
   expect_message({

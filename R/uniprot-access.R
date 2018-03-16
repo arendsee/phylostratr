@@ -173,10 +173,17 @@ uniprot_map2pfam <- function(taxid){
   columns='columns=id,database(PFAM)'
   url <- glue::glue('{base}?query=organism:{taxid}&{format}&{columns}')
   con <- curl::curl(url)
-  readr::read_tsv(con, col_types='cc') %>%
-    magrittr::set_names(c('uniprotID', 'pfamID')) %>%
-    dplyr::mutate(pfamID = sub(';$', '', .data$pfamID)) %>%
-    tidyr::separate_rows(.data$pfamID, sep=';')
+  d <- readr::read_tsv(con)
+  if(nrow(d) == 0){
+    warning("Could not find Uniprot info for NCBI taxon ID: '", taxid, "'")
+    tibble::data_frame(uniprotID=character(0), pfamID=character(0))
+  } else if(ncol(d) != 2) {
+    stop("Expected data.frame with 2 columns") 
+  } else {
+    names(d) <- c('uniprotID', 'pfamID')
+    dplyr::mutate(d, pfamID = sub(';$', '', .data$pfamID)) %>%
+      tidyr::separate_rows(.data$pfamID, sep=';')
+  }
 }
 
 
