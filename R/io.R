@@ -39,7 +39,7 @@ load_hittable <- function(filename, na_str='N/A'){
   ) %>%
     dplyr::mutate(staxid = strsplit(.data$staxid, ';')) %>%
     tidyr::unnest(.data$staxid) %>%
-    dplyr::mutate(staxid = as.integer(.data$staxid))
+    dplyr::mutate(staxid = as.character(.data$staxid))
 
   check_hit_table(d)
 

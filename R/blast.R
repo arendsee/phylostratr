@@ -160,7 +160,7 @@ strata_besthits <- function(strata){
   # produce an empty blast result
   empty_blast_result <- data.frame(
     qseqid = character(0),
-    staxid = integer(0),
+    staxid = character(0),
     evalue = numeric(0),
     score  = numeric(0)
   )
