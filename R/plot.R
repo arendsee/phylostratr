@@ -25,7 +25,7 @@ plot_one_obo_tree <- function(
   d <- stat
   d$evalue_bin <- factor(eval_bins(stat, color_scheme))
   if(!is.null(phylostrata)){
-    id_levels <- dplyr::select(.data$phylostrata, .data$qseqid, level=.data$ps)
+    id_levels <- dplyr::select(phylostrata, .data$qseqid, level=.data$ps)
     d <- d %>%
       merge(id_levels) %>%
       dplyr::arrange(-.data$level, .data$qseqid) %>%
@@ -79,7 +79,7 @@ plot_obo_trees <- function(hits, tree=NULL, n=50, focal_id=NULL, to_name=TRUE, s
     tree <- make_tree_relative_to(tree, focal_id)
   }
   if(to_name){
-    tree$tip.label <- taxizedb::taxid2name(tree$tip.label)
+    tree$tip.label <- partial_id_to_name(tree$tip.label)
   }
   N <- length(dat)
 
