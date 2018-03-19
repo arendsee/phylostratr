@@ -92,7 +92,14 @@ plot_obo_trees <- function(hits, tree=NULL, n=50, focal_id=NULL, to_name=TRUE, s
 #' }
 plot_heatmaps <- function(hits, filename, tree=NULL, n=50, focal_id=NULL, to_name=TRUE, scheme=scheme2){
   pdf(filename)
-  plot_obo_trees(hits=hits, tree=tree, n=n, focal_id=focal_id, to_name=to_name, scheme=scheme)
+  print(plot_obo_trees(
+    hits     = hits,
+    tree     = tree,
+    n        = n,
+    focal_id = focal_id,
+    to_name  = to_name,
+    scheme   = scheme
+  ))
   dev.off()
 }
 
