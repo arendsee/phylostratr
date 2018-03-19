@@ -48,27 +48,7 @@ plot_one_obo_tree <- function(
   g
 }
 
-#' Plots for the hit distribution of all genes
-#'
-#' @param hits A table of best hits
-#' @param tree An optional phylo object, if it is not given, a tree will be
-#' infrerred from the taxon IDs in the 'staxid' column. This will work only if
-#' all these IDs are valid NCBI taxonomy IDs.
-#' @param n The number of genes to display per page
-#' @param focal_id The focal taxonomy ID (if given, this will be used to order
-#' the tree relative with the focal species on top)
-#' @param to_name If TRUE, then the tip labels will be converted from taxonomy
-#' IDs to scientific names
-#' @param scheme Color scheme
-#' @export
-#' @examples
-#' \dontrun{
-#' scheme = list(
-#'   cutoff = c(1e-100, 1e-20, 1e-5, 1e-1),
-#'   color = c('#0000FF', '#14A9FF', '#7AFDFF', '#CC9500', '#FF1E00')
-#' )
-#' plot_one_obo_tree(tree, stat, scheme)
-#' }
+# Do not use directly, wrapped by plot_heatmaps
 plot_obo_trees <- function(hits, tree=NULL, n=50, focal_id=NULL, to_name=TRUE, scheme=scheme2){
   dat <- base::split(hits, f=factor(hits$qseqid))
 
@@ -91,6 +71,29 @@ plot_obo_trees <- function(hits, tree=NULL, n=50, focal_id=NULL, to_name=TRUE, s
     }
     plot_one_obo_tree(tree, stat, scheme)
   })
+}
+
+#' Plots for the hit distribution of all genes
+#'
+#' @param hits A table of best hits
+#' @param tree An optional phylo object, if it is not given, a tree will be
+#' infrerred from the taxon IDs in the 'staxid' column. This will work only if
+#' all these IDs are valid NCBI taxonomy IDs.
+#' @param n The number of genes to display per page
+#' @param focal_id The focal taxonomy ID (if given, this will be used to order
+#' the tree relative with the focal species on top)
+#' @param to_name If TRUE, then the tip labels will be converted from taxonomy
+#' IDs to scientific names
+#' @param scheme Color scheme
+#' @export
+#' @examples
+#' \dontrun{
+#' plot_heatmaps(hits, "heatmaps.pdf", tree=strata@tree) 
+#' }
+plot_heatmaps <- function(hits, filename, tree=NULL, n=50, focal_id=NULL, to_name=TRUE, scheme=scheme2){
+  pdf(filename)
+  plot_obo_trees(hits=hits, tree=tree, n=n, focal_id=focal_id, to_name=to_name, scheme=scheme)
+  dev.off()
 }
 
 #' Plot the max hit scores against each species for one gene
