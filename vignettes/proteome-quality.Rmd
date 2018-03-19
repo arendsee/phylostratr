@@ -1,0 +1,88 @@
+---
+title: "*Arabidopsis thaliana*: proteome quality estimates"
+author: "Zebulun Arendsee"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{*Arabidopsis thaliana*: proteome quality estimates}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+The purpose of this vingette is to explore the use of phylostratigraphy in
+assessing proteome quality. The general idea is this: if a protein in a
+well-annotated proteome has a matches against ancient strata, then it should
+tend to have matches against younger strata. Of course deletions are possible
+and the deep matches could have been false positives.
+
+We will explore this idea in the context of the *Arabidopsis thaliana*. We will
+reuse old results. 
+
+```{r}
+data(arabidopsis_strata)
+data(arabidopsis)
+strata <- arabidopsis_strata
+hittable <- arabidopsis
+```
+
+We will need a distance tree. But the NCBI common tree does not have this
+information. The responsible thing to do would be to build a new tree from our
+sequence or search for a high quality one in literature. But we will instead 
+
+```{r}
+library(taxize)
+library(taxizedb)
+library(dplyr)
+
+lineages <- taxizedb::classification(leafs(strata), db='ncbi')
+a <- lineages_to_phylo(lineages)
+b <- taxize::class2tree(lineages, check=FALSE)$phylo
+b <- ape::di2multi(b)
+map <- distinct(do.call(rbind, lineages)[, c('name', 'id')])
+name2id <- map$id 
+names(name2id) <- map$name
+b$tip.label <- name2id[b$tip.label]
+b <- map_node_label(a, b)
+b <- root(b, node=clean_phyid(b, '131567', type='name'))
+b <- ape::multi2di(b)
+```
+
+```{r}
+## Uses Felsenstein's contrast approach to dependence handling, need to rethink
+## whether it is applicable
+
+# library(ape)
+#
+# dd <- dplyr::group_by(hittable, staxid) %>%
+#     dplyr::mutate(evalue = ifelse(is.na(evalue), 10, evalue)) %>%
+#     dplyr::summarize(hits = sum(evalue < 1e-5))
+# x <- dd$hits
+# names(x) <- as.character(dd$staxid)
+#
+# b2 <- subtree(b, '33090', type='name')
+# x <- rbinom(length(leafs(b2)), 500, 0.8)
+# names(x) <- leafs(b2, byname=TRUE)
+#
+# ape::pic(x, b2)
+#
+# # compare_seqid <- function(tree, d, i, under){
+# #     foo <- subset(d, qseqid == i)
+# #     x <- foo$score
+# #     names(x) <- foo$staxid
+# #     tree2 <- subtree(tree, under, type='index')
+# #     x <- x[as.character(tree2$tip.label)]
+# #     names(x) <- as.character(tree2$tip.label)
+# #     x <- ifelse(is.na(x) | x < 100, 0, 1)
+# #     ape::pic(x, tree2)
+# # }
+# #
+# # hittable <- subset(hittable, staxid %in% b$tip.label)
+# #
+# # compare_seqid(
+# #     tree  = b,
+# #     d     = hittable,
+# #     i     = 'AT1G09900.1',
+# #     under = clean_phyid(b, '33090', type='name')
+# # )
+#
+```
