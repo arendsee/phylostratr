@@ -18,7 +18,7 @@ and the deep matches could have been false positives.
 We will explore this idea in the context of the *Arabidopsis thaliana*. We will
 reuse old results. 
 
-```{r}
+```{r, eval=FALSE}
 data(arabidopsis_strata)
 data(arabidopsis)
 strata <- arabidopsis_strata
@@ -29,7 +29,7 @@ We will need a distance tree. But the NCBI common tree does not have this
 information. The responsible thing to do would be to build a new tree from our
 sequence or search for a high quality one in literature. But we will instead 
 
-```{r}
+```{r, eval=FALSE}
 library(taxize)
 library(taxizedb)
 library(dplyr)
@@ -47,7 +47,7 @@ b <- root(b, node=clean_phyid(b, '131567', type='name'))
 b <- ape::multi2di(b)
 ```
 
-```{r}
+```{r, eval=FALSE}
 ## Uses Felsenstein's contrast approach to dependence handling, need to rethink
 ## whether it is applicable
 

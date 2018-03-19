@@ -35,3 +35,10 @@
 #' A custom Strata object for the Saccharomyces genus
 #' @format Strata
 "saccharomyces"
+
+#' An Arabidopsis thaliana based Strata object
+#'
+#' 132 species are included in the tree. No data has been loaded. 
+#'
+#' @format Strata
+"arabidopsis_strata"
