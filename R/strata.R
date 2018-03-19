@@ -418,13 +418,20 @@ sort_strata <- function(strata){
 #' is_valid_strata(x)
 #' }
 rename_species <- function(strata, old_name, new_name){
-  # assert that strata is a Strata object
-  # assert that the length of old_name is equal to the length of new_name
-  # assert that all old_name are in the tree
-
-  # change names in data
-  # change names in tree
-  # if focal species is in old_name, change the focal_species
-
-  # return strata
+  is_valid_strata(strata)
+  if(length(old_name) != length(new_name)){
+    stop("old_name must have the same length as the new_name")
+  }
+  if(any(!(old_name %in% strata@tree$tip.label))){
+    name <- which(!(old_name %in% strata@tree$tip.label))
+    stop(old_name[name]," is not in the tree")
+  }
+  for (i in 1:length(old_name)){
+    old <- which(strata@tree$tip.label %in% old_name[i])
+    strata@tree$tip.label[old] <- new_name[i]
+    for (j in names(strata@data)){
+      names(strata@data[[j]])[old] <- new_name[i]
+    }
+  }
+  strata
 }
