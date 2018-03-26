@@ -10,6 +10,8 @@ plot_heatmaps(hits, filename, tree = NULL, n = 50, focal_id = NULL,
 \arguments{
 \item{hits}{A table of best hits}
 
+\item{filename}{Name of the output PDF file}
+
 \item{tree}{An optional phylo object, if it is not given, a tree will be
 infrerred from the taxon IDs in the 'staxid' column. This will work only if
 all these IDs are valid NCBI taxonomy IDs.}

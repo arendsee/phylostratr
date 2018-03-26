@@ -76,6 +76,7 @@ plot_obo_trees <- function(hits, tree=NULL, n=50, focal_id=NULL, to_name=TRUE, s
 #' Plots for the hit distribution of all genes
 #'
 #' @param hits A table of best hits
+#' @param filename Name of the output PDF file
 #' @param tree An optional phylo object, if it is not given, a tree will be
 #' infrerred from the taxon IDs in the 'staxid' column. This will work only if
 #' all these IDs are valid NCBI taxonomy IDs.
