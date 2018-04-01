@@ -247,6 +247,95 @@ rbind(c2012, a2018) %>%
 Table: Distribution across strata of genes common to the current *S.
 cerevisiae* analysis and the youngest 3 strata from (Carvunis et al. 2012). 
 
+# Correlation
+
+```{r}
+require(reshape2)
+require(tidyr)
+
+
+d <- results
+# Add in all missing hits
+mrca_map <- dplyr::select(d, staxid, mrca, ps) %>% dplyr::distinct()
+d <- dplyr::select(d, qseqid, evalue, score, staxid)
+# NOTE: This is NOT the right thing to do. The BLAST data are truncated. If no
+# significant hit is found, NA is returned. The evalue is truncated at 10,
+# which leads to score being truncated at some value that is dependent on the
+# database size (28 being the global minimum). What I do below is set the
+# score to this global min. I should treat this as truncated data.
+d <- complete(d, nesting(qseqid, staxid), fill=list(evalue=10, score=28))
+d <- merge(d, mrca_map, by='staxid')
+
+# # count the number of entries in each species (all should be equal)
+# dplyr::group_by(d, staxid) %>% dplyr::summarize(n = n())
+# # count the number of hits across species mapping to each query sequence (all should be equal)
+# dplyr::group_by(d, qseqid) %>% dplyr::summarize(n = n())
+
+
+# Get adjusted p-values
+d$pval <- (1 - exp(-d$evalue))
+d <- d %>%
+  dplyr::group_by(mrca) %>%
+  dplyr::mutate(pval_hoch = p.adjust(pval, method="hochberg")) %>%
+  dplyr::mutate(pval_bonf = p.adjust(pval, method="bonferroni")) %>%
+  dplyr::ungroup()
+
+
+eval3_strata <- stratify(d, classify_by_evalue(1e-3))
+eval5_strata <- stratify(d, classify_by_evalue(1e-5))
+eval7_strata <- stratify(d, classify_by_evalue(1e-7))
+hoch01_strata <- stratify(d, classifier=function(x) x$pval_hoch < 0.01)
+bonf01_strata <- stratify(d, classifier=function(x) x$pval_bonf < 0.01)
+hoch05_strata <- stratify(d, classifier=function(x) x$pval_hoch < 0.05)
+bonf05_strata <- stratify(d, classifier=function(x) x$pval_bonf < 0.05)
+
+eval3_strata$mode = "eval3"
+eval5_strata$mode = "eval5"
+eval7_strata$mode = "eval7"
+hoch01_strata$mode  = "hock01"
+bonf01_strata$mode  = "bonf01"
+hoch05_strata$mode  = "hock05"
+bonf05_strata$mode  = "bonf05"
+
+ds <- do.call(rbind, list(eval3_strata, eval5_strata, eval7_strata, bonf01_strata, hoch01_strata, bonf05_strata, hoch05_strata))
+ds$mode <- factor(ds$mode)
+
+dsum <- ds %>%
+  dplyr::group_by(ps, mode) %>%
+  dplyr::summarize(n = n())
+
+dsum <- dplyr::group_by(dsum, ps) %>%
+    dplyr::mutate(ratio = -log2(n[which(mode == "eval5")] / n))
+
+require(ggplot2)
+ggplot(dsum) +
+  geom_path(aes(x=ps, y=n, group=mode, color=mode)) +
+  scale_y_log10()
+
+ggplot(dsum) +
+  geom_path(aes(x=ps, y=ratio, group=mode, color=mode))
+
+require(reshape2)
+acast(dsum, ps ~ mode, value.var='n')
+
+
+# Get correlations across scores
+ds <- results %>%
+  dplyr::select(mrca, qseqid, staxid, score) %>%
+  split(factor(d$mrca)) %>%
+  lapply(function(x) dplyr::select(x, -mrca)) %>%
+  lapply(acast, qseqid ~ staxid, value.var='score') %>%
+  # This is NOT the right thing to do. The BLAST data are truncated. If no
+  # significant hit is found, NA is returned. The evalue is truncated at 10,
+  # which leads to score being truncated at some value that is dependent on the
+  # database size (28 being the global minimum). What I do below is set the
+  # score to this global min. I should treat this as truncated data.
+  lapply(function(x) {x[is.na(x)] <- 28; x}) %>%
+  lapply(cor)
+
+require(mvtnorm)
+```
+
 # System Info
 
 ```{r}
@@ -259,4 +348,3 @@ system2('blastp', '-version', stdout=TRUE)
 require(devtools)
 session_info()
 ```
-

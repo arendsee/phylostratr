@@ -234,6 +234,13 @@ dcast(strata_summary, mrca_name ~ group, value.var='count') %>%
     knitr::kable()
 ```
 
+```{r, orphan_diff}
+d <- subset(all_strata, mrca_name == "Arabidopsis thaliana")
+a2014_orphans <- subset(d, group == "a2014")$qseqid
+a2018_orphans <- subset(d, group == "a2018")$qseqid
+setdiff(a2018_orphans, a2014_orphans)
+```
+
 Table: A comparison between (Arendsee et al., 2014, `a2014`) and this study's
 (`a2018`) stratification of *A. thaliana* genes. 
 
