@@ -69,7 +69,7 @@ plot_obo_trees <- function(hits, tree=NULL, n=50, focal_id=NULL, to_name=TRUE, s
     if(to_name){
       stat$staxid <- partial_id_to_name(stat$staxid)
     }
-    plot_one_obo_tree(tree, stat, scheme)
+    plot_one_obo_tree(tree=tree, stat=stat, scheme=scheme)
   })
 }
 
