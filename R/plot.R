@@ -20,10 +20,10 @@ plot_one_obo_tree <- function(
   tree,
   stat,
   phylostrata = NULL,
-  color_scheme=scheme2
+  scheme=scheme2
 ){
   d <- stat
-  d$evalue_bin <- factor(eval_bins(stat, color_scheme))
+  d$evalue_bin <- factor(eval_bins(stat, scheme))
   # if(!is.null(phylostrata)){
   #   id_levels <- dplyr::select(phylostrata, .data$qseqid, .data$ps)
   #   d <- d %>%
@@ -42,8 +42,8 @@ plot_one_obo_tree <- function(
                    colnames_angle=-90, hjust=0,
                    font.size=1) +
     ggplot2::scale_fill_manual(
-      values = color_scheme$color,
-      labels = c(color_scheme$cutoff, paste0(tail(color_scheme$cutoff,1), '+'))
+      values = scheme$color,
+      labels = c(scheme$cutoff, paste0(tail(scheme$cutoff,1), '+'))
     )
   g
 }
