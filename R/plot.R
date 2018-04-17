@@ -90,6 +90,13 @@ plot_obo_trees <- function(hits, tree=NULL, n=50, focal_id=NULL, to_name=TRUE, s
 #' @examples
 #' \dontrun{
 #' plot_heatmaps(hits, "heatmaps.pdf", tree=strata@tree) 
+#'
+#' # You can change the colorscheme and cutoffs:
+#' funky_scheme <- list(
+#'   cutoff = c(1e-20, 1e-5, 1e-3, 1), 
+#'   color  = c('blue', 'green', 'yellow', 'darkorange1', 'darkred')
+#' )
+#' plot_heatmaps(hits, "heatmaps.pdf", tree=strata@tree, scheme=funky_scheme)
 #' }
 plot_heatmaps <- function(hits, filename, tree=NULL, n=50, focal_id=NULL, to_name=TRUE, scheme=scheme2){
   pdf(filename)
