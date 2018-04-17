@@ -275,10 +275,26 @@ d <- merge(d, mrca_map, by='staxid')
 # Get adjusted p-values
 d$pval <- (1 - exp(-d$evalue))
 d <- d %>%
-  dplyr::group_by(mrca) %>%
-  dplyr::mutate(pval_hoch = p.adjust(pval, method="hochberg")) %>%
-  dplyr::mutate(pval_bonf = p.adjust(pval, method="bonferroni")) %>%
+  dplyr::group_by(qseqid, mrca) %>%
+  dplyr::summarize(
+    pval_hoch = p.adjust(pval, method="hochberg"),
+    pval_bonf = p.adjust(pval, method="bonferroni")
+  ) %>%
   dplyr::ungroup()
+
+require(reshape2)
+m <- dplyr::select(d, -score, -evalue, -staxid, -pval, -mrca) %>% 
+  dplyr::distinct() %>%
+  melt(id.vars=c('qseqid', 'ps'))
+
+calculate_ps_prob <- function(x){
+    
+}
+
+strata_prob <- dplyr::group_by(m, qseqid, variable) %>%
+    dplyr::mutate(ps_prob = )
+  
+
 
 
 eval3_strata <- stratify(d, classify_by_evalue(1e-3))
@@ -315,7 +331,6 @@ ggplot(dsum) +
 ggplot(dsum) +
   geom_path(aes(x=ps, y=ratio, group=mode, color=mode))
 
-require(reshape2)
 acast(dsum, ps ~ mode, value.var='n')
 
 
