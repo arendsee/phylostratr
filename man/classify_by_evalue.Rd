@@ -11,7 +11,6 @@ classify_by_evalue(threshold)
 }
 \value{
 A function of a dataframe that has the column 'evalue', the function
-returns a logical vector
 }
 \description{
 Infer homology inference based on a hard e-value threshold

@@ -180,7 +180,7 @@ add_taxa <- function(strata, taxa){
 #'
 #' @param threshold An e-value threshold
 #' @return A function of a dataframe that has the column 'evalue', the function
-#' returns a logical vector
+#' @export
 classify_by_evalue <- function(threshold){
   function(x){
     !is.na(x$evalue) & (x$evalue < threshold)
