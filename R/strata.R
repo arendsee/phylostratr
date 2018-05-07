@@ -227,6 +227,7 @@ stratify <- function(
       strata <- .
       rbind(
         strata,
+        # add in queries that have no hit against anything
         hittable[!(hittable$qseqid %in% strata$qseqid), ] %>%
         dplyr::select(.data$qseqid, .data$mrca, .data$ps) %>%
         dplyr::group_by(.data$qseqid) %>%

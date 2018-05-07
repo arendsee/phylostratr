@@ -6,7 +6,6 @@ output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{*Arabidopsis thaliana*: proteome quality estimates}
   %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
 ---
 
 The purpose of this vingette is to explore the use of phylostratigraphy in
