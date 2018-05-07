@@ -172,14 +172,6 @@ get_besthit <- function(strata, taxid){
 #' @export
 strata_besthits <- function(strata){
   is_valid_strata(strata, required=c('faa', 'blast_result'))
-
-  # produce an empty blast result
-  empty_blast_result <- data.frame(
-    qseqid = character(0),
-    staxid = character(0),
-    evalue = numeric(0),
-    score  = numeric(0)
-  )
   taxa <- names(strata@data$blast_result)
   strata@data$besthit <- lapply(taxa, get_besthit, strata=strata)
   names(strata@data$besthit) <- taxa

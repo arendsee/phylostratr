@@ -218,6 +218,7 @@ stratify <- function(
     classifier   = classify_by_evalue(1e-5),
     strata_names = get_mrca_names(hittable)
   ){
+  orphan_ps <- max(hittable$ps)
   hittable[classifier(hittable), ] %>%
     dplyr::select(.data$qseqid, .data$mrca, .data$ps) %>%
     dplyr::group_by(.data$qseqid) %>%
@@ -231,7 +232,7 @@ stratify <- function(
         hittable[!(hittable$qseqid %in% strata$qseqid), ] %>%
         dplyr::select(.data$qseqid, .data$mrca, .data$ps) %>%
         dplyr::group_by(.data$qseqid) %>%
-        dplyr::filter(.data$ps == max(.data$ps)) %>%
+        dplyr::filter(.data$ps == orphan_ps) %>%
         dplyr::ungroup()
       )
     } %>%
