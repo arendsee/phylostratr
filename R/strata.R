@@ -219,6 +219,7 @@ stratify <- function(
     strata_names = get_mrca_names(hittable)
   ){
   orphan_ps <- max(hittable$ps)
+  orphan_mrca <- levels(strata_names)[length(strata_names)]
   hittable[classifier(hittable), ] %>%
     dplyr::select(.data$qseqid, .data$mrca, .data$ps) %>%
     dplyr::group_by(.data$qseqid) %>%
@@ -231,9 +232,12 @@ stratify <- function(
         # add in queries that have no hit against anything
         hittable[!(hittable$qseqid %in% strata$qseqid), ] %>%
         dplyr::select(.data$qseqid, .data$mrca, .data$ps) %>%
+        # take just one entry for each query
         dplyr::group_by(.data$qseqid) %>%
-        dplyr::filter(.data$ps == orphan_ps) %>%
-        dplyr::ungroup()
+        head(1) %>%
+        dplyr::ungroup() %>%
+        # assign it orphan status
+        dplyr::mutate(ps = orphan_ps, mrca = orphan_mrca)
       )
     } %>%
     dplyr::distinct() %>%
