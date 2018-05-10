@@ -19,7 +19,7 @@ sister_trees(x, id, ...)
 
 \item{...}{Arguments passed to \code{sister_trees.phylo}}
 
-\item{type}{id type: ['name', 'id', 'auto']}
+\item{type}{id type: ['name', 'index', 'auto']}
 }
 \value{
 list of phylo objects

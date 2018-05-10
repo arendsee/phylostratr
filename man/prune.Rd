@@ -19,7 +19,7 @@ prune(x, id, ...)
 
 \item{...}{Arguments sent to \code{prune.phylo}}
 
-\item{type}{id type: ['name', 'id', 'auto']}
+\item{type}{id type: ['name', 'index', 'auto']}
 }
 \description{
 Remove the specified indices, and their descendents, from the tree

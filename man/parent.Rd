@@ -19,7 +19,7 @@ parent(x, ...)
 
 \item{id}{vector of ids or names}
 
-\item{type}{id type: ['name', 'id', 'auto']}
+\item{type}{id type: ['name', 'index', 'auto']}
 }
 \value{
 vector of parent ids (NA if root)

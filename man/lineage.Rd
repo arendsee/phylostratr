@@ -23,7 +23,7 @@ lineage(x, ...)
 
 \item{id}{A single name or index}
 
-\item{type}{id type: ['name', 'id', 'auto']}
+\item{type}{id type: ['name', 'index', 'auto']}
 
 \item{use_name}{Should names be used rather than internal ids}
 }

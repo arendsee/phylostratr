@@ -19,7 +19,7 @@ sisters(x, id, ...)
 
 \item{...}{Arguments sent to \code{sisters.phylo}}
 
-\item{type}{id type: ['name', 'id', 'auto']}
+\item{type}{id type: ['name', 'index', 'auto']}
 }
 \value{
 integer vector of indices

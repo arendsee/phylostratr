@@ -16,7 +16,7 @@ children(x, ...)
 
 \item{id}{vector of ids or names}
 
-\item{type}{id type: ['name', 'id', 'auto']}
+\item{type}{id type: ['name', 'index', 'auto']}
 }
 \value{
 vector of children, (integer(0) if there are no children)

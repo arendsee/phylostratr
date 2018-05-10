@@ -19,7 +19,7 @@ descendent_nodes(x, ...)
 
 \item{id}{vector of ids or names}
 
-\item{type}{id type: ['name', 'id', 'auto']}
+\item{type}{id type: ['name', 'index', 'auto']}
 }
 \value{
 integer vector of leaf and node ids

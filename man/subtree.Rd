@@ -20,7 +20,7 @@ subtree(x, id, ...)
 
 \item{...}{Arguments sent to \code{subtree.phylo}}
 
-\item{type}{id type: ['name', 'id', 'auto']}
+\item{type}{id type: ['name', 'index', 'auto']}
 
 \item{collapse}{logical collapse edges around nodes with a single descendent}
 
