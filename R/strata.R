@@ -64,29 +64,40 @@ diverse_subtree <- function(tree, n, weights=NULL, collapse=FALSE){
 
   n <- min(n, nleafs(tree))
 
-  lins <- lapply(1:nleafs(tree), lineage, x=tree)
+  lins <- lapply(1:nleafs(tree), lineage, type="index", x=tree)
+
+  k <- rep(1, nleafs(tree) + tree$Nnode) 
+
+  chosen <- NULL
+
+  base = 1.2 
 
   for(i in 1:n){
-    if(i == 1){
-      # start by taking the species with the highest phylogeny independent weight
-      chosen_taxa <- head(which.max(weights), 1)
-      # initial list of visited taxa
-      seen <- lins[[chosen_taxa]]
-    } else {
-      # then scale weights to penalize species that are close to the chosen species
-      scaled.weights <- weights *
-        sapply(lins, function(x){
-          1 - length(intersect(x, seen)) / length(x)
-        })
-      new_taxon <- head(which.max(scaled.weights), 1)
-      seen <- union(seen, lins[[new_taxon]])
-      chosen_taxa <- c(chosen_taxa, new_taxon)
-    }
+    chosen_id <- which.max(
+      # Divide initial weight by the mean number of times each ancestral node
+      # has been passed through.
+      weights / sapply(lins, function(x) mean(k[x]))
+    )
+
+    # number of times each node has been passed through
+    k[lins[[chosen_id]]] <- k[lins[[chosen_id]]] + base ^ seq_along(lins[[chosen_id]])
+
+    # This is a hacky way of preventing a given leaf from being selected
+    k[chosen_id] <- Inf
+
+    chosen <- append(chosen, chosen_id)
   }
 
-  subtree(tree, chosen_taxa, collapse=collapse)
+  # tip.color <- ifelse((1:nleafs(tree)) %in% chosen, "blue", "black")
+  #
+  # pdf('z.pdf')
+  # plot(tree, tip.color=tip.color, cex=0.2, type='cladogram')
+  # dev.off()
+
+  subtree(tree, chosen, collapse=collapse)
 
 }
+
 
 #' Apply f to each outgroup branch ascending node id
 #'

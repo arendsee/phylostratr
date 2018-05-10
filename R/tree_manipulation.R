@@ -234,7 +234,7 @@ nleafs.phylo <- function(x){
 #' @param x phylo object
 #' @param id A single name or index
 #' @param use_name Should names be used rather than internal ids
-#' @param type id type: ['name', 'id', 'auto']
+#' @param type id type: ['name', 'index', 'auto']
 #' @param ... Arguments passed on to \code{lineage.phylo}
 #' @examples
 #' data(atree)
@@ -294,7 +294,7 @@ tree_size.phylo <- function(x){
 #'
 #' @param x phylo object
 #' @param id vector of ids or names
-#' @param type id type: ['name', 'id', 'auto']
+#' @param type id type: ['name', 'index', 'auto']
 #' @return vector of parent ids (NA if root)
 #' @param ... Arguments passed on to \code{parent.phylo}
 #' @export
@@ -320,7 +320,7 @@ parent.phylo <- function(x, id=1:tree_size(x), type='auto', ...){
 #'
 #' @param x phylo object
 #' @param id vector of ids or names
-#' @param type id type: ['name', 'id', 'auto']
+#' @param type id type: ['name', 'index', 'auto']
 #' @param ... Arguments passed on to \code{children.phylo}
 #' @return vector of children, (integer(0) if there are no children)
 #' @export
@@ -344,7 +344,7 @@ children.phylo <- function(x, id, type='auto', ...){
 #'
 #' @param x phylo object
 #' @param id vector of ids or names
-#' @param type id type: ['name', 'id', 'auto']
+#' @param type id type: ['name', 'index', 'auto']
 #' @param ... Arguments passed on to \code{is_root.phylo}
 #' @return logical vector
 #' @export
@@ -396,7 +396,7 @@ get_root.phylo <- function(x){
 #'
 #' @param x phylo object
 #' @param id vector of ids or names
-#' @param type id type: ['name', 'id', 'auto']
+#' @param type id type: ['name', 'index', 'auto']
 #' @param ... Arguments passed on to \code{descendent_nodes.phylo}
 #' @return integer vector of leaf and node ids
 #' @export
@@ -458,7 +458,7 @@ descendents.phylo <- function(x, id, ...){
 #' @param id vector of ids or names
 #' @param collapse logical collapse edges around nodes with a single descendent
 #' @param descend logical include all descendents of each id
-#' @param type id type: ['name', 'id', 'auto']
+#' @param type id type: ['name', 'index', 'auto']
 #' @param ... Arguments sent to \code{subtree.phylo}
 #' @return phylo object
 #' @examples
@@ -569,7 +569,7 @@ replace_branch <- function(x, y, node){
 #'
 #' @param x phylo object
 #' @param id vector of ids or names
-#' @param type id type: ['name', 'id', 'auto']
+#' @param type id type: ['name', 'index', 'auto']
 #' @param ... Arguments sent to \code{sisters.phylo}
 #' @return integer vector of indices
 #' @export
@@ -599,7 +599,7 @@ sisters.phylo <- function(x, id, type='auto', ...){
 #'
 #' @param x phylo object
 #' @param id vector of ids or names
-#' @param type id type: ['name', 'id', 'auto']
+#' @param type id type: ['name', 'index', 'auto']
 #' @param ... Arguments passed to \code{sister_trees.phylo} 
 #' @return list of phylo objects
 #' @export
@@ -629,7 +629,7 @@ sister_trees.phylo <- function(x, id, type='auto', ...){
 #'
 #' @param x phylo object
 #' @param id vector of indices or names 
-#' @param type id type: ['name', 'id', 'auto']
+#' @param type id type: ['name', 'index', 'auto']
 #' @param ... Arguments sent to \code{prune.phylo}
 #' @export
 #' @name prune
