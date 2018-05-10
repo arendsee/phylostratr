@@ -351,6 +351,23 @@ ds <- results %>%
 require(mvtnorm)
 ```
 
+```{r}
+
+# p-value for hypothesis that at least one of the tests p reject the null
+#  * Assumes independence
+fishers_method <- function(p){
+    q <- -2 * sum(log(p))
+    df <- 2 * length(p) # degrees of freedom
+    pchisq(q, df, lower.tail=FALSE) 
+}
+fishers_method(c(0.01, 0.02, 0.03))
+
+# To adapt this method to work with dependent data is not trivial.
+require(EmpiricalBrownsMethod)
+empiricalBrownsMethod(c(0.01, 0.02, 0.03))
+```
+Poole, William, et al. "Combining dependent P-values with an empirical adaptation of Brown’s method." Bioinformatics 32.17 (2016): i430-i436.
+
 # System Info
 
 ```{r}
