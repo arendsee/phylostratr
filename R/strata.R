@@ -35,6 +35,7 @@ is_valid_strata <- function(strata, required=NULL, check_focal=TRUE){
 #' the tree. A weight of 1 will have no influence, lower than one means the
 #' species is less likely to be selected.
 #' @param collapse Should nodes with a single descendent be collapse?
+#' @param FUN The diversification algorithm to use
 #' @return phylo object
 #' @export
 #' @examples
@@ -45,7 +46,7 @@ is_valid_strata <- function(strata, required=NULL, check_focal=TRUE){
 #'
 #' # do not to include the 't1' species
 #' diverse_subtree(atree, 4, weights=c(t1=0))
-diverse_subtree <- function(tree, n, weights=NULL, collapse=FALSE){
+diverse_subtree <- function(tree, n, weights=NULL, collapse=FALSE, FUN=algo1, ...){
 
   if(class(tree) == 'Strata'){
     tree <- tree@tree
@@ -64,29 +65,9 @@ diverse_subtree <- function(tree, n, weights=NULL, collapse=FALSE){
 
   n <- min(n, nleafs(tree))
 
-  lins <- lapply(1:nleafs(tree), lineage, type="index", x=tree)
+  lineages <- lapply(1:nleafs(tree), lineage, type="index", x=tree)
 
-  k <- rep(1, nleafs(tree) + tree$Nnode) 
-
-  chosen <- NULL
-
-  base = 1.2 
-
-  for(i in 1:n){
-    chosen_id <- which.max(
-      # Divide initial weight by the mean number of times each ancestral node
-      # has been passed through.
-      weights / sapply(lins, function(x) mean(k[x]))
-    )
-
-    # number of times each node has been passed through
-    k[lins[[chosen_id]]] <- k[lins[[chosen_id]]] + base ^ seq_along(lins[[chosen_id]])
-
-    # This is a hacky way of preventing a given leaf from being selected
-    k[chosen_id] <- Inf
-
-    chosen <- append(chosen, chosen_id)
-  }
+  chosen <- FUN(lineages, n, weights, ...)
 
   # tip.color <- ifelse((1:nleafs(tree)) %in% chosen, "blue", "black")
   #
@@ -96,6 +77,53 @@ diverse_subtree <- function(tree, n, weights=NULL, collapse=FALSE){
 
   subtree(tree, chosen, collapse=collapse)
 
+}
+
+.algo1 <- function(lineages, n, weights){
+  for(i in 1:n){
+    if(i == 1){
+      # start by taking the species with the highest phylogeny independent weight
+      chosen <- head(which.max(weights), 1)
+      # initial list of visited taxa
+      seen <- lineages[[chosen]]
+    } else {
+      # then scale weights to penalize species that are close to the chosen species
+      scaled.weights <- weights *
+        sapply(lineages, function(x){
+          1 - length(intersect(x, seen)) / length(x)
+        })
+      new_taxon <- head(which.max(scaled.weights), 1)
+      seen <- union(seen, lineages[[new_taxon]])
+      chosen <- c(chosen, new_taxon)
+    }
+  }
+  chosen
+}
+
+# @param base - determines how quickly penalty rises deeper in the tree
+# @param coef - for coef=0, diversity doesn't have any effect on sampling and
+# species are chosen by their weight. The default is coef=1. For coef > 1,
+# diversity becomes exponentially more important. 
+.algo2 <- function(lineages, n, weights, base=1.1, coef=1){
+  k <- rep(0, max(unlist(lineages))) 
+  chosen <- integer(0)
+  for(i in 1:n){
+
+    # Calculate diversity weights
+    w <- sapply(lineages, function(x) mean(base ^ (k[x] * coef)))
+
+    # ignore observed elements
+    w[chosen] <- Inf
+
+    # Divide initial weight by the mean number of times each ancestral node
+    # has been passed through.
+    chosen_id <- which.max(weights / w)
+
+    # number of times each node has been passed through
+    k[lineages[[chosen_id]]] <- k[lineages[[chosen_id]]] + 1
+    chosen <- append(chosen, chosen_id)
+  }
+  chosen
 }
 
 

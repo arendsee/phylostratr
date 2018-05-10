@@ -247,3 +247,24 @@ Table: A comparison between (Arendsee et al., 2014, `a2014`) and this study's
 --------------------------------------------------------------------------------
 
 
+Comparing diversity algorithms
+
+```{r}
+focal_taxid <- '3702'
+strata <-
+  # Get stratified relatives represented in UniProt
+  uniprot_strata(focal_taxid, from=2)
+
+x1 <- strata_apply(strata, f=diverse_subtree, n=5, weights=uniprot_weight_by_ref(), FUN=.algo1)
+x2 <- strata_apply(strata, f=diverse_subtree, n=5, weights=uniprot_weight_by_ref(), FUN=.algo2)
+x3 <- strata_apply(strata, f=diverse_subtree, n=5, weights=uniprot_weight_by_ref(), FUN=.algo2, base=2)
+x4 <- strata_apply(strata, f=diverse_subtree, n=5, weights=uniprot_weight_by_ref(), FUN=.algo2, base=5)
+
+pdf('z.pdf')
+plot(x1, cex=0.4, type='cladogram', main='algo1')
+plot(x2, cex=0.4, type='cladogram', main='algo2 - 1.1')
+plot(x3, cex=0.4, type='cladogram', main='algo2 - 2.0')
+plot(x4, cex=0.4, type='cladogram', main='algo2 - 5.0')
+dev.off()
+
+```
