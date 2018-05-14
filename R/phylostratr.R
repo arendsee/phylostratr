@@ -3,7 +3,7 @@
 #' @importFrom utils head tail
 #' @importFrom methods new
 #' @importFrom graphics plot
-#' @importFrom stats median quantile
+#' @importFrom stats median quantile pchisq
 #' @importFrom grDevices dev.off pdf
 utils::globalVariables(c("%>%", "%$%", "."))
 NULL

@@ -352,21 +352,36 @@ require(mvtnorm)
 ```
 
 ```{r}
-
 # p-value for hypothesis that at least one of the tests p reject the null
 #  * Assumes independence
 fishers_method <- function(p){
     q <- -2 * sum(log(p))
     df <- 2 * length(p) # degrees of freedom
-    pchisq(q, df, lower.tail=FALSE) 
+    pchisq(q, df, lower.tail=FALSE)
 }
 fishers_method(c(0.01, 0.02, 0.03))
 
-# To adapt this method to work with dependent data is not trivial.
-require(EmpiricalBrownsMethod)
-empiricalBrownsMethod(c(0.01, 0.02, 0.03))
+# require(reshape2)
+# d <-
+#
+# results$staxid <- as.character(results$staxid)
+# seqids <- unique(results$qseqid)
+# targets <- unique(results$staxid)
+# m <- matrix(rep(0, length(seqids)*length(targets)), ncol=length(targets))
+# m[results[, c('qseqid', 'staxid')]] <- results$score
+#
+# d <- acast(results, qseqid ~ staxid, value.var='score')
+# # truncate 0's to global min
+# d[is.na(d)] <- 28
+#
+# # To adapt this method to work with dependent data is not trivial.
+# require(EmpiricalBrownsMethod)
+# empiricalBrownsMethod(d, (1 - exp(results$evalue)))
+#
 ```
 Poole, William, et al. "Combining dependent P-values with an empirical adaptation of Brown’s method." Bioinformatics 32.17 (2016): i430-i436.
+
+
 
 # System Info
 

@@ -36,6 +36,7 @@ is_valid_strata <- function(strata, required=NULL, check_focal=TRUE){
 #' species is less likely to be selected.
 #' @param collapse Should nodes with a single descendent be collapse?
 #' @param FUN The diversification algorithm to use
+#' @param ... Additional arguments passed to the diversification algorithm function
 #' @return phylo object
 #' @export
 #' @examples
@@ -46,7 +47,7 @@ is_valid_strata <- function(strata, required=NULL, check_focal=TRUE){
 #'
 #' # do not to include the 't1' species
 #' diverse_subtree(atree, 4, weights=c(t1=0))
-diverse_subtree <- function(tree, n, weights=NULL, collapse=FALSE, FUN=algo1, ...){
+diverse_subtree <- function(tree, n, weights=NULL, collapse=FALSE, FUN=.algo1, ...){
 
   if(class(tree) == 'Strata'){
     tree <- tree@tree
@@ -69,17 +70,11 @@ diverse_subtree <- function(tree, n, weights=NULL, collapse=FALSE, FUN=algo1, ..
 
   chosen <- FUN(lineages, n, weights, ...)
 
-  # tip.color <- ifelse((1:nleafs(tree)) %in% chosen, "blue", "black")
-  #
-  # pdf('z.pdf')
-  # plot(tree, tip.color=tip.color, cex=0.2, type='cladogram')
-  # dev.off()
-
   subtree(tree, chosen, collapse=collapse)
 
 }
 
-.algo1 <- function(lineages, n, weights){
+.algo1 <- function(lineages, n, weights, ...){
   for(i in 1:n){
     if(i == 1){
       # start by taking the species with the highest phylogeny independent weight
@@ -100,27 +95,26 @@ diverse_subtree <- function(tree, n, weights=NULL, collapse=FALSE, FUN=algo1, ..
   chosen
 }
 
-# @param base - determines how quickly penalty rises deeper in the tree
-# @param coef - for coef=0, diversity doesn't have any effect on sampling and
-# species are chosen by their weight. The default is coef=1. For coef > 1,
-# diversity becomes exponentially more important. 
-.algo2 <- function(lineages, n, weights, base=1.1, coef=1){
+.algo2 <- function(lineages, n, weights, ...){
   k <- rep(0, max(unlist(lineages))) 
-  chosen <- integer(0)
   for(i in 1:n){
 
-    # Calculate diversity weights
-    w <- sapply(lineages, function(x) mean(base ^ (k[x] * coef)))
+    w <- if(i == 1){
+      1
+    } else {
+      # Calculate diversity weights: the mean number of times each ancestral
+      # node has been passed through.
+      w <- sapply(lineages, function(x) mean(k[x]))
+      # ignore observed elements
+      w[chosen] <- Inf
+      w
+    }
 
-    # ignore observed elements
-    w[chosen] <- Inf
-
-    # Divide initial weight by the mean number of times each ancestral node
-    # has been passed through.
+    # Divide initial weight by the diversity score
     chosen_id <- which.max(weights / w)
 
     # number of times each node has been passed through
-    k[lineages[[chosen_id]]] <- k[lineages[[chosen_id]]] + 1
+    k[lineages[[chosen_id]][-1]] <- k[lineages[[chosen_id]][-1]] + 1
     chosen <- append(chosen, chosen_id)
   }
   chosen
@@ -221,10 +215,66 @@ add_taxa <- function(strata, taxa){
 #' @return A function of a dataframe that has the column 'evalue', the function
 #' @export
 classify_by_evalue <- function(threshold){
-  function(x){
+  function(x, ...){
     !is.na(x$evalue) & (x$evalue < threshold)
   }
 }
+
+#' Infer homology based on p-value with Fisher's method 
+#'
+#' @param threshold P-value threshold
+#' @export
+classify_with_fisher <- function(threshold){
+  fishers_method <- function(p){
+      q <- -2 * sum(log(p))
+      df <- 2 * length(p) # degrees of freedom
+      pchisq(q, df, lower.tail=FALSE)
+  }
+  function(x){
+    x$pval <- ifelse(is.na(x), 1, 1 - exp(-1 * x$evalue))
+    dplyr::group_by(x, .data$qseqid, .data$mrca) %>%
+      dplyr::mutate(pval = fishers_method(.data$pval)) %>%
+      { .$pval < threshold }
+  }
+}
+
+# #' Infer homology based on p-value with Brown's method
+# #'
+# #' @export
+# classify_with_brown <- function(threshold){
+#   function(x){
+#     x$pval <- ifelse(is.na(x), 0.5, 1 - exp(-1 * x$evalue))
+#     x$score[is.na(x$score)] <- 28
+#     dplyr::group_by(x, qseqid, mrca) %>%
+#       dplyr::mutate(pval_brown = empiricalBrownsMethod(
+#         p_values    = pval,
+#         extra_info  = TRUE,
+#         data_matrix = acast(data.frame(x=qseqid, y=staxid, v=score), x ~ y, value.var='v')
+#       )$P_test) %>%
+#       { .$pval_brown < threshold }
+#   }
+# }
+
+# s1 <- function(d){
+#     d$pval <- 1 - exp(-d$evalue)
+#     dplyr::group_by(d, qseqid, mrca, ps) %>%
+#         dplyr::summarize(p_hom = max(pval))
+# }
+# x1 <- s1(results)
+# x1f <- dplyr::group_by(x1, qseqid) %>%
+#     dplyr::filter(p_hom < 0.01) %>%
+#     dplyr::summarize(mrca=mrca[which.min(ps)], p_hom=p_hom[which.min(ps)], ps = min(ps))
+#
+# s2 <- function(d){
+#     d$pval <- 1 - exp(-d$evalue)
+#     dplyr::group_by(d, qseqid, mrca, ps) %>%
+#         dplyr::summarize(p_hom = 1 - prod(1 - pval))
+# }
+# x2 <- s2(results)
+# x2f <- dplyr::group_by(x2, qseqid) %>%
+#     dplyr::filter(p_hom < 0.01) %>%
+#     dplyr::summarize(mrca=mrca[which.min(ps)], p_hom=p_hom[which.min(ps)], ps = min(ps))
+
 
 #' Get an ordered factor mapping MRCA taxon IDs (as vector names) to names
 #'
@@ -251,15 +301,17 @@ get_mrca_names <- function(hittable){
 #' be a named factor, with names corresponding to taxon IDs. It is used to make
 #' the \code{mrca_name} column. It will be used mostly in plots and reports;
 #' internally the taxon ids are used.
+#' @param ... Additional arguments sent to the classifier
 #' @export
 stratify <- function(
     hittable,
     classifier   = classify_by_evalue(1e-5),
-    strata_names = get_mrca_names(hittable)
+    strata_names = get_mrca_names(hittable),
+    ...
   ){
   orphan_ps <- max(hittable$ps)
   orphan_mrca <- levels(strata_names)[length(strata_names)]
-  hittable[classifier(hittable), ] %>%
+  hittable[classifier(hittable, ...), ] %>%
     dplyr::select(.data$qseqid, .data$mrca, .data$ps) %>%
     dplyr::group_by(.data$qseqid) %>%
     dplyr::filter(.data$ps == min(.data$ps)) %>%
