@@ -220,6 +220,14 @@ classify_by_evalue <- function(threshold){
   }
 }
 
+classify_by_pval_bonf <- function(threshold){
+  function(x, ...){
+    dplyr::group_by(x, mrca) %>%
+    dplyr::mutate(pval.bonf = (1 - exp(-1 * evalue)) * length(unique(staxid))) %>% 
+    { !is.na(.$pval.bonf) & .$pval.bonf < threshold }
+  }
+}
+
 #' Infer homology based on p-value with Fisher's method 
 #'
 #' @param threshold P-value threshold
@@ -237,44 +245,6 @@ classify_with_fisher <- function(threshold){
       { .$pval < threshold }
   }
 }
-
-# #' Infer homology based on p-value with Brown's method
-# #'
-# #' @export
-# classify_with_brown <- function(threshold){
-#   function(x){
-#     x$pval <- ifelse(is.na(x), 0.5, 1 - exp(-1 * x$evalue))
-#     x$score[is.na(x$score)] <- 28
-#     dplyr::group_by(x, qseqid, mrca) %>%
-#       dplyr::mutate(pval_brown = empiricalBrownsMethod(
-#         p_values    = pval,
-#         extra_info  = TRUE,
-#         data_matrix = acast(data.frame(x=qseqid, y=staxid, v=score), x ~ y, value.var='v')
-#       )$P_test) %>%
-#       { .$pval_brown < threshold }
-#   }
-# }
-
-# s1 <- function(d){
-#     d$pval <- 1 - exp(-d$evalue)
-#     dplyr::group_by(d, qseqid, mrca, ps) %>%
-#         dplyr::summarize(p_hom = max(pval))
-# }
-# x1 <- s1(results)
-# x1f <- dplyr::group_by(x1, qseqid) %>%
-#     dplyr::filter(p_hom < 0.01) %>%
-#     dplyr::summarize(mrca=mrca[which.min(ps)], p_hom=p_hom[which.min(ps)], ps = min(ps))
-#
-# s2 <- function(d){
-#     d$pval <- 1 - exp(-d$evalue)
-#     dplyr::group_by(d, qseqid, mrca, ps) %>%
-#         dplyr::summarize(p_hom = 1 - prod(1 - pval))
-# }
-# x2 <- s2(results)
-# x2f <- dplyr::group_by(x2, qseqid) %>%
-#     dplyr::filter(p_hom < 0.01) %>%
-#     dplyr::summarize(mrca=mrca[which.min(ps)], p_hom=p_hom[which.min(ps)], ps = min(ps))
-
 
 #' Get an ordered factor mapping MRCA taxon IDs (as vector names) to names
 #'

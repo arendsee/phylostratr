@@ -8,6 +8,7 @@ Depends: R (>= 3.4.0)
 Imports:
     ape,
     Biostrings,
+    EmpiricalBrownsMethod,
     curl,
     dplyr,
     ggplot2,
