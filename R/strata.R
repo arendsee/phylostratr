@@ -220,6 +220,18 @@ classify_by_evalue <- function(threshold){
   }
 }
 
+#' Infer homology inference based on a hard p-value threshold
+#'
+#' @param threshold An e-value threshold
+#' @return A function of a dataframe that has the column 'evalue', the function
+#' @export
+classify_by_pvalue <- function(threshold){
+  function(x, ...){
+    p <- (1 - exp(-1 * x$evalue))
+    !is.na(p) & (p < threshold)
+  }
+}
+
 classify_by_pval_bonf <- function(threshold){
   function(x, ...){
     dplyr::group_by(x, mrca) %>%
@@ -232,7 +244,7 @@ classify_by_pval_bonf <- function(threshold){
 #'
 #' @param threshold P-value threshold
 #' @export
-classify_with_fisher <- function(threshold){
+classify_by_fisher <- function(threshold){
   fishers_method <- function(p){
       q <- -2 * sum(log(p))
       df <- 2 * length(p) # degrees of freedom
@@ -502,3 +514,48 @@ rename_species <- function(strata, old_name, new_name){
   }
   strata
 }
+
+
+
+# threshold=0.05/length(unique(results$mrca))
+# d <- list(
+#   minP_5 = stratify(results, classify_by_pvalue(1e-5))$mrca_name %>% summary,
+#   minP_T = stratify(results, classify_by_pvalue(threshold))$mrca_name %>% summary,
+#   bonf_5 = stratify(results, classify_by_pval_bonf(1e-5))$mrca_name %>% summary,
+#   bonf_T = stratify(results, classify_by_pval_bonf(threshold))$mrca_name %>% summary,
+#   fish_5 = stratify(results, classify_by_fisher(1e-5))$mrca_name %>% summary,
+#   fish_T = stratify(results, classify_by_fisher(threshold))$mrca_name %>% summary
+# )
+#
+# m1 <- data.frame(
+#   phylostratum = names(d$minE_5),
+#   minE_5 = d$minE_5,
+#   minE_T = d$minE_T,
+#   bonf_5 = d$bonf_5,
+#   bonf_T = d$bonf_T,
+#   fish_5 = d$fish_5,
+#   fish_T = d$fish_T
+# )
+# rownames(m1) <- NULL
+# m2 <- data.frame(
+#   phylostratum = factor(names(d$minE_5), levels=names(d$minE_5)),
+#   minE_5 = log2( d$minE_5 / d$minE_5 ),
+#   minE_T = log2( d$minE_T / d$minE_5 ),
+#   bonf_5 = log2( d$bonf_5 / d$minE_5 ),
+#   bonf_T = log2( d$bonf_T / d$minE_5 ),
+#   fish_5 = log2( d$fish_5 / d$minE_5 ),
+#   fish_T = log2( d$fish_T / d$minE_5 )
+# )
+# rownames(m2) <- NULL
+# require(reshape2)
+# m <- melt(m2, id.vars='phylostratum')
+# require(ggplot2)
+# pdf('MBF.pdf')
+# ggplot(m) +
+#   geom_path(aes(x = phylostratum, y=value, color=variable, group=variable)) +
+#   scale_color_brewer(palette="Paired") +
+#   theme(
+#       axis.text.x = element_text(angle=270, hjust=0, vjust=1)
+#   )
+# dev.off()
+# readr::write_tsv(m1, "MBF.tsv")
