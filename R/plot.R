@@ -16,6 +16,15 @@ eval_bins <- function(d, scheme=scheme2){
   .bincode(evalue, c(-Inf, scheme$cutoff, Inf))
 }
 
+#' Compare strata between models
+#'
+#' @param d table with phylostrata classifications as columns 
+#' @return ggplot heatmap object
+#' @export
+plot_compare_strata <- function(d){
+   
+}
+
 plot_one_obo_tree <- function(
   tree,
   stat,

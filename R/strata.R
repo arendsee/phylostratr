@@ -220,6 +220,8 @@ classify_by_evalue <- function(threshold){
   }
 }
 
+.evalue2pvalue <- function(x) { 1 - exp(-1 * x) }
+
 #' Infer homology inference based on a hard p-value threshold
 #'
 #' @param threshold An e-value threshold
@@ -227,16 +229,28 @@ classify_by_evalue <- function(threshold){
 #' @export
 classify_by_pvalue <- function(threshold){
   function(x, ...){
-    p <- (1 - exp(-1 * x$evalue))
+    p <- .evalue2pvalue(x$evalue)
     !is.na(p) & (p < threshold)
   }
 }
 
-classify_by_pval_bonf <- function(threshold){
+classify_assuming_iid <- function(threshold){
   function(x, ...){
-    dplyr::group_by(x, mrca) %>%
-    dplyr::mutate(pval.bonf = (1 - exp(-1 * evalue)) * length(unique(staxid))) %>% 
-    { !is.na(.$pval.bonf) & .$pval.bonf < threshold }
+    m <- dplyr::group_by(x, qseqid, mrca) %>%
+    dplyr::mutate(
+      pval.adj = p.adjust(evalue, ...)
+    ) %>%
+    dplyr::select(qseqid, pval.adj, mrca)
+
+    z <- dplyr::group_by(m, qseqid, mrca) %>%
+      dplyr::summarize(pval = min(pval.adj)) %>%
+      # cast and melt: this completes the data 
+      acast(qseqid ~ mrca, value.var="pval", fill=1) %>%
+      apply(1, p.adjust, ...) %>% t
+    
+    p <- z[as.matrix(x[, c('qseqid', 'mrca')])]
+
+    { !is.na(p) & p < threshold }
   }
 }
 
@@ -251,7 +265,7 @@ classify_by_fisher <- function(threshold){
       pchisq(q, df, lower.tail=FALSE)
   }
   function(x){
-    x$pval <- ifelse(is.na(x), 1, 1 - exp(-1 * x$evalue))
+    x$pval <- ifelse(is.na(x), 1, .evalue2pvalue(x$evalue))
     dplyr::group_by(x, .data$qseqid, .data$mrca) %>%
       dplyr::mutate(pval = fishers_method(.data$pval)) %>%
       { .$pval < threshold }
@@ -517,45 +531,34 @@ rename_species <- function(strata, old_name, new_name){
 
 
 
-# threshold=0.05/length(unique(results$mrca))
+# # number of phylostrata
 # d <- list(
-#   minP_5 = stratify(results, classify_by_pvalue(1e-5))$mrca_name %>% summary,
-#   minP_T = stratify(results, classify_by_pvalue(threshold))$mrca_name %>% summary,
-#   bonf_5 = stratify(results, classify_by_pval_bonf(1e-5))$mrca_name %>% summary,
-#   bonf_T = stratify(results, classify_by_pval_bonf(threshold))$mrca_name %>% summary,
-#   fish_5 = stratify(results, classify_by_fisher(1e-5))$mrca_name %>% summary,
-#   fish_T = stratify(results, classify_by_fisher(threshold))$mrca_name %>% summary
+#   bon05 = stratify(results, classify_assuming_iid( 5e-2 ), method='bonferroni')$mrca_name,
+#   bon2  = stratify(results, classify_assuming_iid( 1e-2 ), method='bonferroni')$mrca_name,
+#   bon3  = stratify(results, classify_assuming_iid( 1e-3 ), method='bonferroni')$mrca_name,
+#   bon4  = stratify(results, classify_assuming_iid( 1e-4 ), method='bonferroni')$mrca_name,
+#   bon5  = stratify(results, classify_assuming_iid( 1e-5 ), method='bonferroni')$mrca_name,
+#   bon6  = stratify(results, classify_assuming_iid( 1e-6 ), method='bonferroni')$mrca_name
+#
+#   holm05 = stratify(results, classify_assuming_iid( 5e-2 ), method='holm')$mrca_name,
+#   holm2  = stratify(results, classify_assuming_iid( 1e-2 ), method='holm')$mrca_name,
+#   holm3  = stratify(results, classify_assuming_iid( 1e-3 ), method='holm')$mrca_name,
+#   holm4  = stratify(results, classify_assuming_iid( 1e-4 ), method='holm')$mrca_name,
+#   holm5  = stratify(results, classify_assuming_iid( 1e-5 ), method='holm')$mrca_name,
+#   holm6  = stratify(results, classify_assuming_iid( 1e-6 ), method='holm')$mrca_name
 # )
 #
-# m1 <- data.frame(
-#   phylostratum = names(d$minE_5),
-#   minE_5 = d$minE_5,
-#   minE_T = d$minE_T,
-#   bonf_5 = d$bonf_5,
-#   bonf_T = d$bonf_T,
-#   fish_5 = d$fish_5,
-#   fish_T = d$fish_T
-# )
-# rownames(m1) <- NULL
-# m2 <- data.frame(
-#   phylostratum = factor(names(d$minE_5), levels=names(d$minE_5)),
-#   minE_5 = log2( d$minE_5 / d$minE_5 ),
-#   minE_T = log2( d$minE_T / d$minE_5 ),
-#   bonf_5 = log2( d$bonf_5 / d$minE_5 ),
-#   bonf_T = log2( d$bonf_T / d$minE_5 ),
-#   fish_5 = log2( d$fish_5 / d$minE_5 ),
-#   fish_T = log2( d$fish_T / d$minE_5 )
-# )
-# rownames(m2) <- NULL
+# m <- lapply(d, summary) %>% as.data.frame()
+# readr::write_tsv(m, "MBF.tsv")
+#
 # require(reshape2)
-# m <- melt(m2, id.vars='phylostratum')
 # require(ggplot2)
+#
 # pdf('MBF.pdf')
-# ggplot(m) +
+# ggplot(melt(m)) +
 #   geom_path(aes(x = phylostratum, y=value, color=variable, group=variable)) +
 #   scale_color_brewer(palette="Paired") +
 #   theme(
 #       axis.text.x = element_text(angle=270, hjust=0, vjust=1)
 #   )
 # dev.off()
-# readr::write_tsv(m1, "MBF.tsv")
