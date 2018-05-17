@@ -1,0 +1,109 @@
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage{fullpage}
+
+% Prevent floats from crossing section or subsection boundaries
+\usepackage[section]{placeins}
+% Credit for this voodoo goes to Heiko Oberdiek
+\makeatletter
+\AtBeginDocument{%
+  \expandafter\renewcommand\expandafter\subsection\expandafter{%
+    \expandafter\@fb@secFB\subsection
+  }%
+}
+
+\makeatother
+\title{Phylostratigraph with EM}
+\author{Zebulun Arendsee}
+\begin{document}
+
+Here I will describe an approach to expressing phylostratigraphy as maximum
+likelihood problem and solving with EM.
+
+We are interested in a focal species with $N$ genes and are comparing it to the
+proteomes of $M$ target species. The best hit of each of the $N$ focal genes is
+recorded against each of the $M$ target species as the probability that a hit
+with this score would appear by chance. Thus we have the observed data $X$, a
+matrix with $N$ rows and $M$ columns.
+
+We are also given a species tree. We do not know branch lengths. We also assume
+the topology is correct. The tree may not be fully resolved (i.e. there may be
+polytomies where one node has multiple children).
+
+We assume a single-birth model, where each node up the backbone has an
+unobserved probability $p_k$ of being MRCA for a given gene. The
+presence/absence state of a gene changes along a branch according to the
+transition matrix: 
+
+\begin{table}[htpb]
+  \centering
+  \begin{tabular}{l | l l}
+  {} & present         & absent \\ 
+  \hline
+  present & $1 - b_k r_i$ & $b_k r_i$ \\ 
+  absent  & 0             & 1 
+  \end{tabular}
+\end{table}
+
+Where
+
+\begin{itemize}
+  \item $b_k$ is the disappearance rate for the $k$th branch in the tree (not
+    the same as a deletion rate, since missing data due to bad sequence is
+    included).
+  \item $r_i$ is the disappearance rate for the $i$th gene. 
+\end{itemize}
+
+We want to find the youngest clade that contains all true homologs to each
+focal gene. 
+
+The observed data are $X$ and $T$ (the topology of the tree). The missing data
+are the binary homolog presense/absence class for eachfocal gene against each
+target species, $Y$. The parameters are the branch lengths $b$ and the
+focal-gene specific disappearance rate $r_i$. 
+
+\begin{align}
+  L(X,Y,T | \boldsymbol{b}, \boldsymbol{r}, \boldsymbol{p}) & =
+    \prod_{i=1}^N L(\boldsymbol{x}_i, \boldsymbol{y}_i, T | \boldsymbol{b}, r_i, \boldsymbol{p})
+    \tag*{(independence between genes)}
+\end{align}
+
+The inner likelihood can be broken into two pieces, the probability of the true
+homology states given the tree and the probability of the observed sequence
+similarity given the true homology states.
+
+\begin{align*}
+  L(\boldsymbol{x}_i, \boldsymbol{y}_i, T | \boldsymbol{b}, r_i, \boldsymbol{p}) & =
+    P(\boldsymbol{y}_i | \boldsymbol{b}, r_i, \boldsymbol{p})
+    P(\boldsymbol{x}_i | \boldsymbol{y}_i)
+\end{align*}
+
+Finding the probability of the homology states given the tree requires taking
+the "present" state from each target species with a true homolog and
+propagating the state up to the MRCA of all targets with the "present" state.
+Then the disappearance pattern likelihood can be calculated.
+
+\begin{align*}
+    P(\boldsymbol{y}_i | \boldsymbol{b}, r_i, \boldsymbol{p}) & =
+      \prod_{k \in T} \begin{cases}
+        a_k = 1, b_k = 1 \quad (1 - b_k r_i) & \text{(gene is propagated)}   \\
+        a_k = 1, b_k = 0 \quad  b_k r_i      & \text{(gene disappears)}      \\
+        a_k = 0, b_k = 1 \quad  p_k          & \text{(origin event at MRCA)} \\
+        a_k = 0, b_k = 0 \quad  1            & \text{(gene is gone and cannot come back)}
+      \end{cases}
+\end{align*}
+
+Calculating the likelihood of the homology state given the score 
+
+\begin{align*}
+  P(\boldsymbol{y}_i | \boldsymbol{x}_i) & = \prod_{j=1}^M \begin{cases} 
+    Y_{ij}=0 \quad X_{ij}      & \text{Focal gene i has no homolog in species j} \\
+    Y_{ij}=1 \quad 1 - X_{ij}  & \text{Focal gene i has homolog in species j}
+  \end{cases}
+\end{align*}
+
+Where $X_{ij}$ is the probability of seeing the observed similarity score by
+chance.
+
+
+\end{document}
