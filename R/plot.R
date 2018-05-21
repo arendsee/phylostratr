@@ -16,13 +16,45 @@ eval_bins <- function(d, scheme=scheme2){
   .bincode(evalue, c(-Inf, scheme$cutoff, Inf))
 }
 
+
+plot_compare_two_strata <- function(x){
+  # for now, only use the first two columns
+  x <- x[, c(1,2)]
+  labels <- names(x)
+  names(x) <- c("a", "b")
+
+  cnt <- dplyr::group_by(x, a, b) %>% dplyr::count() 
+
+  m <- cnt %>%
+    reshape2::acast(a ~ b, fill=0) %>%
+    apply(1, function(x) x / sum(x)) %>% t %>%
+    reshape2::melt(value.name='value')
+
+  m$Var1 <- factor(as.character(m$Var1), levels=rev(levels(m$Var1)))
+  m$value <- ifelse(m$value == 0, NA, m$value)
+
+  ggplot2::ggplot() +
+    ggplot2::geom_bin2d(data=m, ggplot2::aes(x=Var1, y=Var2, fill=value)) +
+    ggplot2::scale_fill_distiller(
+      palette = "Spectral",
+      labels  = scales::percent
+    ) +
+    ggplot2::xlab(labels[1]) +
+    ggplot2::ylab(labels[2]) +
+    ggplot2::theme(
+        axis.text.x = ggplot2::element_text(angle=270, hjust=0, vjust=1),
+        legend.title = ggplot2::element_blank()
+    ) +
+    ggplot2::geom_text(data=cnt, mapping=ggplot2::aes(x=a, y=b, label=n), size=2)
+}
+
 #' Compare strata between models
 #'
-#' @param d table with phylostrata classifications as columns 
+#' @param x data.frame with phylostrata classifications as columns 
 #' @return ggplot heatmap object
 #' @export
-plot_compare_strata <- function(d){
-   
+plot_compare_strata <- function(x){
+
 }
 
 plot_one_obo_tree <- function(

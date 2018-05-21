@@ -236,19 +236,28 @@ classify_by_pvalue <- function(threshold){
 
 classify_assuming_iid <- function(threshold){
   function(x, ...){
+    exp_n <- length(unique(x$qseqid))
+
     m <- dplyr::group_by(x, qseqid, mrca) %>%
     dplyr::mutate(
-      pval.adj = p.adjust(evalue, ...)
+      pval.adj = p.adjust(.evalue2pvalue(evalue), ...)
     ) %>%
     dplyr::select(qseqid, pval.adj, mrca)
 
     z <- dplyr::group_by(m, qseqid, mrca) %>%
       dplyr::summarize(pval = min(pval.adj)) %>%
       # cast and melt: this completes the data 
-      acast(qseqid ~ mrca, value.var="pval", fill=1) %>%
+      reshape2::acast(qseqid ~ mrca, value.var="pval", fill=1) %>%
       apply(1, p.adjust, ...) %>% t
-    
+
+    # Add in any rows that were missing, this can happedn when, for reasons
+    # most mysterious, the focal gene does not even match itself. 
+
     p <- z[as.matrix(x[, c('qseqid', 'mrca')])]
+
+    if(exp_n != nrow(z)){
+      stop("classify_assuming_iid is broken - complain to the maintainer")
+    }
 
     { !is.na(p) & p < threshold }
   }
@@ -528,37 +537,3 @@ rename_species <- function(strata, old_name, new_name){
   }
   strata
 }
-
-
-
-# # number of phylostrata
-# d <- list(
-#   bon05 = stratify(results, classify_assuming_iid( 5e-2 ), method='bonferroni')$mrca_name,
-#   bon2  = stratify(results, classify_assuming_iid( 1e-2 ), method='bonferroni')$mrca_name,
-#   bon3  = stratify(results, classify_assuming_iid( 1e-3 ), method='bonferroni')$mrca_name,
-#   bon4  = stratify(results, classify_assuming_iid( 1e-4 ), method='bonferroni')$mrca_name,
-#   bon5  = stratify(results, classify_assuming_iid( 1e-5 ), method='bonferroni')$mrca_name,
-#   bon6  = stratify(results, classify_assuming_iid( 1e-6 ), method='bonferroni')$mrca_name
-#
-#   holm05 = stratify(results, classify_assuming_iid( 5e-2 ), method='holm')$mrca_name,
-#   holm2  = stratify(results, classify_assuming_iid( 1e-2 ), method='holm')$mrca_name,
-#   holm3  = stratify(results, classify_assuming_iid( 1e-3 ), method='holm')$mrca_name,
-#   holm4  = stratify(results, classify_assuming_iid( 1e-4 ), method='holm')$mrca_name,
-#   holm5  = stratify(results, classify_assuming_iid( 1e-5 ), method='holm')$mrca_name,
-#   holm6  = stratify(results, classify_assuming_iid( 1e-6 ), method='holm')$mrca_name
-# )
-#
-# m <- lapply(d, summary) %>% as.data.frame()
-# readr::write_tsv(m, "MBF.tsv")
-#
-# require(reshape2)
-# require(ggplot2)
-#
-# pdf('MBF.pdf')
-# ggplot(melt(m)) +
-#   geom_path(aes(x = phylostratum, y=value, color=variable, group=variable)) +
-#   scale_color_brewer(palette="Paired") +
-#   theme(
-#       axis.text.x = element_text(angle=270, hjust=0, vjust=1)
-#   )
-# dev.off()

@@ -105,5 +105,62 @@ Calculating the likelihood of the homology state given the score
 Where $X_{ij}$ is the probability of seeing the observed similarity score by
 chance.
 
+<<>>=
+# number of phylostrata
+d <- list(
+  holm05 = stratify(results, classify_assuming_iid( 5e-2 ), method='holm')[,       c('qseqid', 'mrca_name')],
+  bon05  = stratify(results, classify_assuming_iid( 5e-2 ), method='bonferroni')[, c('qseqid', 'mrca_name')],
+  holm2  = stratify(results, classify_assuming_iid( 1e-2 ), method='holm')[,       c('qseqid', 'mrca_name')],
+  bon2   = stratify(results, classify_assuming_iid( 1e-2 ), method='bonferroni')[, c('qseqid', 'mrca_name')],
+  holm3  = stratify(results, classify_assuming_iid( 1e-3 ), method='holm')[,       c('qseqid', 'mrca_name')],
+  bon3   = stratify(results, classify_assuming_iid( 1e-3 ), method='bonferroni')[, c('qseqid', 'mrca_name')],
+  holm4  = stratify(results, classify_assuming_iid( 1e-4 ), method='holm')[,       c('qseqid', 'mrca_name')],
+  bon4   = stratify(results, classify_assuming_iid( 1e-4 ), method='bonferroni')[, c('qseqid', 'mrca_name')],
+  holm5  = stratify(results, classify_assuming_iid( 1e-5 ), method='holm')[,       c('qseqid', 'mrca_name')],
+  bon5   = stratify(results, classify_assuming_iid( 1e-5 ), method='bonferroni')[, c('qseqid', 'mrca_name')],
+  holm6  = stratify(results, classify_assuming_iid( 1e-6 ), method='holm')[,       c('qseqid', 'mrca_name')],
+  bon6   = stratify(results, classify_assuming_iid( 1e-6 ), method='bonferroni')[, c('qseqid', 'mrca_name')]
+)
+
+d <- readRDS('d.Rda')
+
+qseqids <- lapply(d, function(x) x$qseqid) %>%
+  {Reduce(f=intersect, .[-1], .[[1]])}
+
+d <- lapply(d, function(x) x[x$qseqid %in% qseqids, ]) %>%
+  lapply(dplyr::arrange, qseqid)
+
+m <- as.data.frame(lapply(d, function(x) x$mrca_name))
+
+gs <- list()
+for(i in 1:(ncol(m) - 1)){
+  for(j in (i+1):ncol(m)){
+    gs[[paste0(names(m)[i], "-", names(m)[j])]] <- plot_compare_two_strata(m[, c(i, j)])
+  }
+}
+gs[[1]]
+
+pdf('all-heat.pdf')
+gs
+dev.off()
+
+
+require(reshape2)
+require(ggplot2)
+m <- lapply(d, function(x) summary(x$mrca_name)) >% as.data.frame()
+readr::write_tsv(m, "MBF.tsv")
+m <- apply(m, 2, function(x) log2(x / m[, 1])) >% as.data.frame
+m$phylostratum <- factor(rownames(m), levels=rownames(m))
+
+pdf('MBF.pdf')
+ggplot(melt(m)) +
+  geom_path(aes(x = phylostratum, y=value, color=variable, group=variable)) +
+  scale_color_brewer(palette="Paired") +
+  theme(
+      axis.text.x = element_text(angle=270, hjust=0, vjust=1)
+  )
+dev.off()
+@
+
 
 \end{document}

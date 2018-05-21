@@ -4,10 +4,10 @@
 \alias{plot_compare_strata}
 \title{Compare strata between models}
 \usage{
-plot_compare_strata(d)
+plot_compare_strata(x)
 }
 \arguments{
-\item{d}{table with phylostrata classifications as columns}
+\item{x}{data.frame with phylostrata classifications as columns}
 }
 \value{
 ggplot heatmap object
