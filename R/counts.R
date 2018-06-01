@@ -21,8 +21,15 @@ make_matrix_from_two_strata <- function(d){
   CountMatrix(x=mat, ylab=labels[1], xlab=labels[2])
 }
 
-# Build a matrix relating 2014 study to 2018, with 2014 classifications on the
-# y axis and 2018 on the x axis.
+#' Build a matrix relating 2014 study to 2018
+#' 
+#' With 2014 classifications on the y axis and 2018 on the x axis.
+#'
+#' @param strata Strata object
+#' @param results data.frame of highest scoring hits of each gene against each target
+#' @param classifier function of 'results' that returns a logical vector
+#' @param return matrix
+#' @export
 make_TIPS_comparison_matrix <- function(strata, results, classifier){
   # Get the strata from the current analysis
   a2018 <- stratify(results)
@@ -57,6 +64,12 @@ make_TIPS_comparison_matrix <- function(strata, results, classifier){
   make_matrix_from_two_strata(d[, -1])
 }
 
+#' Get comparisons of inferences across scoring systems
+#' 
+#' @param results data.frame of highest scoring hits of each gene against each target
+#' @param cache A file where data are cached
+#' @param return list of matrices
+#' @export
 make_significance_matrices <- function(results, cache='significance_list.Rda'){
   d <- access_cache(cache, run_comparison, results)
 
@@ -78,8 +91,12 @@ make_significance_matrices <- function(results, cache='significance_list.Rda'){
   gs
 }
 
-
-# Create matrix counting the distances between factor levels across groups
+#' Get comparisons of inferences across scoring systems
+#' 
+#' @param d data.frame containing a column of group labels and a column of indices
+#' @param labels character vector of labels
+#' @return matrix
+#' @export
 make_jump_matrix <- function(d, labels=NULL){
   # expect two columns
   stopifnot(ncol(d) == 2)
