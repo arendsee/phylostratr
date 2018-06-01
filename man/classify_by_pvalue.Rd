@@ -4,10 +4,12 @@
 \alias{classify_by_pvalue}
 \title{Infer homology inference based on a hard p-value threshold}
 \usage{
-classify_by_pvalue(threshold)
+classify_by_pvalue(threshold, ...)
 }
 \arguments{
 \item{threshold}{An e-value threshold}
+
+\item{...}{Unused}
 }
 \value{
 A function of a dataframe that has the column 'evalue', the function

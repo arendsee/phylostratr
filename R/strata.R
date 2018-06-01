@@ -212,10 +212,11 @@ add_taxa <- function(strata, taxa){
 #' Infer homology inference based on a hard e-value threshold
 #'
 #' @param threshold An e-value threshold
+#' @param ... Unused
 #' @return A function of a dataframe that has the column 'evalue', the function
 #' @export
-classify_by_evalue <- function(threshold){
-  function(x, ...){
+classify_by_evalue <- function(threshold, ...){
+  function(x){
     !is.na(x$evalue) & (x$evalue < threshold)
   }
 }
@@ -225,17 +226,23 @@ classify_by_evalue <- function(threshold){
 #' Infer homology inference based on a hard p-value threshold
 #'
 #' @param threshold An e-value threshold
+#' @param ... Unused
 #' @return A function of a dataframe that has the column 'evalue', the function
 #' @export
-classify_by_pvalue <- function(threshold){
-  function(x, ...){
+classify_by_pvalue <- function(threshold, ...){
+  function(x){
     p <- .evalue2pvalue(x$evalue)
     !is.na(p) & (p < threshold)
   }
 }
 
-classify_assuming_iid <- function(threshold){
-  function(x, ...){
+#' Classify homologs under the independence assumption
+#'
+#' @param threshold The target alpha (e.g. 0.05)
+#' @param ... Additional arguments passed to p.adjust
+#' @export
+classify_assuming_iid <- function(threshold, ...){
+  function(x){
     exp_n <- length(unique(x$qseqid))
 
     m <- dplyr::group_by(x, qseqid, mrca) %>%
@@ -306,17 +313,15 @@ get_mrca_names <- function(hittable){
 #' be a named factor, with names corresponding to taxon IDs. It is used to make
 #' the \code{mrca_name} column. It will be used mostly in plots and reports;
 #' internally the taxon ids are used.
-#' @param ... Additional arguments sent to the classifier
 #' @export
 stratify <- function(
     hittable,
     classifier   = classify_by_evalue(1e-5),
-    strata_names = get_mrca_names(hittable),
-    ...
+    strata_names = get_mrca_names(hittable)
   ){
   orphan_ps <- max(hittable$ps)
   orphan_mrca <- levels(strata_names)[length(strata_names)]
-  hittable[classifier(hittable, ...), ] %>%
+  hittable[classifier(hittable), ] %>%
     dplyr::select(.data$qseqid, .data$mrca, .data$ps) %>%
     dplyr::group_by(.data$qseqid) %>%
     dplyr::filter(.data$ps == min(.data$ps)) %>%

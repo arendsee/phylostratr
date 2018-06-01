@@ -13,154 +13,171 @@
 }
 
 \makeatother
-\title{Phylostratigraph with EM}
+
+\title{phylostratr visuals}
 \author{Zebulun Arendsee}
 \begin{document}
 
-Here I will describe an approach to expressing phylostratigraphy as maximum
-likelihood problem and solving with EM.
+% Assessing the significance of hits when determining phylostrata has not been
+% considered carefully in phylostratigraphy literature.
+%
+% The phylostratigraphy problem reduces to the finding the most likely common
+% ancestor of all homologs of a focal species gene.
+%
+% \begin{equation}
+%   \hat{k}_{MLE} = \text{argmax} \left\{ P(S_i = 1) \prod_{j=1}^{i} P(S_j = 0) \right\}_{i=1}^K
+% \end{equation}
+%
+% Where $P(S_i = 1)$ is the probability that a homolog is in some species
+% descending from the ith stratum. $K$ is the total number of strata.
+%
+% The hypothesis that is actually being tested is not explicitly stated
+%
+% The common practice of choosing a rather arbitrary E-value cutoff (usually $10^{-3}$ or $10^{-5}$).
 
-We are interested in a focal species with $N$ genes and are comparing it to the
-proteomes of $M$ target species. The best hit of each of the $N$ focal genes is
-recorded against each of the $M$ target species as the probability that a hit
-with this score would appear by chance. Thus we have the observed data $X$, a
-matrix with $N$ rows and $M$ columns.
 
-We are also given a species tree. We do not know branch lengths. We also assume
-the topology is correct. The tree may not be fully resolved (i.e. there may be
-polytomies where one node has multiple children).
 
-We assume a single-birth model, where each node up the backbone has an
-unobserved probability $p_k$ of being MRCA for a given gene. The
-presence/absence state of a gene changes along a branch according to the
-transition matrix: 
+<<heat, eval=FALSE, echo=FALSE>>=
+library(phylostratr)
+source(system.file('case-studies', 'ml-phylostratigraphy', 'functions.R', package='phylostratr'))
+source('/home/rnz/src/git/phylostratr/inst/case-studies/ml-phylostratigraphy/functions.R')
 
-\begin{table}[htpb]
-  \centering
-  \begin{tabular}{l | l l}
-  {} & present         & absent \\ 
-  \hline
-  present & $1 - b_k r_i$ & $b_k r_i$ \\ 
-  absent  & 0             & 1 
-  \end{tabular}
-\end{table}
-
-Where
-
-\begin{itemize}
-  \item $b_k$ is the disappearance rate for the $k$th branch in the tree (not
-    the same as a deletion rate, since missing data due to bad sequence is
-    included).
-  \item $r_i$ is the disappearance rate for the $i$th gene. 
-\end{itemize}
-
-We want to find the youngest clade that contains all true homologs to each
-focal gene. 
-
-The observed data are $X$ and $T$ (the topology of the tree). The missing data
-are the binary homolog presense/absence class for eachfocal gene against each
-target species, $Y$. The parameters are the branch lengths $b$ and the
-focal-gene specific disappearance rate $r_i$. 
-
-\begin{align}
-  L(X,Y,T | \boldsymbol{b}, \boldsymbol{r}, \boldsymbol{p}) & =
-    \prod_{i=1}^N L(\boldsymbol{x}_i, \boldsymbol{y}_i, T | \boldsymbol{b}, r_i, \boldsymbol{p})
-    \tag*{(independence between genes)}
-\end{align}
-
-The inner likelihood can be broken into two pieces, the probability of the true
-homology states given the tree and the probability of the observed sequence
-similarity given the true homology states.
-
-\begin{align*}
-  L(\boldsymbol{x}_i, \boldsymbol{y}_i, T | \boldsymbol{b}, r_i, \boldsymbol{p}) & =
-    P(\boldsymbol{y}_i | \boldsymbol{b}, r_i, \boldsymbol{p})
-    P(\boldsymbol{x}_i | \boldsymbol{y}_i)
-\end{align*}
-
-Finding the probability of the homology states given the tree requires taking
-the "present" state from each target species with a true homolog and
-propagating the state up to the MRCA of all targets with the "present" state.
-Then the disappearance pattern likelihood can be calculated.
-
-\begin{align*}
-    P(\boldsymbol{y}_i | \boldsymbol{b}, r_i, \boldsymbol{p}) & =
-      \prod_{k \in T} \begin{cases}
-        a_k = 1, b_k = 1 \quad (1 - b_k r_i) & \text{(gene is propagated)}   \\
-        a_k = 1, b_k = 0 \quad  b_k r_i      & \text{(gene disappears)}      \\
-        a_k = 0, b_k = 1 \quad  p_k          & \text{(origin event at MRCA)} \\
-        a_k = 0, b_k = 0 \quad  1            & \text{(gene is gone and cannot come back)}
-      \end{cases}
-\end{align*}
-
-Calculating the likelihood of the homology state given the score 
-
-\begin{align*}
-  P(\boldsymbol{y}_i | \boldsymbol{x}_i) & = \prod_{j=1}^M \begin{cases} 
-    Y_{ij}=0 \quad X_{ij}      & \text{Focal gene i has no homolog in species j} \\
-    Y_{ij}=1 \quad 1 - X_{ij}  & \text{Focal gene i has homolog in species j}
-  \end{cases}
-\end{align*}
-
-Where $X_{ij}$ is the probability of seeing the observed similarity score by
-chance.
-
-<<>>=
-# number of phylostrata
-d <- list(
-  holm05 = stratify(results, classify_assuming_iid( 5e-2 ), method='holm')[,       c('qseqid', 'mrca_name')],
-  bon05  = stratify(results, classify_assuming_iid( 5e-2 ), method='bonferroni')[, c('qseqid', 'mrca_name')],
-  holm2  = stratify(results, classify_assuming_iid( 1e-2 ), method='holm')[,       c('qseqid', 'mrca_name')],
-  bon2   = stratify(results, classify_assuming_iid( 1e-2 ), method='bonferroni')[, c('qseqid', 'mrca_name')],
-  holm3  = stratify(results, classify_assuming_iid( 1e-3 ), method='holm')[,       c('qseqid', 'mrca_name')],
-  bon3   = stratify(results, classify_assuming_iid( 1e-3 ), method='bonferroni')[, c('qseqid', 'mrca_name')],
-  holm4  = stratify(results, classify_assuming_iid( 1e-4 ), method='holm')[,       c('qseqid', 'mrca_name')],
-  bon4   = stratify(results, classify_assuming_iid( 1e-4 ), method='bonferroni')[, c('qseqid', 'mrca_name')],
-  holm5  = stratify(results, classify_assuming_iid( 1e-5 ), method='holm')[,       c('qseqid', 'mrca_name')],
-  bon5   = stratify(results, classify_assuming_iid( 1e-5 ), method='bonferroni')[, c('qseqid', 'mrca_name')],
-  holm6  = stratify(results, classify_assuming_iid( 1e-6 ), method='holm')[,       c('qseqid', 'mrca_name')],
-  bon6   = stratify(results, classify_assuming_iid( 1e-6 ), method='bonferroni')[, c('qseqid', 'mrca_name')]
-)
-
-d <- readRDS('d.Rda')
-
-qseqids <- lapply(d, function(x) x$qseqid) %>%
-  {Reduce(f=intersect, .[-1], .[[1]])}
-
-d <- lapply(d, function(x) x[x$qseqid %in% qseqids, ]) %>%
-  lapply(dplyr::arrange, qseqid)
-
-m <- as.data.frame(lapply(d, function(x) x$mrca_name))
-
-gs <- list()
-for(i in 1:(ncol(m) - 1)){
-  for(j in (i+1):ncol(m)){
-    gs[[paste0(names(m)[i], "-", names(m)[j])]] <- plot_compare_two_strata(m[, c(i, j)])
-  }
+if(file.exists('all.Rda')){
+  load('all.Rda')
+} else {
+  default_classifier <- classify_assuming_iid(1e-5, method='bonferroni')
+  results            <- readRDS('arabidopsis-results.Rda')
+  is_present         <- default_classifier(results)
+  strata_table       <- stratify(results, classifier=default_classifier)
+  revenants          <- find_revenants(results, classifier=default_classifier)
+  strata_levels      <- levels(strata_table$mrca_name)
+  strata             <- readRDS('arabidopsis-strata.Rda')
+  save.image('all.Rda')
 }
-gs[[1]]
 
-pdf('all-heat.pdf')
-gs
-dev.off()
+readr::write_tsv(dataframe_significance_comparison(results), "MBF.tsv")
 
-
-require(reshape2)
-require(ggplot2)
-m <- lapply(d, function(x) summary(x$mrca_name)) >% as.data.frame()
-readr::write_tsv(m, "MBF.tsv")
-m <- apply(m, 2, function(x) log2(x / m[, 1])) >% as.data.frame
-m$phylostratum <- factor(rownames(m), levels=rownames(m))
-
-pdf('MBF.pdf')
-ggplot(melt(m)) +
-  geom_path(aes(x = phylostratum, y=value, color=variable, group=variable)) +
-  scale_color_brewer(palette="Paired") +
-  theme(
-      axis.text.x = element_text(angle=270, hjust=0, vjust=1)
+myscheme <- ggplot2::scale_fill_distiller(
+    palette = "Spectral",
+    labels  = scales::percent
   )
+
+
+sigmats <- make_significance_matrices(results)
+jmpmat <- make_jump_matrix(results[is_present, c('qseqid', 'ps')], labels=strata_levels)
+versus_TIPS <- make_TIPS_comparison_matrix(strata, results, default_classfier)
+
+pdf('visualization-report.pdf')
+
+# "MBF.pdf"
+for(m in unlist(sigmats)){plot(m)}
+
+# "2014-vs-2018.pdf"
+plot(versus_TIPS) +
+  ggplot2::ylab("Classification with TIPs dataset") +
+  ggplot2::xlab("Classification with phylostratr dataset") +
+  ggplot2::ggtitle("2014 versus 2018 comparison")
+
+# "strata-jumps.pdf"
+plot(jmpmat) +
+  ggplot2::ylab("Young phylostratum with homolog") +
+  ggplot2::xlab("Next phylostratum with homolog")
+
 dev.off()
+
 @
+
+% TODO: This is an approach fizzles out, there are better methods that use
+% CTMC. This is a venue that I would like to explore in the future, but for now
+% I will leave.
+%
+% Here I will describe an approach to expressing phylostratigraphy as maximum
+% likelihood problem and solving with EM.
+%
+% We are interested in a focal species with $N$ genes and are comparing it to the
+% proteomes of $M$ target species. The best hit of each of the $N$ focal genes is
+% recorded against each of the $M$ target species as the probability that a hit
+% with this score would appear by chance. Thus we have the observed data $X$, a
+% matrix with $N$ rows and $M$ columns.
+%
+% We are also given a species tree. We do not know branch lengths. We also assume
+% the topology is correct. The tree may not be fully resolved (i.e. there may be
+% polytomies where one node has multiple children).
+%
+% We assume a single-birth model, where each node up the backbone has an
+% unobserved probability $p_k$ of being MRCA for a given gene. The
+% presence/absence state of a gene changes along a branch according to the
+% transition matrix:
+%
+% \begin{table}[htpb]
+%   \centering
+%   \begin{tabular}{l | l l}
+%   {} & present         & absent \\
+%   \hline
+%   present & $1 - b_k r_i$ & $b_k r_i$ \\
+%   absent  & 0             & 1
+%   \end{tabular}
+% \end{table}
+%
+% Where
+%
+% \begin{itemize}
+%   \item $b_k$ is the disappearance rate for the $k$th branch in the tree (not
+%     the same as a deletion rate, since missing data due to bad sequence is
+%     included).
+%   \item $r_i$ is the disappearance rate for the $i$th gene.
+% \end{itemize}
+%
+% We want to find the youngest clade that contains all true homologs to each
+% focal gene.
+%
+% The observed data are $X$ and $T$ (the topology of the tree). The missing data
+% are the binary homolog presense/absence class for eachfocal gene against each
+% target species, $Y$. The parameters are the branch lengths $b$ and the
+% focal-gene specific disappearance rate $r_i$.
+%
+% \begin{align}
+%   L(X,Y,T | \boldsymbol{b}, \boldsymbol{r}, \boldsymbol{p}) & =
+%     \prod_{i=1}^N L(\boldsymbol{x}_i, \boldsymbol{y}_i, T | \boldsymbol{b}, r_i, \boldsymbol{p})
+%     \tag*{(independence between genes)}
+% \end{align}
+%
+% The inner likelihood can be broken into two pieces, the probability of the true
+% homology states given the tree and the probability of the observed sequence
+% similarity given the true homology states.
+%
+% \begin{align*}
+%   L(\boldsymbol{x}_i, \boldsymbol{y}_i, T | \boldsymbol{b}, r_i, \boldsymbol{p}) & =
+%     P(\boldsymbol{y}_i | \boldsymbol{b}, r_i, \boldsymbol{p})
+%     P(\boldsymbol{x}_i | \boldsymbol{y}_i)
+% \end{align*}
+%
+% Finding the probability of the homology states given the tree requires taking
+% the "present" state from each target species with a true homolog and
+% propagating the state up to the MRCA of all targets with the "present" state.
+% Then the disappearance pattern likelihood can be calculated.
+%
+% \begin{align*}
+%     P(\boldsymbol{y}_i | \boldsymbol{b}, r_i, \boldsymbol{p}) & =
+%       \prod_{k \in T} \begin{cases}
+%         a_k = 1, b_k = 1 \quad (1 - b_k r_i) & \text{(gene is propagated)}   \\
+%         a_k = 1, b_k = 0 \quad  b_k r_i      & \text{(gene disappears)}      \\
+%         a_k = 0, b_k = 1 \quad  p_k          & \text{(origin event at MRCA)} \\
+%         a_k = 0, b_k = 0 \quad  1            & \text{(gene is gone and cannot come back)}
+%       \end{cases}
+% \end{align*}
+%
+% Calculating the likelihood of the homology state given the score
+%
+% \begin{align*}
+%   P(\boldsymbol{y}_i | \boldsymbol{x}_i) & = \prod_{j=1}^M \begin{cases}
+%     Y_{ij}=0 \quad X_{ij}      & \text{Focal gene i has no homolog in species j} \\
+%     Y_{ij}=1 \quad 1 - X_{ij}  & \text{Focal gene i has homolog in species j}
+%   \end{cases}
+% \end{align*}
+%
+% Where $X_{ij}$ is the probability of seeing the observed similarity score by
+% chance.
 
 
 \end{document}
