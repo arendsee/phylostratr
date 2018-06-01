@@ -69,3 +69,14 @@ bind.tip <- function(tree, tip.label, edge.length=NULL, where=NULL){
   obj <- ape::bind.tree(tree, tip, where = where)
   return(obj)
 }
+
+# Access a cached value, if missing, perform FUN on ... 
+access_cache <- function(cache, FUN, ...){
+  if(file.exists(cache)){
+    d <- readRDS(cache)
+  } else {
+    d <- run_comparison(results) 
+    saveRDS(d, cache)
+  }
+  d
+}

@@ -32,3 +32,34 @@ plot.Strata <- function(x, ...){
   }
   plot(x, show.node.label=TRUE, ...)
 }
+
+plot.CountMatrix <- function(x, y=NULL,
+  labels      = names(m)[1:2],
+  value_trans = identity,
+  normalize   = normalize_matrix_by_row,
+  scheme      = ggplot2::scale_fill_gradient(low = "grey", high = "red"),
+  ...
+){
+  cnt <- x@x
+  m <- normalize(cnt)
+
+  cnt <- reshape2::melt(cnt) %>% dplyr::filter(value > 0)
+  m <- reshape2::melt(m)
+
+  names(m)[1:3] <- c("a", "b", "value")
+  names(cnt)[1:3] <- c("a", "b", "n")
+
+  m$value <- value_trans(m$value)
+  cnt$value <- value_trans(cnt$value)
+
+  ggplot2::ggplot() +
+    ggplot2::geom_bin2d(data=m, ggplot2::aes_(x="b", y="a", fill="value")) +
+    ggplot2::xlab(x@xlab) +
+    ggplot2::ylab(x@ylab) +
+    ggplot2::theme(
+        axis.text.x = ggplot2::element_text(angle=270, hjust=0, vjust=1),
+        legend.title = ggplot2::element_blank()
+    ) +
+    scheme +
+    ggplot2::geom_text(data=cnt, mapping=ggplot2::aes_(x="b", y="a", label="n"), size=2)
+}

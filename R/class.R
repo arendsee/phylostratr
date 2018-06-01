@@ -23,3 +23,21 @@ Strata <- function(focal_species, tree, data=list()){
     focal_species = as.character(focal_species)
   )
 }
+
+
+setClass(
+  "CountMatrix",
+  representation(
+    x = "matrix",
+    xlab = "character",
+    ylab = "character"
+  )
+)
+
+CountMatrix <- function(x, ylab="from", xlab="to"){
+  m <- new("CountMatrix") 
+  m@x = x
+  m@xlab = xlab
+  m@ylab = ylab
+  m
+}
