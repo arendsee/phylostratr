@@ -2,17 +2,23 @@
 % Please edit documentation in R/strata.R
 \name{add_taxa}
 \alias{add_taxa}
+\alias{add_taxa.Strata}
+\alias{add_taxa.phylo}
 \title{Add an id to a representative list}
 \usage{
-add_taxa(strata, taxa)
+add_taxa(x, taxa, ...)
+
+\method{add_taxa}{Strata}(strata, taxa)
+
+\method{add_taxa}{phylo}(strata, taxa)
 }
 \arguments{
-\item{strata}{A Strata object (all IDs MUST be NCBI taxonomy IDs)}
-
 \item{taxa}{NCBI taxon ids to add}
+
+\item{strata}{A Strata or phylo object (all IDs MUST be NCBI taxonomy IDs)}
 }
 \value{
-Strata object
+Strata or phylo object
 }
 \description{
 Add an id to a representative list

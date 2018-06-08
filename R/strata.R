@@ -192,21 +192,34 @@ strata_fold <- function(strata, f, ...){
   outgroups
 }
 
+
 #' Add an id to a representative list
 #'
-#' @param strata A Strata object (all IDs MUST be NCBI taxonomy IDs)
+#' @param strata A Strata or phylo object (all IDs MUST be NCBI taxonomy IDs)
 #' @param taxa NCBI taxon ids to add 
-#' @return Strata object
+#' @return Strata or phylo object
 #' @export
-add_taxa <- function(strata, taxa){
-  is_valid_strata(strata, check_focal=FALSE)
+#' @name add_taxa 
+add_taxa <- function(x, taxa, ...){
+  UseMethod('add_taxa', x)
+}
 
+#' @rdname add_taxa
+#' @export
+add_taxa.Strata <- function(strata, taxa){
   # TODO: assert that all IDs are NCBI taxonomy IDs
   strata@tree <- unique(c(taxa, tree_names(strata@tree))) %>%
     taxizedb::classification() %>%
     lineages_to_phylo
-
   strata
+}
+
+#' @rdname add_taxa
+#' @export
+add_taxa.phylo <- function(strata, taxa){
+  unique(c(taxa, tree_names(tree))) %>%
+    taxizedb::classification() %>%
+    lineages_to_phylo
 }
 
 #' Infer homology inference based on a hard e-value threshold

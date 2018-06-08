@@ -16,10 +16,20 @@ eval_bins <- function(d, scheme=scheme2){
   .bincode(evalue, c(-Inf, scheme$cutoff, Inf))
 }
 
+#' Normalize a matrix such that rows sum to 1
+#'
+#' @param m A matrix
+#' @return matrix
+#' @export
 normalize_matrix_by_row <- function(m){
   apply(m, 1, function(x) x / sum(x)) %>% t
 }
 
+#' Normalize a matrix such that columns sum to 1
+#'
+#' @param m A matrix
+#' @return matrix
+#' @export
 normalize_matrix_by_col <- function(m){
   apply(m, 2, function(x) x / sum(x))
 }

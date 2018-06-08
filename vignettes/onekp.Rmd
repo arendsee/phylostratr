@@ -1,0 +1,71 @@
+---
+title: "1KP case study"
+author: "Zebulun Arendsee"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{1KP case study}
+  %\VignetteEngine{knitr::rmarkdown}
+---
+
+```{r}
+require(onekp)
+require(taxizedb)
+require(phylostratr)
+require(dplyr)
+require(magrittr)
+
+# First get core uniprot proteomes 
+weights=uniprot_weight_by_ref()
+focal_taxid <- '3702'
+strata <-
+  # Get stratified relatives represented in UniProt
+  uniprot_strata(focal_taxid, from=2) %>%
+  # Select a diverse subset of 5 or fewer representatives from each stratum.
+  strata_apply(f=diverse_subtree, n=5, weights=weights) %>%
+  # Use a prebuilt set of prokaryotic species
+  use_recommended_prokaryotes %>%
+  add_taxa(c('4932', '9606')) %>%
+  # Download genomes, storing the filenames
+  uniprot_fill_strata
+
+# Next add a few supplementary proteomes from 1KP
+kp <- onekp::retrieve_onekp()
+# get the ginkgo proteome from 1KP
+ginkgo_taxid <- taxizedb::name2taxid("Ginkgo biloba")
+ginkgo_proteome <- onekp::filter_by_species(kp, ginkgo_taxid) %>% onekp::download_peptides(dir="custom-seqs")
+strata <- add_taxa(strata, ginkgo_taxid)
+strata@data$faa[[as.character(ginkgo_taxid)]] <- as.vector(ginkgo_proteome)
+
+
+# Remove Klebsormidium nitens
+strata <- prune(strata, '105231', type='name')
+
+## Replace the UniProt Arabidopsis thaliana proteome with the Araport11 proteome.
+## The path below is specific to my pipeline, you can just use the UniProt genes,
+## if you want. The problem with them is that they include all previous variants
+## of the gene models, raising to 89135 genes. Since `A. thaliana` is the focal
+## species, it is important to be very explicit about version of the proteome.
+strata@data$faa[['3702']] <- '/db/araport11/Araport11_genes.201606.pep.fasta'
+
+# TODO: add archaeplastida (viridiplantae, red algae, glaucophytes)
+
+# BLAST against each target genome (this will take a few hours)
+# TODO: don't hard code the threads
+strata <- strata_blast(strata, blast_args=list(nthreads=2)) %>% strata_besthits
+
+# Merge results into a single hittable
+results <- merge_besthits(strata)
+```
+
+```{r}
+# Filtered 1KP tree
+kp@table <- kp@table %>% dplyr::filter(!is.na(tax_id))
+focal_taxid <- '3702'
+tree <- kp@table$tax_id %>% unique %>%
+        taxizedb::classification() %>% lineages_to_phylo %>%
+        add_taxa(focal_taxid)
+strata <- Strata(focal_species=focal_taxid, tree=tree) %>%
+    strata_apply(f=diverse_subtree, n=10)
+strata %>% strata_convert(target='all', to='name') %>% plot(type='cladogram', cex=0.2)
+```

@@ -42,16 +42,16 @@ if(file.exists('all.Rda')){
   load('all.Rda')
 } else {
   default_classifier <- classify_assuming_iid(1e-5, method='bonferroni')
-  results            <- readRDS('arabidopsis-results.Rda')
+  results            <- readRDS('results.Rda')
   is_present         <- default_classifier(results)
   strata_table       <- stratify(results, classifier=default_classifier)
   revenants          <- find_revenants(results, classifier=default_classifier)
   strata_levels      <- levels(strata_table$mrca_name)
-  strata             <- readRDS('arabidopsis-strata.Rda')
+  strata             <- readRDS('strata.Rda')
   save.image('all.Rda')
 }
 
-readr::write_tsv(dataframe_significance_comparison(results), "MBF.tsv")
+# readr::write_tsv(dataframe_significance_comparison(results), "MBF.tsv")
 
 ## The pretty way that Eve hates
 # myscheme <- ggplot2::scale_fill_distiller(
@@ -61,23 +61,26 @@ readr::write_tsv(dataframe_significance_comparison(results), "MBF.tsv")
 @
 
 <<>>=
-sigmats <- make_significance_matrices(results)
-for(m in unlist(sigmats)){plot(m)}
-@
+pdf('all.pdf')
 
-<<>>=
+sigmats <- make_significance_matrices(results)
+
+gs <- lapply(unlist(sigmats), plot)
+
+gs
+
 versus_TIPS <- make_TIPS_comparison_matrix(strata, results, default_classfier)
 plot(versus_TIPS) +
   ggplot2::ylab("Classification with TIPs dataset") +
   ggplot2::xlab("Classification with phylostratr dataset") +
   ggplot2::ggtitle("2014 versus 2018 comparison")
-@
 
-<<>>=
 jmpmat <- make_jump_matrix(results[is_present, c('qseqid', 'ps')], labels=strata_levels)
 plot(jmpmat) +
   ggplot2::ylab("Young phylostratum with homolog") +
   ggplot2::xlab("Next phylostratum with homolog")
+
+dev.off()
 @
 
 \end{document}
