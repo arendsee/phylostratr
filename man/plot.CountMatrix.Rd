@@ -6,7 +6,8 @@
 \usage{
 \method{plot}{CountMatrix}(x, y = NULL, value_trans = identity,
   normalize = normalize_matrix_by_row,
-  scheme = ggplot2::scale_fill_gradient(low = "grey", high = "red"), ...)
+  scheme = ggplot2::scale_fill_gradient(low = "grey", high = "red", labels =
+  scales::percent), ...)
 }
 \arguments{
 \item{x}{CountMatrix object}

@@ -18,22 +18,22 @@
 \author{Zebulun Arendsee}
 \begin{document}
 
-% Assessing the significance of hits when determining phylostrata has not been
-% considered carefully in phylostratigraphy literature.
-%
-% The phylostratigraphy problem reduces to the finding the most likely common
-% ancestor of all homologs of a focal species gene.
-%
-% \begin{equation}
-%   \hat{k}_{MLE} = \text{argmax} \left\{ P(S_i = 1) \prod_{j=1}^{i} P(S_j = 0) \right\}_{i=1}^K
-% \end{equation}
-%
-% Where $P(S_i = 1)$ is the probability that a homolog is in some species
-% descending from the ith stratum. $K$ is the total number of strata.
-%
-% The hypothesis that is actually being tested is not explicitly stated
-%
-% The common practice of choosing a rather arbitrary E-value cutoff (usually $10^{-3}$ or $10^{-5}$).
+Assessing the significance of hits when determining phylostrata has not been
+considered carefully in phylostratigraphy literature.
+
+The phylostratigraphy problem reduces to the finding the most likely common
+ancestor of all homologs of a focal species gene.
+
+\begin{equation}
+  \hat{k}_{MLE} = \text{argmax} \left\{ P(S_i = 1) \prod_{j=1}^{i} P(S_j = 0) \right\}_{i=1}^K
+\end{equation}
+
+Where $P(S_i = 1)$ is the probability that a homolog is in some species
+descending from the ith stratum. $K$ is the total number of strata.
+
+The hypothesis that is actually being tested is not explicitly stated
+
+The common practice of choosing a rather arbitrary E-value cutoff (usually $10^{-3}$ or $10^{-5}$).
 
 <<heat, eval=FALSE, echo=FALSE>>=
 library(phylostratr)
@@ -60,10 +60,19 @@ if(file.exists('all.Rda')){
 #   )
 @
 
-<<>>=
+<<eval=FALSE, echo=FALSE>>=
 pdf('all.pdf')
 
 sigmats <- make_significance_matrices(results)
+
+sigmats[[1]][[1]]@xlab = "Phylostratum (Bonferoni-adusted p-value < 0.05)"
+sigmats[[1]][[1]]@ylab = "Phylostratum (Holm-adusted p-value < 0.05)"
+
+sigmats[[1]][[2]]@xlab = "Phylostratum (Bonferoni-adusted p-value < 1e-5)"
+sigmats[[1]][[2]]@ylab = "Phylostratum (Holm-adusted p-value < 0.05)"
+
+sigmats[[2]][[1]]@xlab = "Phylostratum (Bonferoni-adusted p-value < 1e-5)"
+sigmats[[2]][[1]]@ylab = "Phylostratum (Bonferoni-adusted p-value < 0.05)"
 
 gs <- lapply(unlist(sigmats), plot)
 

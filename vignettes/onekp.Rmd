@@ -20,9 +20,9 @@ weights=uniprot_weight_by_ref()
 focal_taxid <- '3702'
 strata <-
   # Get stratified relatives represented in UniProt
-  uniprot_strata(focal_taxid, from=2) %>%
+  uniprot_strata(focal_taxid, from=2L) %>%
   # Select a diverse subset of 5 or fewer representatives from each stratum.
-  strata_apply(f=diverse_subtree, n=5, weights=weights) %>%
+  strata_apply(f=diverse_subtree, n=5L, weights=weights) %>%
   # Use a prebuilt set of prokaryotic species
   use_recommended_prokaryotes %>%
   add_taxa(c('4932', '9606')) %>%
@@ -52,7 +52,7 @@ strata@data$faa[['3702']] <- '/db/araport11/Araport11_genes.201606.pep.fasta'
 
 # BLAST against each target genome (this will take a few hours)
 # TODO: don't hard code the threads
-strata <- strata_blast(strata, blast_args=list(nthreads=2)) %>% strata_besthits
+strata <- strata_blast(strata, blast_args=list(nthreads=8L)) %>% strata_besthits
 
 # Merge results into a single hittable
 results <- merge_besthits(strata)
@@ -66,6 +66,6 @@ tree <- kp@table$tax_id %>% unique %>%
         taxizedb::classification() %>% lineages_to_phylo %>%
         add_taxa(focal_taxid)
 strata <- Strata(focal_species=focal_taxid, tree=tree) %>%
-    strata_apply(f=diverse_subtree, n=10)
+    strata_apply(f=diverse_subtree, n=10L)
 strata %>% strata_convert(target='all', to='name') %>% plot(type='cladogram', cex=0.2)
 ```
