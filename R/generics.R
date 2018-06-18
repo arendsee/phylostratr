@@ -32,3 +32,42 @@ plot.Strata <- function(x, ...){
   }
   plot(x, show.node.label=TRUE, ...)
 }
+
+#' Plot a CountMatrix object
+#'
+#' @param x CountMatrix object
+#' @param value_trans A function for transforming the values
+#' @param normalize A function for normalizing the matrix
+#' @param scheme A color scheme
+#' @param ... Additional arguments sent to plot 
+#' @export
+plot.CountMatrix <- function(x, y=NULL,
+  value_trans = identity,
+  normalize   = normalize_matrix_by_row,
+  scheme      = ggplot2::scale_fill_gradient(low = "grey", high = "red", labels=scales::percent),
+  ...
+){
+  cnt <- x@x
+  m <- normalize(cnt)
+
+  cnt <- reshape2::melt(cnt) %>% dplyr::filter(value > 0)
+  m <- reshape2::melt(m)
+
+  names(m)[1:3] <- c("a", "b", "value")
+  names(cnt)[1:3] <- c("a", "b", "n")
+
+  m$value <- value_trans(m$value)
+  cnt$value <- value_trans(cnt$value)
+
+  ggplot2::ggplot() +
+    ggplot2::geom_tile(data=m, ggplot2::aes(b,a, fill=value)) +
+    ggplot2::xlab(x@xlab) +
+    ggplot2::ylab(x@ylab) +
+    scheme +
+    ggplot2::theme(
+        axis.text.x = ggplot2::element_text(angle=270, hjust=0, vjust=1),
+        legend.title = ggplot2::element_blank()
+    ) +
+    ggplot2::geom_text(data=cnt, mapping=ggplot2::aes(x=b, y=a, label=n), size=2)
+
+}

@@ -23,3 +23,28 @@ Strata <- function(focal_species, tree, data=list()){
     focal_species = as.character(focal_species)
   )
 }
+
+
+setClass(
+  "CountMatrix",
+  representation(
+    x = "matrix",
+    xlab = "character",
+    ylab = "character"
+  )
+)
+
+#' Initialize a CountMatrix object
+#'
+#' @param x The matrix
+#' @param ylab A label for the y axis (used in plotting, for example)
+#' @param xlab A label for the x axis
+#' @return CountMatrix object
+#' @export
+CountMatrix <- function(x, ylab="from", xlab="to"){
+  m <- new("CountMatrix") 
+  m@x = x
+  m@xlab = xlab
+  m@ylab = ylab
+  m
+}

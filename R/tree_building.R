@@ -23,6 +23,7 @@ tree2edgelist <- function(tree){
 #' @param clean Should leafs with descendents be removed? This can occur when
 #' both a species and a descendent subspecies are in the lineage set.
 #' @return phylo object with node names and no branch lengths
+#' @export
 lineages_to_phylo <- function(lineages, clean=FALSE){
   to_edge <- function(xs){
     # build edge list based on taxonomy IDs

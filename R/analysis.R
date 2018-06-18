@@ -30,6 +30,23 @@ find_revenants <- function(d, classifier=classify_by_evalue(1e-5)){
     dplyr::arrange(.data$qseqid, .data$ps)
 }
 
+find_skip_runs <- function(d, classifier=classify_by_evalue(1e-5)){
+  has_hit <- classifier(d) 
+  d <- d[has_hit, ]
+
+  k = max(d$ps) + 1 
+
+  x <- d %>%
+    dplyr::select(qseqid, ps) %>%
+    dplyr::arrange(qseqid, ps) %>%
+    dplyr::distinct() %>%
+    dplyr::group_by(qseqid) %>%
+    dplyr::transmute(
+      a = ps[-1],
+      b = seq_along(ps)
+    )
+}
+
 #' Find the focal sequences that are not represented in the given strata
 #'
 #' @param d data.frame of maximal hits

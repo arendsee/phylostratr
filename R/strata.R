@@ -194,39 +194,94 @@ strata_fold <- function(strata, f, ...){
   outgroups
 }
 
+
 #' Add an id to a representative list
 #'
-#' @param strata A Strata object (all IDs MUST be NCBI taxonomy IDs)
+#' @param strata A Strata or phylo object (all IDs MUST be NCBI taxonomy IDs)
 #' @param taxa NCBI taxon ids to add 
-#' @return Strata object
+#' @return Strata or phylo object
 #' @export
-add_taxa <- function(strata, taxa){
-  is_valid_strata(strata, check_focal=FALSE)
+#' @name add_taxa 
+add_taxa <- function(x, taxa, ...){
+  UseMethod('add_taxa', x)
+}
 
+#' @rdname add_taxa
+#' @export
+add_taxa.Strata <- function(strata, taxa){
   # TODO: assert that all IDs are NCBI taxonomy IDs
   strata@tree <- unique(c(taxa, tree_names(strata@tree))) %>%
     taxizedb::classification() %>%
     lineages_to_phylo
-
   strata
+}
+
+#' @rdname add_taxa
+#' @export
+add_taxa.phylo <- function(strata, taxa){
+  unique(c(taxa, tree_names(tree))) %>%
+    taxizedb::classification() %>%
+    lineages_to_phylo
 }
 
 #' Infer homology inference based on a hard e-value threshold
 #'
 #' @param threshold An e-value threshold
+#' @param ... Unused
 #' @return A function of a dataframe that has the column 'evalue', the function
 #' @export
-classify_by_evalue <- function(threshold){
-  function(x, ...){
+classify_by_evalue <- function(threshold, ...){
+  function(x){
     !is.na(x$evalue) & (x$evalue < threshold)
   }
 }
 
-classify_by_pval_bonf <- function(threshold){
-  function(x, ...){
-    dplyr::group_by(x, mrca) %>%
-    dplyr::mutate(pval.bonf = (1 - exp(-1 * evalue)) * length(unique(staxid))) %>% 
-    { !is.na(.$pval.bonf) & .$pval.bonf < threshold }
+.evalue2pvalue <- function(x) { 1 - exp(-1 * x) }
+
+#' Infer homology inference based on a hard p-value threshold
+#'
+#' @param threshold An e-value threshold
+#' @param ... Unused
+#' @return A function of a dataframe that has the column 'evalue', the function
+#' @export
+classify_by_pvalue <- function(threshold, ...){
+  function(x){
+    p <- .evalue2pvalue(x$evalue)
+    !is.na(p) & (p < threshold)
+  }
+}
+
+#' Classify homologs under the independence assumption
+#'
+#' @param threshold The target alpha (e.g. 0.05)
+#' @param ... Additional arguments passed to p.adjust
+#' @export
+classify_assuming_iid <- function(threshold, ...){
+  function(x){
+    exp_n <- length(unique(x$qseqid))
+
+    m <- dplyr::group_by(x, qseqid, mrca) %>%
+    dplyr::mutate(
+      pval.adj = p.adjust(.evalue2pvalue(evalue), ...)
+    ) %>%
+    dplyr::select(qseqid, pval.adj, mrca)
+
+    z <- dplyr::group_by(m, qseqid, mrca) %>%
+      dplyr::summarize(pval = min(pval.adj)) %>%
+      # cast and melt: this completes the data 
+      reshape2::acast(qseqid ~ mrca, value.var="pval", fill=1) %>%
+      apply(1, p.adjust, ...) %>% t
+
+    # Add in any rows that were missing, this can happedn when, for reasons
+    # most mysterious, the focal gene does not even match itself. 
+
+    p <- z[as.matrix(x[, c('qseqid', 'mrca')])]
+
+    if(exp_n != nrow(z)){
+      stop("classify_assuming_iid is broken - complain to the maintainer")
+    }
+
+    { !is.na(p) & p < threshold }
   }
 }
 
@@ -234,14 +289,14 @@ classify_by_pval_bonf <- function(threshold){
 #'
 #' @param threshold P-value threshold
 #' @export
-classify_with_fisher <- function(threshold){
+classify_by_fisher <- function(threshold){
   fishers_method <- function(p){
       q <- -2 * sum(log(p))
       df <- 2 * length(p) # degrees of freedom
       pchisq(q, df, lower.tail=FALSE)
   }
   function(x){
-    x$pval <- ifelse(is.na(x), 1, 1 - exp(-1 * x$evalue))
+    x$pval <- ifelse(is.na(x), 1, .evalue2pvalue(x$evalue))
     dplyr::group_by(x, .data$qseqid, .data$mrca) %>%
       dplyr::mutate(pval = fishers_method(.data$pval)) %>%
       { .$pval < threshold }
@@ -273,17 +328,15 @@ get_mrca_names <- function(hittable){
 #' be a named factor, with names corresponding to taxon IDs. It is used to make
 #' the \code{mrca_name} column. It will be used mostly in plots and reports;
 #' internally the taxon ids are used.
-#' @param ... Additional arguments sent to the classifier
 #' @export
 stratify <- function(
     hittable,
     classifier   = classify_by_evalue(1e-5),
-    strata_names = get_mrca_names(hittable),
-    ...
+    strata_names = get_mrca_names(hittable)
   ){
   orphan_ps <- max(hittable$ps)
   orphan_mrca <- levels(strata_names)[length(strata_names)]
-  hittable[classifier(hittable, ...), ] %>%
+  hittable[classifier(hittable), ] %>%
     dplyr::select(.data$qseqid, .data$mrca, .data$ps) %>%
     dplyr::group_by(.data$qseqid) %>%
     dplyr::filter(.data$ps == min(.data$ps)) %>%

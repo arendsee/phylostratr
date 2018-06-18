@@ -5,7 +5,7 @@
 \title{Get the phylostratum of each query gene}
 \usage{
 stratify(hittable, classifier = classify_by_evalue(1e-05),
-  strata_names = get_mrca_names(hittable), ...)
+  strata_names = get_mrca_names(hittable))
 }
 \arguments{
 \item{hittable}{data.frame with the columns 'qseqid', 'mrca', 'ps', and
@@ -18,8 +18,6 @@ you can set your own labels) with levels ordered by phylostrata. This must
 be a named factor, with names corresponding to taxon IDs. It is used to make
 the \code{mrca_name} column. It will be used mostly in plots and reports;
 internally the taxon ids are used.}
-
-\item{...}{Additional arguments sent to the classifier}
 }
 \description{
 Get the phylostratum of each query gene
