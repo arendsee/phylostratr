@@ -96,26 +96,28 @@ diverse_subtree <- function(tree, n, weights=NULL, collapse=FALSE, FUN=.algo1, .
 }
 
 .algo2 <- function(lineages, n, weights, ...){
+  depths <- sapply(lineages, length)
   k <- rep(0, max(unlist(lineages))) 
+  chosen <- rep(0, n) 
   for(i in 1:n){
 
     w <- if(i == 1){
-      1
+      weights
     } else {
       # Calculate diversity weights: the mean number of times each ancestral
-      # node has been passed through.
-      w <- sapply(lineages, function(x) mean(k[x]))
-      # ignore observed elements
-      w[chosen] <- Inf
-      w
+      # node has been passed through. The 1/depth term that is added to prevent
+      # division by zero.
+      w <- sapply(lineages, function(x) mean(k[x]) + 1/length(k[x]))
+      # Divide initial weight by the diversity score
+      weights / w
     }
 
-    # Divide initial weight by the diversity score
-    chosen_id <- which.max(weights / w)
+    # Select the ID with the highest adjusted weight. Resolve ties by tree
+    # depth (preferring the deeper leaf).
+    chosen[i] <- setdiff(order(w, depths, decreasing=TRUE), chosen)[1]
 
     # number of times each node has been passed through
-    k[lineages[[chosen_id]][-1]] <- k[lineages[[chosen_id]][-1]] + 1
-    chosen <- append(chosen, chosen_id)
+    k[lineages[[chosen[i]]][-1]] <- k[lineages[[chosen[i]]][-1]] + 1
   }
   chosen
 }
