@@ -27,6 +27,7 @@ Imports:
     tidyr
 Remotes:
     arendsee/taxizedb,
+    ropensci/onekp,
     GuangchuangYu/ggtree
 License: GPL-3 + file LICENSE
 LazyData: true
@@ -35,6 +36,7 @@ Suggests:
     covr,
     knitr,
     rmarkdown,
+    onekp,
     testthat
 VignetteBuilder: knitr
 BiocViews: 

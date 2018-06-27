@@ -48,8 +48,6 @@ strata <- prune(strata, '105231', type='name')
 ## species, it is important to be very explicit about version of the proteome.
 strata@data$faa[['3702']] <- '/db/araport11/Araport11_genes.201606.pep.fasta'
 
-# TODO: add archaeplastida (viridiplantae, red algae, glaucophytes)
-
 # BLAST against each target genome (this will take a few hours)
 # TODO: don't hard code the threads
 strata <- strata_blast(strata, blast_args=list(nthreads=8L)) %>% strata_besthits

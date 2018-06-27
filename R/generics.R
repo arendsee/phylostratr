@@ -33,6 +33,16 @@ plot.Strata <- function(x, ...){
   plot(x, show.node.label=TRUE, ...)
 }
 
+#' Transpose a CountMatrix
+#'
+#' Take the traspose of the matrix and swap the labels
+#'
+#' @param x CountMatrix object
+#' @export
+t.CountMatrix <- function(x){
+  CountMatrix(x=t(x@x), ylab=x@xlab, xlab=x@ylab)
+}
+
 #' Plot a CountMatrix object
 #'
 #' @param x CountMatrix object
