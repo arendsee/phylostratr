@@ -68,7 +68,7 @@ diverse_subtree <- function(tree, n, weights=NULL, collapse=FALSE, FUN=.algo1, .
 
   lineages <- lapply(1:nleafs(tree), lineage, type="index", x=tree)
 
-  chosen <- FUN(lineages, n, weights, ...)
+  chosen <- FUN(lineages, n, weights, tree, ...)
 
   subtree(tree, chosen, collapse=collapse)
 
@@ -95,7 +95,7 @@ diverse_subtree <- function(tree, n, weights=NULL, collapse=FALSE, FUN=.algo1, .
   chosen
 }
 
-.algo2 <- function(lineages, n, weights, ...){
+.algo2 <- function(lineages, n, weights, tree, ...){
   depths <- sapply(lineages, length)
   k <- rep(0, max(unlist(lineages))) 
   chosen <- rep(0, n) 
@@ -108,8 +108,9 @@ diverse_subtree <- function(tree, n, weights=NULL, collapse=FALSE, FUN=.algo1, .
       # node has been passed through. The 1/depth term that is added to prevent
       # division by zero.
 
-      w <- sapply(lineages, function(x) mean(k[x]) + 1/length(k[x]))
-      # w <- sapply(lineages, function(x) mean(k[x[-1]]) + 1/length(k[x[-1]]))
+      w <- sapply(lineages, function(x) mean(k[x[-1]]) + 1/length(k[x]))
+      # w <- sapply(lineages, function(x) mean(k[x[-1]]) + 1/(length(k[x])))
+      # w <- sapply(lineages, function(x) mean(k[x[-1]]))
 
       # Divide initial weight by the diversity score
       weights / w
@@ -117,7 +118,12 @@ diverse_subtree <- function(tree, n, weights=NULL, collapse=FALSE, FUN=.algo1, .
 
     # Select the ID with the highest adjusted weight. Resolve ties by tree
     # depth (preferring the deeper leaf).
-    chosen[i] <- setdiff(order(w, depths, decreasing=TRUE), chosen)[1]
+    chosen[i] <- setdiff(order(
+      w,                     # order first by adjusted weight
+      depths,                # then by depth in the tree
+      sort(tree$tip.label),  # then by tip name
+      decreasing=TRUE
+    ), chosen)[1]
 
     # number of times each node has been passed through
     k[lineages[[chosen[i]]][-1]] <- k[lineages[[chosen[i]]][-1]] + 1
