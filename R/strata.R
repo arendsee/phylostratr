@@ -108,7 +108,7 @@ diverse_subtree <- function(tree, n, weights=NULL, collapse=FALSE, FUN=.algo1, .
       # node has been passed through. The 1/depth term that is added to prevent
       # division by zero.
 
-      w <- sapply(lineages, function(x) mean(k[x[-1]]) + 1/length(k[x]))
+      w <- sapply(lineages, function(x) sum(k[x[-1]]) + 1)
       # w <- sapply(lineages, function(x) mean(k[x[-1]]) + 1/(length(k[x])))
       # w <- sapply(lineages, function(x) mean(k[x[-1]]))
 
@@ -119,9 +119,9 @@ diverse_subtree <- function(tree, n, weights=NULL, collapse=FALSE, FUN=.algo1, .
     # Select the ID with the highest adjusted weight. Resolve ties by tree
     # depth (preferring the deeper leaf).
     chosen[i] <- setdiff(order(
-      w,                     # order first by adjusted weight
-      depths,                # then by depth in the tree
-      sort(tree$tip.label),  # then by tip name
+      w,                         # order first by adjusted weight
+      depths,                    # then by depth in the tree
+      rev(sort(tree$tip.label)), # then by tip name
       decreasing=TRUE
     ), chosen)[1]
 
