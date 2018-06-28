@@ -8,11 +8,9 @@ Depends: R (>= 3.4.0)
 Imports:
     ape,
     Biostrings,
-    EmpiricalBrownsMethod,
     curl,
     dplyr,
     ggplot2,
-    ggtree (>= 1.11.2),
     scales,
     glue,
     gridExtra,
@@ -35,6 +33,7 @@ Suggests:
     covr,
     knitr,
     rmarkdown,
+    ggtree (>= 1.11.2),
     testthat
 VignetteBuilder: knitr
 BiocViews: 

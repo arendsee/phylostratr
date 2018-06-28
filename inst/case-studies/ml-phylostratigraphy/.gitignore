@@ -1,7 +1,7 @@
-ml.aux
-ml.fdb_latexmk
-ml.fls
-ml.log
-ml.pdf
-ml.tex
+*.aux
+*.fdb_latexmk
+*.fls
+*.log
+*.pdf
+*.tex
 figure

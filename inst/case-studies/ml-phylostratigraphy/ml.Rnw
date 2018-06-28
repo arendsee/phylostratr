@@ -73,15 +73,15 @@ d <- readRDS('figdata.Rda')
 @
 
 <<fig1, fig.width=7, fig.height=6, echo=FALSE>>=
-d$sigmats[[1]][[1]]@xlab = "Phylostratum (Bonferoni-adjusted p-value < 0.05)"
+d$sigmats[[1]][[1]]@xlab = "Phylostratum (Bonferroni-adjusted p-value < 0.05)"
 d$sigmats[[1]][[1]]@ylab = "Phylostratum (Holm-adjusted p-value < 0.05)"
-d$sigmats[[2]][[1]]@xlab = "Phylostratum (Bonferoni-adjusted p-value < 1e-5)"
-d$sigmats[[2]][[1]]@ylab = "Phylostratum (Bonferoni-adjusted p-value < 0.05)"
+d$sigmats[[2]][[1]]@xlab = "Phylostratum (Bonferroni-adjusted p-value < 1e-5)"
+d$sigmats[[2]][[1]]@ylab = "Phylostratum (Bonferroni-adjusted p-value < 0.05)"
 plot(d$sigmats[[1]][[1]])
 @
 
 {\bf Fig 3A.} Comparison of phylostratum classifications using
-Bonferoni-ajusted cutoffs at thresholds of 0.05 versus $10^{-5}$.
+Bonferroni-ajusted cutoffs at thresholds of 0.05 versus $10^{-5}$.
 
 \newpage
 
@@ -89,7 +89,7 @@ Bonferoni-ajusted cutoffs at thresholds of 0.05 versus $10^{-5}$.
 plot(d$sigmats[[2]][[1]])
 @
 
-{\bf Fig 3B.} The Bonferoni correction used in {\bf 3A} is quite stringent. A
+{\bf Fig 3B.} The Bonferroni correction used in {\bf 3A} is quite stringent. A
 more powerful method for family-wise error handling is the Holm method. This
 method will usually yield slightly younger classifications.
 

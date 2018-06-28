@@ -58,7 +58,7 @@ diverse_subtree <- function(tree, n, weights=NULL, collapse=FALSE, FUN=.algo1, .
   }
 
   if(is.null(weights)){
-    weights <- rep(1, length(tree$tip.label))
+    weights <- rep(1, nleafs(tree))
   } else {
     weights <- weights[tree$tip.label]
     weights[is.na(weights)] <- 1
@@ -107,7 +107,10 @@ diverse_subtree <- function(tree, n, weights=NULL, collapse=FALSE, FUN=.algo1, .
       # Calculate diversity weights: the mean number of times each ancestral
       # node has been passed through. The 1/depth term that is added to prevent
       # division by zero.
+
       w <- sapply(lineages, function(x) mean(k[x]) + 1/length(k[x]))
+      # w <- sapply(lineages, function(x) mean(k[x[-1]]) + 1/length(k[x[-1]]))
+
       # Divide initial weight by the diversity score
       weights / w
     }

@@ -255,6 +255,12 @@ strata <-
   # Get stratified relatives represented in UniProt
   uniprot_strata(focal_taxid, from=2)
 
+vir <- subtree(strata, 33090, type="name")
+vir2 <- diverse_subtree(vir, 10, algo=.algo1)
+color <- ifelse(leafs(vir) %in% leafs(vir2), "red", "black")
+plot(vir@tree, tip.color=color, type='cladogram', cex=0.4)
+
+
 x1 <- strata_apply(strata, f=diverse_subtree, n=5, weights=NULL, FUN=.algo1)
 x2 <- strata_apply(strata, f=diverse_subtree, n=5, weights=NULL, FUN=.algo2)
 
