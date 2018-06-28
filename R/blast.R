@@ -61,7 +61,7 @@ make_blast_database <- function(
 #' @param x filename
 #' @param with_taxid If TRUE, expect the staxid column to be in the table
 #' @export
-read_blast <- function(x, with_taxid=TRUE){
+read_blast <- function(x, with_taxid=TRUE, col_names=TRUE){
   col_types = readr::cols(
     qseqid = readr::col_character(),
     sseqid = readr::col_character(),
@@ -75,7 +75,11 @@ read_blast <- function(x, with_taxid=TRUE){
   if(with_taxid){
     col_types[['staxid']] <- readr::col_character()
   }
-  readr::read_tsv(x, col_names=TRUE, col_types=col_types)
+  if(col_names){
+    readr::read_tsv(x, col_names=col_names, col_types=col_types)
+  } else {
+    readr::read_tsv(x, col_names=names(col_types$cols), col_types=col_types)
+  }
 }
 
 #' BLAST query protein FASTA file against a subject species 
@@ -113,7 +117,7 @@ run_blastp <- function(
       )
     )
     # Add the subject taxon ID, name and order columns, write with header
-    read_blast(blastresult, with_taxid=FALSE) %>%
+    read_blast(blastresult, with_taxid=FALSE, col_names=FALSE) %>%
       dplyr::mutate(staxid = as.character(subject_taxid)) %>%
       readr::write_tsv(path=blastresult)
   }
@@ -159,7 +163,7 @@ strata_blast <- function(
 get_besthit <- function(strata, taxid){
   is_valid_strata(strata, required=c('faa', 'blast_result'))
   blast_file <- strata@data$blast_result[[taxid]]
-  read_blast(blast_file, with_taxid=TRUE) %>% get_max_hit
+  read_blast(blast_file, col_names=TRUE, with_taxid=TRUE) %>% get_max_hit
 }
 
 #' Load each blast result and filter out the best hit against each query gene

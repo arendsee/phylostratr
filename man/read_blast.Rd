@@ -4,7 +4,7 @@
 \alias{read_blast}
 \title{Read a blast result of the form expected by phylostratr}
 \usage{
-read_blast(x, with_taxid = TRUE)
+read_blast(x, with_taxid = TRUE, col_names = TRUE)
 }
 \arguments{
 \item{x}{filename}

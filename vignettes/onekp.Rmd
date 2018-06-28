@@ -8,7 +8,7 @@ vignette: >
   %\VignetteEngine{knitr::rmarkdown}
 ---
 
-```{r}
+```{r, eval=FALSE}
 require(onekp)
 require(taxizedb)
 require(phylostratr)
@@ -56,7 +56,7 @@ strata <- strata_blast(strata, blast_args=list(nthreads=8L)) %>% strata_besthits
 results <- merge_besthits(strata)
 ```
 
-```{r}
+```{r, eval=FALSE}
 # Filtered 1KP tree
 kp@table <- kp@table %>% dplyr::filter(!is.na(tax_id))
 focal_taxid <- '3702'
