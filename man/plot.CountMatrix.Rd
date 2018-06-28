@@ -12,6 +12,8 @@
 \arguments{
 \item{x}{CountMatrix object}
 
+\item{y}{Not used}
+
 \item{value_trans}{A function for transforming the values}
 
 \item{normalize}{A function for normalizing the matrix}

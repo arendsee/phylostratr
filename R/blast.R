@@ -60,6 +60,7 @@ make_blast_database <- function(
 #'
 #' @param x filename
 #' @param with_taxid If TRUE, expect the staxid column to be in the table
+#' @param col_names col_names argument from readr::read_tsv
 #' @export
 read_blast <- function(x, with_taxid=TRUE, col_names=TRUE){
   col_types = readr::cols(

@@ -10,8 +10,9 @@ make_significance_matrices(results, cache = "significance_list.Rda")
 \item{results}{data.frame of highest scoring hits of each gene against each target}
 
 \item{cache}{A file where data are cached}
-
-\item{return}{list of matrices}
+}
+\value{
+list of matrices
 }
 \description{
 Get comparisons of inferences across scoring systems

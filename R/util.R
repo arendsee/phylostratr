@@ -75,7 +75,7 @@ access_cache <- function(cache, FUN, ...){
   if(file.exists(cache)){
     d <- readRDS(cache)
   } else {
-    d <- run_comparison(results) 
+    d <- FUN(...) 
     saveRDS(d, cache)
   }
   d

@@ -195,8 +195,9 @@ strata_fold <- function(strata, f, ...){
 
 #' Add an id to a representative list
 #'
-#' @param strata A Strata or phylo object (all IDs MUST be NCBI taxonomy IDs)
+#' @param x A Strata or phylo object (all IDs MUST be NCBI taxonomy IDs)
 #' @param taxa NCBI taxon ids to add 
+#' @param ... Additional arguments (not used currently) 
 #' @return Strata or phylo object
 #' @export
 #' @name add_taxa 
@@ -206,18 +207,18 @@ add_taxa <- function(x, taxa, ...){
 
 #' @rdname add_taxa
 #' @export
-add_taxa.Strata <- function(strata, taxa){
+add_taxa.Strata <- function(x, taxa, ...){
   # TODO: assert that all IDs are NCBI taxonomy IDs
-  strata@tree <- unique(c(taxa, tree_names(strata@tree))) %>%
+  x@tree <- unique(c(taxa, tree_names(x@tree))) %>%
     taxizedb::classification() %>%
     lineages_to_phylo
-  strata
+  x 
 }
 
 #' @rdname add_taxa
 #' @export
-add_taxa.phylo <- function(strata, taxa){
-  unique(c(taxa, tree_names(tree))) %>%
+add_taxa.phylo <- function(x, taxa, ...){
+  unique(c(taxa, tree_names(x))) %>%
     taxizedb::classification() %>%
     lineages_to_phylo
 }
@@ -264,7 +265,7 @@ classify_assuming_iid <- function(threshold, ...){
     ) %>%
     dplyr::select(qseqid, pval.adj, mrca)
 
-    z <- dplyr::group_by(m, qseqid, mrca) %>%
+    z <- dplyr::group_by(m, .data$qseqid, .data$mrca) %>%
       dplyr::summarize(pval = min(pval.adj)) %>%
       # cast and melt: this completes the data 
       reshape2::acast(qseqid ~ mrca, value.var="pval", fill=1) %>%

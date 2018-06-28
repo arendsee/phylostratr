@@ -20,6 +20,7 @@ Imports:
     methods,
     purrr,
     readr,
+    reshape2,
     rhmmer,
     rlang (>= 0.1.2),
     tibble,

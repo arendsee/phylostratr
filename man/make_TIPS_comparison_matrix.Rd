@@ -12,8 +12,9 @@ make_TIPS_comparison_matrix(strata, results, classifier)
 \item{results}{data.frame of highest scoring hits of each gene against each target}
 
 \item{classifier}{function of 'results' that returns a logical vector}
-
-\item{return}{matrix}
+}
+\value{
+matrix
 }
 \description{
 With 2014 classifications on the y axis and 2018 on the x axis.
