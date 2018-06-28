@@ -74,28 +74,7 @@ diverse_subtree <- function(tree, n, weights=NULL, collapse=FALSE, FUN=.algo1, .
 
 }
 
-.algo1 <- function(lineages, n, weights, ...){
-  for(i in 1:n){
-    if(i == 1){
-      # start by taking the species with the highest phylogeny independent weight
-      chosen <- head(which.max(weights), 1)
-      # initial list of visited taxa
-      seen <- lineages[[chosen]]
-    } else {
-      # then scale weights to penalize species that are close to the chosen species
-      scaled.weights <- weights *
-        sapply(lineages, function(x){
-          1 - length(intersect(x, seen)) / length(x)
-        })
-      new_taxon <- head(which.max(scaled.weights), 1)
-      seen <- union(seen, lineages[[new_taxon]])
-      chosen <- c(chosen, new_taxon)
-    }
-  }
-  chosen
-}
-
-.algo2 <- function(lineages, n, weights, tree, ...){
+.algo1 <- function(lineages, n, weights, tree, ...){
   depths <- sapply(lineages, length)
   k <- rep(0, max(unlist(lineages))) 
   chosen <- rep(0, n) 
