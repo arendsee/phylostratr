@@ -4,7 +4,7 @@
 \alias{wrap_uniprot_id_retrieval}
 \title{Internal funcion for wrapping ID retrieval from UniProt}
 \usage{
-wrap_uniprot_id_retrieval(db, query, mod_date = NULL, delay = FALSE,
+wrap_uniprot_id_retrieval(db, query, date = NULL, delay = FALSE,
   cast = identity)
 }
 \arguments{
@@ -12,7 +12,7 @@ wrap_uniprot_id_retrieval(db, query, mod_date = NULL, delay = FALSE,
 
 \item{query}{UniProt query string}
 
-\item{mod_date}{Retrieve only IDs last modified before this date (e.g. "20180601")}
+\item{date}{Retrieve only IDs last modified before this date (e.g. "20180601")}
 
 \item{delay}{Sleep for 0.3 seconds before retrieving (polite in loops)}
 
