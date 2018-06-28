@@ -37,13 +37,13 @@ find_skip_runs <- function(d, classifier=classify_by_evalue(1e-5)){
   k = max(d$ps) + 1 
 
   x <- d %>%
-    dplyr::select(qseqid, ps) %>%
-    dplyr::arrange(qseqid, ps) %>%
+    dplyr::select(.data$qseqid, .data$ps) %>%
+    dplyr::arrange(.data$qseqid, .data$ps) %>%
     dplyr::distinct() %>%
-    dplyr::group_by(qseqid) %>%
+    dplyr::group_by(.data$qseqid) %>%
     dplyr::transmute(
-      a = ps[-1],
-      b = seq_along(ps)
+      a = .data$ps[-1],
+      b = seq_along(.data$ps)
     )
 }
 

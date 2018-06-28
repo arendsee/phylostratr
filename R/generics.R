@@ -33,9 +33,20 @@ plot.Strata <- function(x, ...){
   plot(x, show.node.label=TRUE, ...)
 }
 
+#' Transpose a CountMatrix
+#'
+#' Take the traspose of the matrix and swap the labels
+#'
+#' @param x CountMatrix object
+#' @export
+t.CountMatrix <- function(x){
+  CountMatrix(x=t(x@x), ylab=x@xlab, xlab=x@ylab)
+}
+
 #' Plot a CountMatrix object
 #'
 #' @param x CountMatrix object
+#' @param y Not used
 #' @param value_trans A function for transforming the values
 #' @param normalize A function for normalizing the matrix
 #' @param scheme A color scheme
@@ -60,7 +71,7 @@ plot.CountMatrix <- function(x, y=NULL,
   cnt$value <- value_trans(cnt$value)
 
   ggplot2::ggplot() +
-    ggplot2::geom_tile(data=m, ggplot2::aes(b,a, fill=value)) +
+    ggplot2::geom_tile(data=m, ggplot2::aes_("b","a", fill="value")) +
     ggplot2::xlab(x@xlab) +
     ggplot2::ylab(x@ylab) +
     scheme +
@@ -68,6 +79,6 @@ plot.CountMatrix <- function(x, y=NULL,
         axis.text.x = ggplot2::element_text(angle=270, hjust=0, vjust=1),
         legend.title = ggplot2::element_blank()
     ) +
-    ggplot2::geom_text(data=cnt, mapping=ggplot2::aes(x=b, y=a, label=n), size=2)
+    ggplot2::geom_text(data=cnt, mapping=ggplot2::aes_(x="b", y="a", label="n"), size=2)
 
 }

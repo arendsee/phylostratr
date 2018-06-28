@@ -28,7 +28,7 @@ make_matrix_from_two_strata <- function(d){
 #' @param strata Strata object
 #' @param results data.frame of highest scoring hits of each gene against each target
 #' @param classifier function of 'results' that returns a logical vector
-#' @param return matrix
+#' @return matrix
 #' @export
 make_TIPS_comparison_matrix <- function(strata, results, classifier){
   # Get the strata from the current analysis
@@ -68,7 +68,7 @@ make_TIPS_comparison_matrix <- function(strata, results, classifier){
 #' 
 #' @param results data.frame of highest scoring hits of each gene against each target
 #' @param cache A file where data are cached
-#' @param return list of matrices
+#' @return list of matrices
 #' @export
 make_significance_matrices <- function(results, cache='significance_list.Rda'){
   d <- access_cache(cache, run_comparison, results)

@@ -60,57 +60,63 @@ if(file.exists('all.Rda')){
 #   )
 @
 
-<<eval=FALSE, echo=FALSE>>=
-sigmats <- make_significance_matrices(results)
-versus_TIPS <- make_TIPS_comparison_matrix(strata, results, default_classfier)
-jmpmat <- make_jump_matrix(results[is_present, c('qseqid', 'ps')], labels=strata_levels)
+<<>>=
+ll <- list(
+  bon2  = stratify(results, classifier=classify_assuming_iid(1e-2, method="bonferroni")),
+  bon5  = stratify(results, classifier=classify_assuming_iid(1e-5, method="bonferroni")),
+  holm5 = stratify(results, classifier=classify_assuming_iid(1e-5, method="holm"))
+)
+sigresults <- Reduce(init=ll[[1]], x=ll[-1],
+  function(a,b){
+    merge(a, b, by='qseqid')
+  }
+)
+sigresults <- sigresults[, c(4,7,10)]
+names(sigresults) <- names(ll)
 @
 
-<<echo=FALSE, message=FALSE>>=
+<<figures, fig.width=7, fig.height=6, echo=FALSE>>=
+
 require(phylostratr)
-require(ggplot2)
-d <- readRDS('figdata.Rda')
+cache='figdata.Rda'
+d <- if(!file.exists(cache)){
+  d <- list()
+  d$sigmats <- make_significance_matrices(sigresults)
+  d$versus_TIPS <- make_TIPS_comparison_matrix(strata, results, default_classfier)
+  d$jmpmat <- make_jump_matrix(results[is_present, c('qseqid', 'ps')], labels=strata_levels)
+  saveRDS(d, 'figdata.Rda')
+  d
+} else {
+  readRDS(cache)
+}
+
+d$sigmats[[1]][[1]]@xlab = "Phylostratum (Bonferoni-adjusted p-value < 1e-5)"
+d$sigmats[[1]][[1]]@ylab = "Phylostratum (Holm-adjusted p-value < 1e-5)"
+d$sigmats[[2]][[1]]@xlab = "Phylostratum (Bonferoni-adjusted p-value < 1e-5)"
+d$sigmats[[2]][[1]]@ylab = "Phylostratum (Bonferoni-adjusted p-value < 0.01)"
+fig1 <- plot(d$sigmats[[1]][[1]])
+fig2 <- plot(d$sigmats[[2]][[1]])
+fig3 <- plot(t(d$versus_TIPS)) +
+  ggplot2::ylab("Classification with phylostratr dataset") +
+  ggplot2::xlab("Classification with 2014 dataset")
+fig4 <- plot(t(d$jmpmat)) +
+  ggplot2::ylab("Phylostratum with homolog (1e-5 bonf)") +
+  ggplot2::xlab("Next youngest with homolog (1e-5 bonf)")
 @
 
-<<fig1, fig.width=7, fig.height=6, echo=FALSE>>=
-d$sigmats[[1]][[1]]@xlab = "Phylostratum (Bonferroni-adjusted p-value < 0.05)"
-d$sigmats[[1]][[1]]@ylab = "Phylostratum (Holm-adjusted p-value < 0.05)"
-d$sigmats[[2]][[1]]@xlab = "Phylostratum (Bonferroni-adjusted p-value < 1e-5)"
-d$sigmats[[2]][[1]]@ylab = "Phylostratum (Bonferroni-adjusted p-value < 0.05)"
-plot(d$sigmats[[1]][[1]])
+<<f1, fig.width=7, fig.height=6, echo=FALSE>>=
+pdf('all.pdf')
+fig1
+fig2
+fig3
+fig4
+dev.off()
 @
 
 {\bf Fig 3A.} Comparison of phylostratum classifications using
-Bonferroni-ajusted cutoffs at thresholds of 0.05 versus $10^{-5}$.
-
-\newpage
-
-<<fig2, fig.width=7, fig.height=6, echo=FALSE>>=
-plot(d$sigmats[[2]][[1]])
-@
-
-{\bf Fig 3B.} The Bonferroni correction used in {\bf 3A} is quite stringent. A
-more powerful method for family-wise error handling is the Holm method. This
-method will usually yield slightly younger classifications.
-
-\newpage
-
-<<fig3, fig.width=7, fig.height=6, echo=FALSE>>=
-plot(d$versus_TIPS) +
-  ggplot2::ylab("Classification with TIPs dataset") +
-  ggplot2::xlab("Classification with phylostratr dataset")
-@
-
-{\bf Fig 3C.}
-
-\newpage
-
-<<fig4, fig.width=7, fig.height=6, echo=FALSE>>=
-plot(d$jmpmat) +
-  ggplot2::ylab("Young phylostratum with homolog") +
-  ggplot2::xlab("Next phylostratum with homolog")
-@
-
-{\bf Fig 3D.}
+Bonferoni-ajusted cutoffs at thresholds of 0.05 versus $10^{-5}$.  {\bf Fig
+3B.} The Bonferoni correction used in {\bf 3A} is quite stringent. A more
+powerful method for family-wise error handling is the Holm method. This method
+will usually yield slightly younger classifications.
 
 \end{document}

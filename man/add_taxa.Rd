@@ -8,14 +8,16 @@
 \usage{
 add_taxa(x, taxa, ...)
 
-\method{add_taxa}{Strata}(strata, taxa)
+\method{add_taxa}{Strata}(x, taxa, ...)
 
-\method{add_taxa}{phylo}(strata, taxa)
+\method{add_taxa}{phylo}(x, taxa, ...)
 }
 \arguments{
+\item{x}{A Strata or phylo object (all IDs MUST be NCBI taxonomy IDs)}
+
 \item{taxa}{NCBI taxon ids to add}
 
-\item{strata}{A Strata or phylo object (all IDs MUST be NCBI taxonomy IDs)}
+\item{...}{Additional arguments (not used currently)}
 }
 \value{
 Strata or phylo object

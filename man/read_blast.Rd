@@ -4,12 +4,14 @@
 \alias{read_blast}
 \title{Read a blast result of the form expected by phylostratr}
 \usage{
-read_blast(x, with_taxid = TRUE)
+read_blast(x, with_taxid = TRUE, col_names = TRUE)
 }
 \arguments{
 \item{x}{filename}
 
 \item{with_taxid}{If TRUE, expect the staxid column to be in the table}
+
+\item{col_names}{col_names argument from readr::read_tsv}
 }
 \description{
 Read a blast result of the form expected by phylostratr
