@@ -40,7 +40,7 @@ wrap_uniprot_id_retrieval <- function(db, query, date=NULL, delay=FALSE, cast=id
   date <- if(is.null(date)){
     ""
   } else {
-    glue::glue("sequence_modified%3A%5B19860101+TO+{date}%5D+AND+")
+    glue::glue("created%3A%5B19860101+TO+{date}%5D+AND+")
   }
   url <- glue::glue('https://www.uniprot.org/{db}/?query={date}{query}&format=list')
   if(delay)
