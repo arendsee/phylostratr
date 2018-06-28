@@ -36,20 +36,19 @@ uniprot_organelle_ids <- function(taxid, organelle='Mitochondrion', ...){
 #' @param cast A function for type casting the resulting IDs (e.g. as_integer)
 #' @param mod_date Retrieve only IDs last modified before this date (e.g. "20180601")
 #' @return vector of IDs or other literals (nothing structured)
-wrap_uniprot_id_retrieval <- function(db, query, mod_date="", delay=FALSE, cast=identity){
+wrap_uniprot_id_retrieval <- function(db, query, mod_date=NULL, delay=FALSE, cast=identity){
   date <- if(is.null(mod_date)){
     ""
   } else {
     glue::glue("sequence_modified%3A%5B19860101+TO+{mod_date}%5D+AND+")
-
   }
   url <- glue::glue('https://www.uniprot.org/{db}/?query={date}{query}&format=list')
   if(delay)
     Sys.sleep(0.3)
   con <- curl::curl(url)
-  ids <- readLines(con) %>% cast 
+  ids <- readLines(con) %>% cast
   close(con)
-  ids 
+  ids
 }
 
 #' Parse a UniProt ID from a FASTA file
