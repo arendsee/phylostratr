@@ -73,6 +73,7 @@ sigresults <- Reduce(init=ll[[1]], x=ll[-1],
 )
 sigresults <- sigresults[, c(4,7,10)]
 names(sigresults) <- names(ll)
+saveRDS(sigresults, 'sigresults.Rda')
 @
 
 <<figures, fig.width=7, fig.height=6, echo=FALSE>>=
@@ -91,11 +92,11 @@ d <- if(!file.exists(cache)){
 }
 
 d$sigmats[[1]][[1]]@xlab = "Phylostratum (Bonferoni-adjusted p-value < 1e-5)"
-d$sigmats[[1]][[1]]@ylab = "Phylostratum (Holm-adjusted p-value < 1e-5)"
-d$sigmats[[2]][[1]]@xlab = "Phylostratum (Bonferoni-adjusted p-value < 1e-5)"
-d$sigmats[[2]][[1]]@ylab = "Phylostratum (Bonferoni-adjusted p-value < 0.01)"
+d$sigmats[[1]][[1]]@ylab = "Phylostratum (Bonferoni-adjusted p-value < 0.01)"
+d$sigmats[[2]][[1]]@xlab = "Phylostratum (Holm-adjusted p-value < 1e-5)"
+d$sigmats[[2]][[1]]@ylab = "Phylostratum (Bonferoni-adjusted p-value < 1e-5)"
 fig1 <- plot(d$sigmats[[1]][[1]])
-fig2 <- plot(d$sigmats[[2]][[1]])
+fig2 <- plot(t(d$sigmats[[2]][[1]]))
 fig3 <- plot(t(d$versus_TIPS)) +
   ggplot2::ylab("Classification with phylostratr dataset") +
   ggplot2::xlab("Classification with 2014 dataset")

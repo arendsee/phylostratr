@@ -249,15 +249,17 @@ classify_assuming_iid <- function(threshold, ...){
   function(x){
     exp_n <- length(unique(x$qseqid))
 
-    m <- dplyr::group_by(x, qseqid, mrca) %>%
+    m <- dplyr::group_by(x, .data$qseqid, .data$mrca) %>%
     dplyr::mutate(
       pval.adj = p.adjust(.evalue2pvalue(evalue), ...)
     ) %>%
-    dplyr::select(qseqid, pval.adj, mrca)
+    dplyr::ungroup() %>%
+    dplyr::select(.data$qseqid, .data$pval.adj, .data$mrca)
 
     z <- dplyr::group_by(m, .data$qseqid, .data$mrca) %>%
       dplyr::summarize(pval = min(pval.adj)) %>%
       # cast and melt: this completes the data 
+      dplyr::ungroup() %>%
       reshape2::acast(qseqid ~ mrca, value.var="pval", fill=1) %>%
       apply(1, p.adjust, ...) %>% t
 

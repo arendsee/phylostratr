@@ -9,27 +9,42 @@ library(dplyr)
 library(readr)
 library(phylostratr)
 library(magrittr)
+library(onekp)
+library(plotly)
+library(knitr)
 ```
 
 ```{r at_prep, cache=TRUE}
+# First get core uniprot proteomes 
+weights=uniprot_weight_by_ref()
 focal_taxid <- '3702'
 strata <-
   # Get stratified relatives represented in UniProt
-  uniprot_strata(focal_taxid, from=2) %>%
+  uniprot_strata(focal_taxid, from=2L) %>%
   # Select a diverse subset of 5 or fewer representatives from each stratum.
-  strata_apply(f=diverse_subtree, n=5, weights=uniprot_weight_by_ref()) %>%
+  strata_apply(f=diverse_subtree, n=5L, weights=weights) %>%
   # Use a prebuilt set of prokaryotic species
   use_recommended_prokaryotes %>%
-  # Add yeast and human proteomes
   add_taxa(c('4932', '9606')) %>%
-  # Download proteomes, storing the filenames
+  # Download genomes, storing the filenames
   uniprot_fill_strata
 
-# Replace the UniProt Arabidopsis thaliana proteome with the Araport11 proteome.
-# You will need to replace the filename with the path to your own file. You can
-# use the UniProt genes, however UniProt includes multiple versions of each gene,
-# raising the total to 89135 genes. Since A. thaliana is the focal species, it
-# is important to be very explicit about version of the proteome.
+# Next add a few supplementary proteomes from 1KP
+kp <- onekp::retrieve_onekp()
+# get the ginkgo proteome from 1KP
+ginkgo_taxid <- taxizedb::name2taxid("Ginkgo biloba")
+ginkgo_proteome <- onekp::filter_by_species(kp, ginkgo_taxid) %>% onekp::download_peptides(dir="custom-seqs")
+strata <- add_taxa(strata, ginkgo_taxid)
+strata@data$faa[[as.character(ginkgo_taxid)]] <- as.vector(ginkgo_proteome)
+
+# Remove Klebsormidium nitens
+strata <- prune(strata, '105231', type='name')
+
+## Replace the UniProt Arabidopsis thaliana proteome with the Araport11 proteome.
+## The path below is specific to my pipeline, you can just use the UniProt genes,
+## if you want. The problem with them is that they include all previous variants
+## of the gene models, raising to 89135 genes. Since `A. thaliana` is the focal
+## species, it is important to be very explicit about version of the proteome.
 strata@data$faa[['3702']] <- 'Araport11_genes.201606.pep.fasta'
 ```
 
@@ -67,7 +82,9 @@ well, it will automatically read these BLAST results).
 
 
 ```{r, at_blast, cache=TRUE, message=FALSE, warning=FALSE}
-strata <- strata_blast(strata, blast_args=list(nthreads=2)) %>% strata_besthits
+# replace 8 with the number of threads on your system, if you running locally
+strata <- strata_blast(strata, blast_args=list(nthreads=8L)) %>%
+  strata_besthits
 
 # Merge results into a single hittable
 results <- merge_besthits(strata)
@@ -91,16 +108,16 @@ strata2 <- strata_convert(strata, target='all', to='name')
 
 ```{r at_prot_stat, eval=FALSE}
 # You can explore the proteome stats interactively with plotly:
-ggplotly(plot_proteome_stats(strata2))
-ggplotly(plot_proteome_lengths(strata2))
+plotly::ggplotly(plot_proteome_stats(strata2))
+plotly::ggplotly(plot_proteome_lengths(strata2))
 ```
 
 ```{r, at_protreport, cache=FALSE}
 proteome_report_table(strata2) %>%
   merge(get_phylostrata_map(strata2)) %>%
-  arrange(-ps) %>%
-  select(species, ps, N, min, q25, median, q75, max) %>%
-  kable()
+  dplyr::arrange(-ps) %>%
+  dplyr::select(species, ps, N, min, q25, median, q75, max) %>%
+  knitr::kable()
 ```
 
 Table: Proteome statistics for all proteomes in the *A. thaliana* analysis. **N**: total
@@ -121,10 +138,14 @@ subtree(strata, name2taxid('Viridiplantae')) %>%
     organelle_table %>%
     # sort by ascending phylostratum age
     dplyr::arrange(-.data$ps, .data$species) %>%
-    kable()
+    knitr::kable()
 ```
 
-Table: Number of organelle-encoded proteins appearing in each plant target species. 
+Table: Number of organelle-encoded proteins appearing in each plant target
+species. Currently, organelle proteins can only be counted for sequeces
+retrieved from UniProt (which have UniProt IDs in their FASTA headers). Thus
+*A. thaliana* and *Ginkgo biloba* are each listed as having no organellar
+sequences.
 
 
 ## Finding genes that skip strata
@@ -133,6 +154,12 @@ Table: Number of organelle-encoded proteins appearing in each plant target speci
 # Find all genes that are missing in one or more phylostrata younger than their
 # oldest match.
 revenants <- find_revenants(results)
+```
+
+```{r, cache=TRUE}
+# The number of genes with a skipped stratum immediately after
+# the basal stratum
+(subset(revenants, ps - 1 == basal_ps)$qseqid %>% unique %>% length)
 ```
 
 ```{r, cache=TRUE}
@@ -243,28 +270,3 @@ setdiff(a2018_orphans, a2014_orphans)
 
 Table: A comparison between (Arendsee et al., 2014, `a2014`) and this study's
 (`a2018`) stratification of *A. thaliana* genes. 
-
---------------------------------------------------------------------------------
-
-
-Comparing diversity algorithms
-
-```{r}
-focal_taxid <- '3702'
-strata <-
-  # Get stratified relatives represented in UniProt
-  uniprot_strata(focal_taxid, from=2)
-
-vir <- subtree(strata, 33090, type="name")
-vir2 <- diverse_subtree(vir, 10, algo=.algo1)
-color <- ifelse(leafs(vir) %in% leafs(vir2), "red", "black")
-plot(vir@tree, tip.color=color, type='cladogram', cex=0.4)
-
-
-x1 <- strata_apply(strata, f=diverse_subtree, n=5, weights=NULL, FUN=.algo1)
-x2 <- strata_apply(strata, f=diverse_subtree, n=5, weights=NULL, FUN=.algo2)
-
-pdf('z.pdf')
-plot(x1, cex=0.4, type='cladogram', main='algo1')
-plot(x2, cex=0.4, type='cladogram', main='algo2')
-dev.off()

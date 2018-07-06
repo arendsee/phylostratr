@@ -4,10 +4,10 @@
 \alias{make_significance_matrices}
 \title{Get comparisons of inferences across scoring systems}
 \usage{
-make_significance_matrices(results, cache = "significance_list.Rda")
+make_significance_matrices(m, cache = "significance_list.Rda")
 }
 \arguments{
-\item{results}{data.frame of highest scoring hits of each gene against each target}
+\item{m}{data.frame of mrca}
 
 \item{cache}{A file where data are cached}
 }

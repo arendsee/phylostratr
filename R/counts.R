@@ -66,18 +66,18 @@ make_TIPS_comparison_matrix <- function(strata, results, classifier){
 
 #' Get comparisons of inferences across scoring systems
 #' 
-#' @param results data.frame of highest scoring hits of each gene against each target
+#' @param m data.frame of mrca
 #' @param cache A file where data are cached
 #' @return list of matrices
 #' @export
-make_significance_matrices <- function(results, cache='significance_list.Rda'){
-  d <- access_cache(cache, run_comparison, results)
-
-  qseqids <- lapply(d, function(x) x$qseqid) %>%
-    {Reduce(f=intersect, .[-1], .[[1]])}
-  d <- lapply(d, function(x) x[x$qseqid %in% qseqids, ]) %>%
-    lapply(dplyr::arrange, .data$qseqid)
-  m <- as.data.frame(lapply(d, function(x) x$mrca_name))
+make_significance_matrices <- function(m, cache='significance_list.Rda'){
+  # d <- access_cache(cache, run_comparison, results)
+  #
+  # qseqids <- lapply(d, function(x) x$qseqid) %>%
+  #   {Reduce(f=intersect, .[-1], .[[1]])}
+  # d <- lapply(d, function(x) x[x$qseqid %in% qseqids, ]) %>%
+  #   lapply(dplyr::arrange, .data$qseqid)
+  # m <- as.data.frame(lapply(d, function(x) x$mrca_name))
 
   gs <- list()
   for(i in 1:(ncol(m) - 1)){
