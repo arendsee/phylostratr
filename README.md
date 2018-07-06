@@ -7,7 +7,7 @@ Predict and explore the age of genes using phylostratigraphic methods.
 
 ## Installation
 
-You can install from CRAN with:
+You can install from GitHub with:
 
 ```{r github-installation, eval=FALSE}
 library(devtools)
@@ -17,6 +17,12 @@ install_github("arendsee/phylostratr")
 ## Dependencies
 
  * NCBI BLAST+
+
+## Citation
+
+    Zebulun Arendsee, Jing Li, Urminder Singh, Arun Seetharam, Karin Dorman,
+    Eve Syrkin Wurtele (2018) phylostratr: A framework for phylostratigraphy.
+    bioRxiv doi: https://doi.org/10.1101/360164
 
 ## Funding
 
