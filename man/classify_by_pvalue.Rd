@@ -12,7 +12,7 @@ classify_by_pvalue(threshold, ...)
 \item{...}{Unused}
 }
 \value{
-A function of a dataframe that has the column 'evalue', the function
+A function of a dataframe with column 'evalue'
 }
 \description{
 Infer homology inference based on a hard p-value threshold

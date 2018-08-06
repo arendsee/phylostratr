@@ -75,21 +75,29 @@ diverse_subtree <- function(tree, n, weights=NULL, collapse=FALSE, FUN=.algo1, .
 }
 
 .algo1 <- function(lineages, n, weights, tree, ...){
+  # The depth of every leaf (species) in the tree
+  # length(depths) == number of species
   depths <- sapply(lineages, length)
+
+  # The number of times each node in the tree has been traversed
+  # length(k) == number of nodes (including species)
   k <- rep(0, max(unlist(lineages))) 
+
+  # Selected leafs
   chosen <- rep(0, n) 
+
   for(i in 1:n){
 
     w <- if(i == 1){
       weights
     } else {
       # Calculate diversity weights: the mean number of times each ancestral
-      # node has been passed through. The 1/depth term that is added to prevent
-      # division by zero.
+      # branch has been traversed.
 
-      w <- sapply(lineages, function(x) sum(k[x[-1]]) + 1)
-      # w <- sapply(lineages, function(x) mean(k[x[-1]]) + 1/(length(k[x])))
-      # w <- sapply(lineages, function(x) mean(k[x[-1]]))
+      w <- sapply(lineages, function(x) sum(
+        k[x[-1]]) + # number of times each ancestral branch has been traversed
+                  1 # constant offset to avoid division by zero
+      )
 
       # Divide initial weight by the diversity score
       weights / w
@@ -104,7 +112,7 @@ diverse_subtree <- function(tree, n, weights=NULL, collapse=FALSE, FUN=.algo1, .
       decreasing=TRUE
     ), chosen)[1]
 
-    # number of times each node has been passed through
+    # increment the number of times each node has been traversed
     k[lineages[[chosen[i]]][-1]] <- k[lineages[[chosen[i]]][-1]] + 1
   }
   chosen
@@ -231,7 +239,7 @@ classify_by_evalue <- function(threshold, ...){
 #'
 #' @param threshold An e-value threshold
 #' @param ... Unused
-#' @return A function of a dataframe that has the column 'evalue', the function
+#' @return A function of a dataframe with column 'evalue'
 #' @export
 classify_by_pvalue <- function(threshold, ...){
   function(x){
@@ -240,57 +248,21 @@ classify_by_pvalue <- function(threshold, ...){
   }
 }
 
-#' Classify homologs under the independence assumption
+#' Infer homology inference based on an adjusted p-value threshold
 #'
-#' @param threshold The target alpha (e.g. 0.05)
-#' @param ... Additional arguments passed to p.adjust
-#' @export
-classify_assuming_iid <- function(threshold, ...){
-  function(x){
-    exp_n <- length(unique(x$qseqid))
-
-    m <- dplyr::group_by(x, .data$qseqid, .data$mrca) %>%
-    dplyr::mutate(
-      pval.adj = p.adjust(.evalue2pvalue(evalue), ...)
-    ) %>%
-    dplyr::ungroup() %>%
-    dplyr::select(.data$qseqid, .data$pval.adj, .data$mrca)
-
-    z <- dplyr::group_by(m, .data$qseqid, .data$mrca) %>%
-      dplyr::summarize(pval = min(pval.adj)) %>%
-      # cast and melt: this completes the data 
-      dplyr::ungroup() %>%
-      reshape2::acast(qseqid ~ mrca, value.var="pval", fill=1) %>%
-      apply(1, p.adjust, ...) %>% t
-
-    # Add in any rows that were missing, this can happedn when, for reasons
-    # most mysterious, the focal gene does not even match itself. 
-
-    p <- z[as.matrix(x[, c('qseqid', 'mrca')])]
-
-    if(exp_n != nrow(z)){
-      stop("classify_assuming_iid is broken - complain to the maintainer")
-    }
-
-    { !is.na(p) & p < threshold }
-  }
-}
-
-#' Infer homology based on p-value with Fisher's method 
+#' Here the E-values of sequence similarity against each target species is
+#' multiplied by the total number of target species. This is equivalent to what
+#' BLAST does in the special case where all proteomes are of equal length. 
 #'
-#' @param threshold P-value threshold
+#' @param threshold An e-value threshold (before adjustment)
+#' @param ... Unused
+#' @return A function of a dataframe with columns 'evalue' and 'staxid'
 #' @export
-classify_by_fisher <- function(threshold){
-  fishers_method <- function(p){
-      q <- -2 * sum(log(p))
-      df <- 2 * length(p) # degrees of freedom
-      pchisq(q, df, lower.tail=FALSE)
-  }
+classify_by_adjusted_pvalue <- function(threshold, ...){
   function(x){
-    x$pval <- ifelse(is.na(x), 1, .evalue2pvalue(x$evalue))
-    dplyr::group_by(x, .data$qseqid, .data$mrca) %>%
-      dplyr::mutate(pval = fishers_method(.data$pval)) %>%
-      { .$pval < threshold }
+    x$evalue <- x$evalue / length(unique(x$staxid))
+    p <- .evalue2pvalue(x$evalue)
+    !is.na(p) & (p < threshold)
   }
 }
 

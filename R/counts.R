@@ -2,9 +2,9 @@
 # Internal
 run_comparison <- function(results){
   list(
-    holm05 = stratify(results, classify_assuming_iid( 5e-2, method='holm' ))[,       c('qseqid', 'mrca_name')],
-    bon05  = stratify(results, classify_assuming_iid( 5e-2, method='bonferroni' ))[, c('qseqid', 'mrca_name')],
-    bon5   = stratify(results, classify_assuming_iid( 1e-5, method='bonferroni' ))[, c('qseqid', 'mrca_name')]
+    b1 = stratify(results, classify_by_adjusted_pvalue(1e-1))[, c('qseqid', 'mrca_name')],
+    b2 = stratify(results, classify_by_adjusted_pvalue(1e-2))[, c('qseqid', 'mrca_name')],
+    b5 = stratify(results, classify_by_adjusted_pvalue(1e-5))[, c('qseqid', 'mrca_name')]
   )
 }
 
@@ -71,14 +71,6 @@ make_TIPS_comparison_matrix <- function(strata, results, classifier){
 #' @return list of matrices
 #' @export
 make_significance_matrices <- function(m, cache='significance_list.Rda'){
-  # d <- access_cache(cache, run_comparison, results)
-  #
-  # qseqids <- lapply(d, function(x) x$qseqid) %>%
-  #   {Reduce(f=intersect, .[-1], .[[1]])}
-  # d <- lapply(d, function(x) x[x$qseqid %in% qseqids, ]) %>%
-  #   lapply(dplyr::arrange, .data$qseqid)
-  # m <- as.data.frame(lapply(d, function(x) x$mrca_name))
-
   gs <- list()
   for(i in 1:(ncol(m) - 1)){
     gss <- list()
@@ -87,7 +79,6 @@ make_significance_matrices <- function(m, cache='significance_list.Rda'){
     }
     gs[[names(m)[i]]] <- gss
   }
-
   gs
 }
 
