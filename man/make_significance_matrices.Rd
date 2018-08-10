@@ -4,15 +4,13 @@
 \alias{make_significance_matrices}
 \title{Get comparisons of inferences across scoring systems}
 \usage{
-make_significance_matrices(m, cache = "significance_list.Rda")
+make_significance_matrices(m)
 }
 \arguments{
 \item{m}{data.frame of mrca}
-
-\item{cache}{A file where data are cached}
 }
 \value{
-list of matrices
+data.frame of stratum labels
 }
 \description{
 Get comparisons of inferences across scoring systems

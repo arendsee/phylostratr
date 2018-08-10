@@ -30,7 +30,7 @@
 %
 % Where $P(S_i = 1)$ is the probability that a homolog is in some species
 % descending from the ith stratum. $K$ is the total number of strata.
-%
+
 % The hypothesis that is actually being tested is not explicitly stated
 %
 % The common practice of choosing a rather arbitrary E-value cutoff (usually $10^{-3}$ or $10^{-5}$).
@@ -41,7 +41,7 @@ library(phylostratr)
 if(file.exists('all.Rda')){
   load('all.Rda')
 } else {
-  default_classifier <- classify_assuming_iid(1e-5, method='bonferroni')
+  default_classifier <- classify_by_adjusted_pvalue(threshold=0.001)
   results            <- readRDS('results.Rda')
   is_present         <- default_classifier(results)
   strata_table       <- stratify(results, classifier=default_classifier)
@@ -50,28 +50,19 @@ if(file.exists('all.Rda')){
   strata             <- readRDS('strata.Rda')
   save.image('all.Rda')
 }
-
-# readr::write_tsv(dataframe_significance_comparison(results), "MBF.tsv")
-
-## The pretty way that Eve hates
-# myscheme <- ggplot2::scale_fill_distiller(
-#     palette = "Spectral",
-#     labels  = scales::percent
-#   )
 @
 
 <<>>=
 ll <- list(
-  bon2  = stratify(results, classifier=classify_assuming_iid(1e-2, method="bonferroni")),
-  bon5  = stratify(results, classifier=classify_assuming_iid(1e-5, method="bonferroni")),
-  holm5 = stratify(results, classifier=classify_assuming_iid(1e-5, method="holm"))
+  bon2  = stratify(results, classifier=classify_by_adjusted_pvalue(threshold=1e-2)),
+  bon5  = stratify(results, classifier=classify_by_adjusted_pvalue(threshold=1e-5))
 )
 sigresults <- Reduce(init=ll[[1]], x=ll[-1],
   function(a,b){
     merge(a, b, by='qseqid')
   }
 )
-sigresults <- sigresults[, c(4,7,10)]
+sigresults <- sigresults[, c(4,7)]
 names(sigresults) <- names(ll)
 saveRDS(sigresults, 'sigresults.Rda')
 @
@@ -83,32 +74,31 @@ cache='figdata.Rda'
 d <- if(!file.exists(cache)){
   d <- list()
   d$sigmats <- make_significance_matrices(sigresults)
-  d$versus_TIPS <- make_TIPS_comparison_matrix(strata, results, default_classfier)
+  d$versus_TIPS <- make_TIPS_comparison_matrix(strata, results, default_classifier)
   d$jmpmat <- make_jump_matrix(results[is_present, c('qseqid', 'ps')], labels=strata_levels)
-  saveRDS(d, 'figdata.Rda')
+  saveRDS(d, cache)
   d
 } else {
   readRDS(cache)
 }
 
-d$sigmats[[1]][[1]]@xlab = "Phylostratum (Bonferoni-adjusted p-value < 1e-5)"
-d$sigmats[[1]][[1]]@ylab = "Phylostratum (Bonferoni-adjusted p-value < 0.01)"
-d$sigmats[[2]][[1]]@xlab = "Phylostratum (Holm-adjusted p-value < 1e-5)"
-d$sigmats[[2]][[1]]@ylab = "Phylostratum (Bonferoni-adjusted p-value < 1e-5)"
+d$sigmats[[1]][[1]]@xlab = "Phylostratum (Adjusted p-value < 1e-5)"
+d$sigmats[[1]][[1]]@ylab = "Phylostratum (Adjusted p-value < 0.01)"
 fig1 <- plot(d$sigmats[[1]][[1]])
-fig2 <- plot(t(d$sigmats[[2]][[1]]))
+# fill
 fig3 <- plot(t(d$versus_TIPS)) +
   ggplot2::ylab("Classification with phylostratr dataset") +
   ggplot2::xlab("Classification with 2014 dataset")
 fig4 <- plot(t(d$jmpmat)) +
   ggplot2::ylab("Phylostratum with homolog (1e-5 bonf)") +
   ggplot2::xlab("Next youngest with homolog (1e-5 bonf)")
+
 @
 
 <<f1, fig.width=7, fig.height=6, echo=FALSE>>=
 pdf('all.pdf')
 fig1
-fig2
+# fig2
 fig3
 fig4
 dev.off()

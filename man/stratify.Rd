@@ -4,7 +4,7 @@
 \alias{stratify}
 \title{Get the phylostratum of each query gene}
 \usage{
-stratify(hittable, classifier = classify_by_evalue(1e-05),
+stratify(hittable, classifier = classify_by_adjusted_pvalue(0.001),
   strata_names = get_mrca_names(hittable))
 }
 \arguments{

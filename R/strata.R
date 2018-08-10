@@ -94,13 +94,13 @@ diverse_subtree <- function(tree, n, weights=NULL, collapse=FALSE, FUN=.algo1, .
       # Calculate diversity weights: the mean number of times each ancestral
       # branch has been traversed.
 
-      w <- sapply(lineages, function(x) sum(
+      v <- sapply(lineages, function(x) sum(
         k[x[-1]]) + # number of times each ancestral branch has been traversed
                   1 # constant offset to avoid division by zero
       )
 
       # Divide initial weight by the diversity score
-      weights / w
+      weights / v
     }
 
     # Select the ID with the highest adjusted weight. Resolve ties by tree
@@ -260,9 +260,9 @@ classify_by_pvalue <- function(threshold, ...){
 #' @export
 classify_by_adjusted_pvalue <- function(threshold, ...){
   function(x){
-    x$evalue <- x$evalue / length(unique(x$staxid))
+    adj_threshold <- threshold / length(unique(x$staxid))
     p <- .evalue2pvalue(x$evalue)
-    !is.na(p) & (p < threshold)
+    !is.na(p) & (p < adj_threshold)
   }
 }
 
@@ -294,7 +294,7 @@ get_mrca_names <- function(hittable){
 #' @export
 stratify <- function(
     hittable,
-    classifier   = classify_by_evalue(1e-5),
+    classifier   = classify_by_adjusted_pvalue(0.001),
     strata_names = get_mrca_names(hittable)
   ){
   orphan_ps <- max(hittable$ps)

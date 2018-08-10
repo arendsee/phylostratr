@@ -32,7 +32,7 @@ make_matrix_from_two_strata <- function(d){
 #' @export
 make_TIPS_comparison_matrix <- function(strata, results, classifier){
   # Get the strata from the current analysis
-  a2018 <- stratify(results)
+  a2018 <- stratify(hittable=results, classifier=classifier)
   # Get and clean the (Arendsee et al., 2014) data (stored in phylostratr package)
   a2014 <- readr::read_tsv(system.file('extdata', 'arendsee2014_strata.tab', package='phylostratr'))
   # Add NCBI taxonomy ID to tips data
@@ -67,12 +67,14 @@ make_TIPS_comparison_matrix <- function(strata, results, classifier){
 #' Get comparisons of inferences across scoring systems
 #' 
 #' @param m data.frame of mrca
-#' @param cache A file where data are cached
-#' @return list of matrices
+#' @return data.frame of stratum labels
 #' @export
-make_significance_matrices <- function(m, cache='significance_list.Rda'){
+make_significance_matrices <- function(m){
+  if(ncol(m) < 2){
+    stop("Expected a data.frame with 2 or more columns")
+  }
   gs <- list()
-  for(i in 1:(ncol(m) - 1)){
+  for(i in 1:(ncol(m)-1)){
     gss <- list()
     for(j in (i+1):ncol(m)){
       gss[[names(m)[j]]] <- make_matrix_from_two_strata(m[, c(i, j)])

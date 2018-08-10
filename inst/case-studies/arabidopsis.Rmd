@@ -3,11 +3,11 @@
 ## Build the tree and collect the proteomes
 
 ```{r, message=FALSE}
+library(phylostratr)
 library(reshape2)
 library(taxizedb)
 library(dplyr)
 library(readr)
-library(phylostratr)
 library(magrittr)
 library(onekp)
 library(plotly)
