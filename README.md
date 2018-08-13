@@ -5,6 +5,7 @@
 
 Predict and explore the age of genes using phylostratigraphic methods.
 
+![Phylostratr Workflow](README-fig1.png)
 
 ## Installation
 
