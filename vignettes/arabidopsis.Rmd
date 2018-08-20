@@ -8,7 +8,7 @@ vignette: >
   %\VignetteEngine{knitr::rmarkdown}
 ---
 
-`phylostratr` divides a phylostratigraphy analysis into 5 steps:
+`phylostratr` divides a phylostratigraphy analysis into 6 steps:
 
  1. Acquire a species tree with species identifiers (e.g. NCBI taxon ids or
     species names) as leafs.
@@ -22,7 +22,9 @@ vignette: >
  4. From the raw results, produce p-values for homology of each species against
     each target.
 
- 5. infer taxonomic specificity of each gene
+ 5. Infer taxonomic specificity of each gene.
+
+ 6. Analyze the results and diagnose problems.
 
 Currently `phylostratr` supports using either custom trees or the NCBI common
 tree. For homology inference, a simple protein BLAST is offered. However,
@@ -59,12 +61,20 @@ thaliana* as follows:
     less than 1e-5. This is a fairly arbitrary criterion and does not attempt
     to adjust for multiple testing across a stratum.
 
-## 1. Select relatives to search
+## Select relatives to search
 
 ```{r, eval=FALSE}
-library(taxizedb)
 library(phylostratr)
+library(reshape2)
+library(taxizedb)
+library(dplyr)
+library(readr)
 library(magrittr)
+library(onekp)
+library(knitr)
+```
+
+```{r, load-strata, eval=FALSE}
 
 weights=uniprot_weight_by_ref()
 focal_taxid <- '3702'
@@ -75,11 +85,10 @@ strata <-
   strata_apply(f=diverse_subtree, n=5, weights=weights) %>%
   # Use a prebuilt set of prokaryotic species
   use_recommended_prokaryotes %>%
+  # Add yeast and humans
   add_taxa(c('4932', '9606')) %>%
   # Download genomes, storing the filenames
   uniprot_fill_strata
-
-strata <- prune(strata, '105231', type='name')
 
 ## Replace the UniProt Arabidopsis thaliana proteome with the Araport11 proteome.
 ## The path below is specific to my pipeline, you can just use the UniProt genes,
@@ -87,27 +96,46 @@ strata <- prune(strata, '105231', type='name')
 ## of the gene models, raising to 89135 genes. Since `A. thaliana` is the focal
 ## species, it is important to be very explicit about version of the proteome.
 strata@data$faa[['3702']] <- '/db/araport11/Araport11_genes.201606.pep.fasta'
+```
 
-# TODO: add archaeplastida (viridiplantae, red algae, glaucophytes)
+```{r, remove-k_nitens, eval=FALSE}
+# Remove Klebsormidium nitens
+strata <- prune(strata, '105231', type='name')
+```
 
+Next I add a proteome from a source outside UniProt. Coverage of the
+Spermatophyta clade is very sparse, so I retrieve a transcriptome from the
+*Ginkgo biloba* genome available from the 1KP project.
+
+```{r, add-ginkgo, eval=FALSE}
+# Next add a supplementary proteome from 1KP
+kp <- onekp::retrieve_onekp()
+# get the ginkgo proteome from 1KP
+ginkgo_taxid <- taxizedb::name2taxid("Ginkgo biloba")
+ginkgo_proteome <- onekp::filter_by_species(kp, ginkgo_taxid) %>% onekp::download_peptides(dir="custom-seqs")
+strata <- add_taxa(strata, ginkgo_taxid)
+strata@data$faa[[as.character(ginkgo_taxid)]] <- as.vector(ginkgo_proteome)
+```
+
+```{r, plot-species, echo=FALSE, eval=FALSE}
+# We can plot all selected species as follows
+strata %>% strata_convert(target='all', to='name') %>% sort_strata %>% plot
+```
+
+## Find similiar sequences
+
+```{r, blast-and-merge, eval=FALSE}
 # BLAST against each target genome (this will take a few hours)
-# TODO: don't hard code the threads
-strata <- strata_blast(strata, blast_args=list(nthreads=2)) %>% strata_besthits
-
+strata <- strata_blast(strata, blast_args=list(nthreads=8)) %>% strata_besthits
 # Merge results into a single hittable
 results <- merge_besthits(strata)
 ```
 
-```{r, eval=FALSE}
-strata %>%
-    strata_convert(target='all', to='name') %>%
-    sort_strata %>%
-    plot
-```
+## Gather additional data
 
 Now we can merge additional data:
 
-```{r, eval=FALSE}
+```{r, add-meta, eval=FALSE}
 # Note, this will take awhile
 strata <- strata %>%
     # add map of UniProt IDs to PFAM domains
@@ -118,19 +146,19 @@ strata <- strata %>%
     add_organelle_proteins
 ```
 
-```{r, eval=FALSE}
-prot <- proteome_stats_table(strata)
-strata2 <- strata_convert(strata, target='all', to='name'
-g1 <- plot_proteome_stats(strata2)
-g2 <- plot_proteome_lengths(strata2)
-# make interactive in browser 
-plotly::ggplotly(g1)
-plotly::ggplotly(g2)
+```{r, plot-proteome-diagnostics, eval=FALSE, echo=FALSE}
+# prot <- proteome_stats_table(strata)
+# strata2 <- strata_convert(strata, target='all', to='name')
+# g1 <- plot_proteome_stats(strata2)
+# g2 <- plot_proteome_lengths(strata2)
+# # make interactive in browser
+# plotly::ggplotly(g1)
+# plotly::ggplotly(g2)
 ```
 
-```{r, eval=FALSE}
+```{r, build-plant-organelle-table, eval=FALSE}
 # We are particularly interested in plant organelles, since they are large and
-# often forgotten in proteome datasets. 
+# often forgotten in proteome datasets.
 subtree(strata, name2taxid('Viridiplantae')) %>%
     # and we replace the taxon IDs with scientific names
     strata_convert(target='all', to='name') %>%
@@ -142,16 +170,78 @@ subtree(strata, name2taxid('Viridiplantae')) %>%
 
 And get the number of genes in each phylostrata
 
-```{r, eval=FALSE}
-table(stratify(results)$mrca_name)
-```
-
-```{r, eval=FALSE}
-ph <- stratify(results)
+```{r, show-strata-table-by-locus, eval=FALSE}
+ph <- stratify(results, classify_by_adjusted_pvalue(0.001))
 ph$locus <- sub('\\.[0-9]+', '', ph$qseqid, perl=TRUE)
 ph %>%
     dplyr::select(-qseqid) %>%
     dplyr::distinct() %>%
     dplyr::group_by(mrca_name, ps) %>%
     dplyr::summarize(n = length(ps))
+```
+
+```{r, show-strata-table, eval=FALSE}
+table(ph$mrca_name)
+```
+
+
+## Figures
+
+```{r, dataprep-for-significance-figures, eval=FALSE, echo=FALSE}
+if(file.exists('all.Rda')){
+  load('all.Rda')
+} else {
+  default_classifier <- classify_by_adjusted_pvalue(threshold=0.001)
+  results            <- readRDS('results.Rda')
+  is_present         <- default_classifier(results)
+  strata_table       <- stratify(results, classifier=default_classifier)
+  revenants          <- find_revenants(results, classifier=default_classifier)
+  strata_levels      <- levels(strata_table$mrca_name)
+  strata             <- readRDS('strata.Rda')
+  save.image('all.Rda')
+}
+
+ll <- list(
+  bon2  = stratify(results, classifier=classify_by_adjusted_pvalue(threshold=1e-2)),
+  bon5  = stratify(results, classifier=classify_by_adjusted_pvalue(threshold=1e-5))
+)
+sigresults <- Reduce(init=ll[[1]], x=ll[-1],
+  function(a,b){
+    merge(a, b, by='qseqid')
+  }
+)
+sigresults <- sigresults[, c(4,7)]
+names(sigresults) <- names(ll)
+saveRDS(sigresults, 'sigresults.Rda')
+```
+
+
+```{r, plot-significance-figures, eval=FALSE, fig.width=7, fig.height=6, echo=FALSE}
+require(phylostratr)
+cache='figdata.Rda'
+d <- if(!file.exists(cache)){
+  d <- list()
+  d$sigmats <- make_significance_matrices(sigresults)
+  d$versus_TIPS <- make_TIPS_comparison_matrix(strata, results, default_classifier)
+  d$jmpmat <- make_jump_matrix(results[is_present, c('qseqid', 'ps')], labels=strata_levels)
+  saveRDS(d, cache)
+  d
+} else {
+  readRDS(cache)
+}
+
+d$sigmats[[1]][[1]]@xlab = "Phylostratum (Adjusted p-value < 1e-5)"
+d$sigmats[[1]][[1]]@ylab = "Phylostratum (Adjusted p-value < 0.01)"
+fig1 <- plot(d$sigmats[[1]][[1]])
+fig2 <- fig1 # TODO: replace with real figure
+fig3 <- plot(t(d$versus_TIPS)) +
+  ggplot2::ylab("Classification with phylostratr dataset") +
+  ggplot2::xlab("Classification with 2014 dataset")
+fig4 <- plot(t(d$jmpmat)) +
+  ggplot2::ylab("Phylostratum with homolog (1e-5 bonf)") +
+  ggplot2::xlab("Next youngest with homolog (1e-5 bonf)")
+```
+
+```{r, show-significance,figures, eval=FALSE, echo=FALSE}
+gridExtra::grid.arrange(fig1, fig2, fig3, fig4, nrow=2)
 ```
