@@ -153,7 +153,7 @@ sequences.
 ```{r, cache=TRUE}
 # Find all genes that are missing in one or more phylostrata younger than their
 # oldest match.
-revenants <- find_revenants(results)
+revenants <- find_revenants(results, classifier=default_classifier)
 ```
 
 ```{r, cache=TRUE}
@@ -218,8 +218,10 @@ in the new study, I use the Araport11 anotation of *Arabidopsis thaliana*,
 whereas in (Arendsee et al., 2014) TAIR10 was used.
 
 ```{r, at_tips_prep, cache=TRUE, message=FALSE}
+# Set the classifier for determining statistical significance
+default_classifier <- classify_by_adjusted_pvalue(threshold=0.001)
 # Get the strata from the current analysis
-a2018 <- stratify(results)
+a2018 <- stratify(results, classifier=default_classifier)
 # Get and clean the (Arendsee et al., 2014) data (stored in phylostratr package)
 a2014 <- read_tsv(system.file('extdata', 'arendsee2014_strata.tab', package='phylostratr'))
 # Add NCBI taxonomy ID to tips data
@@ -270,3 +272,53 @@ setdiff(a2018_orphans, a2014_orphans)
 
 Table: A comparison between (Arendsee et al., 2014, `a2014`) and this study's
 (`a2018`) stratification of *A. thaliana* genes. 
+
+
+
+```{r, dataprep-for-significance-figures, cache=TRUE}
+is_present         <- default_classifier(results)
+strata_table       <- stratify(results, classifier=default_classifier)
+strata_levels      <- levels(strata_table$mrca_name)
+
+ll <- list(
+  bon2  = stratify(results, classifier=classify_by_adjusted_pvalue(threshold=1e-2)),
+  bon5  = stratify(results, classifier=classify_by_adjusted_pvalue(threshold=1e-5))
+)
+sigresults <- Reduce(init=ll[[1]], x=ll[-1],
+  function(a,b){
+    merge(a, b, by='qseqid')
+  }
+)
+sigresults <- sigresults[, c(4,7)]
+names(sigresults) <- names(ll)
+```
+
+
+```{r, plot-significance-figures, cache=TRUE}
+d <- list()
+d$sigmats <- make_significance_matrices(sigresults)
+d$versus_TIPS <- make_TIPS_comparison_matrix(strata, results, default_classifier)
+d$jmpmat <- make_jump_matrix(results[is_present, c('qseqid', 'ps')], labels=strata_levels)
+
+d$sigmats[[1]][[1]]@xlab = "Phylostratum (Adjusted p-value < 1e-5)"
+d$sigmats[[1]][[1]]@ylab = "Phylostratum (Adjusted p-value < 0.01)"
+
+# fig2 <- fig1 # TODO: replace with real figure
+```
+
+```{r, signif1, fig.width=4, fig.height=4}
+plot(d$sigmats[[1]][[1]])
+```
+
+```{r, signif3, fig.width=4, fig.height=4}
+plot(t(d$versus_TIPS)) +
+  ggplot2::ylab("Classification with phylostratr dataset") +
+  ggplot2::xlab("Classification with 2014 dataset")
+```
+
+```{r, signif4, fig.width=4, fig.height=4}
+plot(t(d$jmpmat)) +
+  ggplot2::ylab("Phylostratum with homolog (1e-5 bonf)") +
+  ggplot2::xlab("Next youngest with homolog (1e-5 bonf)")
+```
+

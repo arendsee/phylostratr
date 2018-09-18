@@ -247,6 +247,34 @@ rbind(c2012, a2018) %>%
 Table: Distribution across strata of genes common to the current *S.
 cerevisiae* analysis and the youngest 3 strata from (Carvunis et al. 2012). 
 
+```{r, fig2, fig.width=6, fig.height=6, fig.caption="Comparison of strata classifications under 1e-2 and 1e-5 thresholds"}
+default_classifier <- classify_by_adjusted_pvalue(threshold=0.001)
+is_present         <- default_classifier(results)
+strata_table       <- stratify(results, classifier=default_classifier)
+strata_levels      <- levels(strata_table$mrca_name)
+
+ll <- list(
+  bon2  = stratify(results, classifier=classify_by_adjusted_pvalue(threshold=1e-2)),
+  bon5  = stratify(results, classifier=classify_by_adjusted_pvalue(threshold=1e-5))
+)
+sigresults <- Reduce(init=ll[[1]], x=ll[-1],
+  function(a,b){
+    merge(a, b, by='qseqid')
+  }
+)
+sigresults <- sigresults[, c(4,7)]
+names(sigresults) <- names(ll)
+
+d <- list()
+d$sigmats <- make_significance_matrices(sigresults)
+d$versus_TIPS <- make_TIPS_comparison_matrix(strata, results, default_classifier)
+d$jmpmat <- make_jump_matrix(results[is_present, c('qseqid', 'ps')], labels=strata_levels)
+
+d$sigmats[[1]][[1]]@xlab = "Phylostratum (Adjusted p-value < 1e-5)"
+d$sigmats[[1]][[1]]@ylab = "Phylostratum (Adjusted p-value < 0.01)"
+plot(d$sigmats[[1]][[1]])
+```
+
 # System Info
 
 ```{r}
