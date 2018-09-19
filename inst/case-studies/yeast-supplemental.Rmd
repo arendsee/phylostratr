@@ -247,7 +247,7 @@ rbind(c2012, a2018) %>%
 Table: Distribution across strata of genes common to the current *S.
 cerevisiae* analysis and the youngest 3 strata from (Carvunis et al. 2012). 
 
-```{r, fig2, fig.width=6, fig.height=6, fig.caption="Comparison of strata classifications under 1e-2 and 1e-5 thresholds"}
+```{r, fig2, fig.width=6, fig.height=6, dpi=300, fig.caption="Comparison of strata classifications under 1e-2 and 1e-5 thresholds"}
 default_classifier <- classify_by_adjusted_pvalue(threshold=0.001)
 is_present         <- default_classifier(results)
 strata_table       <- stratify(results, classifier=default_classifier)

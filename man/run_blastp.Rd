@@ -5,8 +5,8 @@
 \title{BLAST query protein FASTA file against a subject species}
 \usage{
 run_blastp(query_fastafile, subject_taxid, blastdb,
-  blastresult = paste0(subject_taxid, ".tab"), nthreads = 1, seg = FALSE,
-  verbose = TRUE)
+  blastresult = paste0(subject_taxid, ".tab"), nthreads = 1,
+  seg = FALSE, verbose = TRUE)
 }
 \arguments{
 \item{query_fastafile}{A protein FASTA file for the focal species}

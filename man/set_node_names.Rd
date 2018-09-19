@@ -10,7 +10,8 @@ set_node_names(x, ...)
 
 \method{set_node_names}{Strata}(x, ...)
 
-\method{set_node_names}{phylo}(x, default_names = paste0("n", nodes(x)), ...)
+\method{set_node_names}{phylo}(x, default_names = paste0("n", nodes(x)),
+  ...)
 }
 \arguments{
 \item{x}{phylo or Strata object}

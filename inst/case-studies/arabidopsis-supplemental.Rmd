@@ -275,50 +275,41 @@ Table: A comparison between (Arendsee et al., 2014, `a2014`) and this study's
 
 
 
-```{r, dataprep-for-significance-figures, cache=TRUE}
-is_present         <- default_classifier(results)
-strata_table       <- stratify(results, classifier=default_classifier)
-strata_levels      <- levels(strata_table$mrca_name)
+```{r, dataprep-for-significance-figures}
+is_present    <- default_classifier(results)
+strata_table  <- stratify(results, classifier=default_classifier)
+strata_levels <- levels(strata_table$mrca_name)
 
-ll <- list(
-  bon2  = stratify(results, classifier=classify_by_adjusted_pvalue(threshold=1e-2)),
-  bon5  = stratify(results, classifier=classify_by_adjusted_pvalue(threshold=1e-5))
-)
-sigresults <- Reduce(init=ll[[1]], x=ll[-1],
-  function(a,b){
-    merge(a, b, by='qseqid')
-  }
-)
-sigresults <- sigresults[, c(4,7)]
-names(sigresults) <- names(ll)
+evalue2 <- stratify(results, classifier=classify_by_adjusted_pvalue(threshold=1e-2))
+evalue5 <- stratify(results, classifier=classify_by_adjusted_pvalue(threshold=1e-5))
+sigresults = merge(evalue2, evalue5, by='qseqid')[, c(4,7)]
+names(sigresults) <- c("evalue2", "evalue5")
 ```
 
 
-```{r, plot-significance-figures, cache=TRUE}
+```{r, plot-significance-figures}
 d <- list()
 d$sigmats <- make_significance_matrices(sigresults)
 d$versus_TIPS <- make_TIPS_comparison_matrix(strata, results, default_classifier)
 d$jmpmat <- make_jump_matrix(results[is_present, c('qseqid', 'ps')], labels=strata_levels)
 
-d$sigmats[[1]][[1]]@xlab = "Phylostratum (Adjusted p-value < 1e-5)"
-d$sigmats[[1]][[1]]@ylab = "Phylostratum (Adjusted p-value < 0.01)"
-
-# fig2 <- fig1 # TODO: replace with real figure
+d$sigmats[[1]][[1]]@xlab = "Phylostratum (E-value < 1e-5)"
+d$sigmats[[1]][[1]]@ylab = "Phylostratum (E-value < 0.01)"
 ```
 
-```{r, signif1, fig.width=4, fig.height=4}
+```{r, signif1, fig.width=6, echo=FALSE, dpi=300, fig.height=6, fig.cap="The phylostratigraphic assignment across *Arabidopsis thaliana* genes under BLAST different E-value cutoffs."}
 plot(d$sigmats[[1]][[1]])
 ```
 
-```{r, signif3, fig.width=4, fig.height=4}
+```{r, signif2, fig.width=6, echo=FALSE, dpi=300, fig.height=6, fig.cap="A comparison of phylostrata classifications between this study and a similar one from 2014."}
 plot(t(d$versus_TIPS)) +
   ggplot2::ylab("Classification with phylostratr dataset") +
   ggplot2::xlab("Classification with 2014 dataset")
 ```
 
-```{r, signif4, fig.width=4, fig.height=4}
+```{r, signif3, fig.width=6, echo=FALSE, dpi=300, fig.height=6, fig.cap="Number of genes with each skip pattern"}
 plot(t(d$jmpmat)) +
-  ggplot2::ylab("Phylostratum with homolog (1e-5 bonf)") +
-  ggplot2::xlab("Next youngest with homolog (1e-5 bonf)")
+  ggplot2::ylab("Phylostratum with homolog (E-value = 1e-5)") +
+  ggplot2::xlab("Next youngest with homolog (E-value = 1e-5)")
 ```
 
