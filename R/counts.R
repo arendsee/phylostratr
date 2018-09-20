@@ -57,7 +57,7 @@ make_TIPS_comparison_matrix <- function(strata, results, classifier){
     reshape2::melt() %>%
     dplyr::select(phylostratum = .data$L1, species = .data$value)
 
-  species2014 <- readr::read_tsv(system.file('case-studies', 'ml-phylostratigraphy', 'tips-ages.tab', package='phylostratr'))
+  species2014 <- readr::read_tsv(system.file('case-studies', 'tips-ages.tab', package='phylostratr'))
 
   d <- merge(ps[[1]], ps[[2]], by="qseqid", suffixes=paste0(".", names(ps)))
 

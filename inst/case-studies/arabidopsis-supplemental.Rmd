@@ -297,17 +297,17 @@ d$sigmats[[1]][[1]]@xlab = "Phylostratum (E-value < 1e-5)"
 d$sigmats[[1]][[1]]@ylab = "Phylostratum (E-value < 0.01)"
 ```
 
-```{r, signif1, fig.width=6, echo=FALSE, dpi=300, fig.height=6, fig.cap="The phylostratigraphic assignment across *Arabidopsis thaliana* genes under BLAST different E-value cutoffs."}
+```{r, signif1, fig.width=6, dpi=300, fig.height=6, fig.cap="The phylostratigraphic assignment across *Arabidopsis thaliana* genes under BLAST different E-value cutoffs."}
 plot(d$sigmats[[1]][[1]])
 ```
 
-```{r, signif2, fig.width=6, echo=FALSE, dpi=300, fig.height=6, fig.cap="A comparison of phylostrata classifications between this study and a similar one from 2014."}
+```{r, signif2, fig.width=6, dpi=300, fig.height=6, fig.cap="A comparison of phylostrata classifications between this study and a similar one from 2014."}
 plot(t(d$versus_TIPS)) +
   ggplot2::ylab("Classification with phylostratr dataset") +
   ggplot2::xlab("Classification with 2014 dataset")
 ```
 
-```{r, signif3, fig.width=6, echo=FALSE, dpi=300, fig.height=6, fig.cap="Number of genes with each skip pattern"}
+```{r, signif3, fig.width=6, dpi=300, fig.height=6, fig.cap="Number of genes with each skip pattern"}
 plot(t(d$jmpmat)) +
   ggplot2::ylab("Phylostratum with homolog (E-value = 1e-5)") +
   ggplot2::xlab("Next youngest with homolog (E-value = 1e-5)")
