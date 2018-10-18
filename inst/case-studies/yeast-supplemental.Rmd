@@ -318,3 +318,8 @@ system2('blastp', '-version', stdout=TRUE)
 require(devtools)
 session_info()
 ```
+
+```{r save, echo=FALSE}
+saveRDS(results, 'results.rds')
+saveRDS(strata, 'strata.rds')
+```

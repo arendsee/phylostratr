@@ -232,73 +232,6 @@ a2014$mrca_name <- sub('_', ' ', a2014$mrca_name)
 strata_map <- taxizedb::classification('3702')[[1]]
 # factor the backbone
 a2014$mrca_name <- droplevels(factor(a2014$mrca_name, levels=strata_map$name))
-```
-
-Now, since the two phylostratigraphy experiments used different annotations of
-Arabidopsis, I will take the intersection. The model IDs shared between the
-annotations refer to the same models, phylostratr has a dedicated
-function for this:
-
-```{r, at_tips_summary, cache=TRUE}
-ps <- standardize_strata(list(
-    a2014 = a2014,
-    a2018 = a2018
-))
-
-# Compare the counts between the two studies:
-all_strata <- do.call(rbind, ps) %>%
-    merge(strata_map, by.x='mrca', by.y='id') %>%
-    dplyr::select(qseqid=qseqid, mrca=mrca, mrca_name=name, group=group) %>%
-    dplyr::mutate(mrca_name = droplevels(factor(mrca_name, levels=strata_map$name)))
-
-# Compare the values between the two studies
-strata_summary <- all_strata %>%
-    dplyr::group_by(group, mrca_name) %>%
-    dplyr::summarize(count = n())
-
-# make the table
-dcast(strata_summary, mrca_name ~ group, value.var='count') %>%
-    knitr::kable()
-```
-
-`r tab_caption("at_tips_summary", "A comparison between (Arendsee et al., 2014, 'a2014') and this study's ('a2018') stratification of *A. thaliana* genes. The gene counts include all gene models that are shared between the Araport11 (2018) and older TAIR10 (2014) annotations of the *A.thaliana* genome. In cases where one study has representatives in a phylostratum and other does not (e.g.  the 2014 study had a representative from the Brassicales stratum), the genes are merged into the older strata as needed.")`
-
-
-```{r, orphan_diff}
-d <- subset(all_strata, mrca_name == "Arabidopsis thaliana")
-a2014_orphans <- subset(d, group == "a2014")$qseqid
-a2018_orphans <- subset(d, group == "a2018")$qseqid
-setdiff(a2018_orphans, a2014_orphans)
-```
-
-
-
-```{r, dataprep-for-significance-figures}
-is_present    <- default_classifier(results)
-strata_table  <- stratify(results, classifier=default_classifier)
-strata_levels <- levels(strata_table$mrca_name)
-
-evalue2 <- stratify(results, classifier=classify_by_adjusted_pvalue(threshold=1e-2))
-evalue5 <- stratify(results, classifier=classify_by_adjusted_pvalue(threshold=1e-5))
-sigresults = merge(evalue2, evalue5, by='qseqid')[, c(4,7)]
-names(sigresults) <- c("evalue2", "evalue5")
-```
-
-```{r, cache=TRUE}
-# Get the strata from the current analysis
-a2018 <- stratify(hittable=results, classifier=default_classifier)
-# Get and clean the (Arendsee et al., 2014) data (stored in phylostratr package)
-a2014 <- readr::read_tsv(system.file('extdata', 'arendsee2014_strata.tab', package='phylostratr'))
-# Add NCBI taxonomy ID to tips data
-a2014$mrca <- taxizedb::name2taxid(a2014$name)
-# match column naming conventions
-a2014 <- dplyr::select(a2014, .data$qseqid, .data$mrca, .data$ps, mrca_name=.data$name)
-# underscores to spaces 
-a2014$mrca_name <- sub('_', ' ', a2014$mrca_name)
-# get a lineage map for Arabidopsis
-strata_map <- taxizedb::classification('3702')[[1]]
-# factor the backbone
-a2014$mrca_name <- droplevels(factor(a2014$mrca_name, levels=strata_map$name))
 
 # convert TAIR IDs from models (transcripts) to loci (genes)
 to_locus <- function(d){
@@ -317,16 +250,38 @@ ps <- standardize_strata(list(
 ))
 ps <- lapply(ps, function(x) x[c('qseqid', 'mrca_name')])
 
-species2018 <- strata %>% strata_fold(function(s) taxizedb::taxid2name(s@tree$tip.label)) %>%
-{ names(.) <- taxizedb::taxid2name(names(.)); . } %>%
-reshape2::melt() %>%
-dplyr::select(phylostratum = .data$L1, species = .data$value)
+# 2014 to 2018 study comparison matrix (2014 on x-axis)
+versus_TIPS <-
+    merge(ps[[1]], ps[[2]], by="qseqid", suffixes=paste0(".", names(ps))) %>%
+    dplyr::select(-qseqid) %>%
+    make_matrix_from_two_strata() %>% t
+```
 
-species2014 <- readr::read_tsv(system.file('case-studies', 'tips-ages.tab', package='phylostratr'))
+Now, since the two phylostratigraphy experiments used different annotations of
+Arabidopsis, I will take the intersection. The model IDs shared between the
+annotations refer to the same models, phylostratr has a dedicated
+function for this:
 
-d <- merge(ps[[1]], ps[[2]], by="qseqid", suffixes=paste0(".", names(ps)))
+```{r, at_tips_summary}
+# # Compare the counts between the two studies:
+data.frame(
+    a2014 = ps[[1]]$mrca_name %>% summary
+  , a2018 = ps[[2]]$mrca_name %>% summary
+) %>% knitr::kable()
+```
 
-versus_TIPS <- make_matrix_from_two_strata(d[, -1])
+`r tab_caption("at_tips_summary", "A comparison between (Arendsee et al., 2014, 'a2014') and this study's ('a2018') stratification of *A. thaliana* genes. The gene counts include all gene models that are shared between the Araport11 (2018) and older TAIR10 (2014) annotations of the *A.thaliana* genome. In cases where one study has representatives in a phylostratum and other does not (e.g.  the 2014 study had a representative from the Brassicales stratum), the genes are merged into the older strata as needed.")`
+
+
+```{r, dataprep-for-significance-figures}
+is_present    <- default_classifier(results)
+strata_table  <- stratify(results, classifier=default_classifier)
+strata_levels <- levels(strata_table$mrca_name)
+
+evalue2 <- stratify(results, classifier=classify_by_adjusted_pvalue(threshold=1e-2))
+evalue5 <- stratify(results, classifier=classify_by_adjusted_pvalue(threshold=1e-5))
+sigresults = merge(evalue2, evalue5, by='qseqid')[, c(4,7)]
+names(sigresults) <- c("evalue2", "evalue5")
 ```
 
 ```{r, echo=FALSE, eval=FALSE}
@@ -340,7 +295,6 @@ d <- list()
 d$sigmats <- make_significance_matrices(sigresults)
 d$versus_TIPS <- versus_TIPS
 d$jmpmat <- make_jump_matrix(results[is_present, c('qseqid', 'ps')], labels=strata_levels)
-
 d$sigmats[[1]][[1]]@xlab = "Phylostratum (E-value < 1e-5)"
 d$sigmats[[1]][[1]]@ylab = "Phylostratum (E-value < 0.01)"
 ```
@@ -363,8 +317,13 @@ plot(t(d$versus_TIPS)) +
 
 ```{r signif3, fig.width=6, dpi=300, fig.height=6, fig.cap=NULL}
 plot(t(d$jmpmat)) +
-  ggplot2::ylab("Phylostratum with homolog (E-value = 1e-5)") +
-  ggplot2::xlab("Next youngest with homolog (E-value = 1e-5)")
+  ggplot2::ylab("Phylostratum with homolog (E-value = 0.001)") +
+  ggplot2::xlab("Next youngest with homolog (E-value = 0.001)")
 ```
 
 `r fig_caption("signif3", "Number of genes with each skip pattern")`
+
+```{r save, echo=FALSE}
+saveRDS(results, 'results.rds')
+saveRDS(strata, 'strata.rds')
+```
