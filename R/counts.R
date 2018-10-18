@@ -1,3 +1,8 @@
+#' Make a count matrix from two strata
+#'
+#' @param d data.frame with two columns holding stratum labels
+#' @return CountMatrix object
+#' @export
 make_matrix_from_two_strata <- function(d){
   # for now, only use the first two columns
   d <- d[, c(1,2)]

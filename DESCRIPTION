@@ -40,3 +40,4 @@ Suggests:
     testthat
 VignetteBuilder: knitr
 BiocViews: 
+Encoding: UTF-8

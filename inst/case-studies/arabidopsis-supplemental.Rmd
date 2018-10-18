@@ -10,7 +10,6 @@ library(dplyr)
 library(readr)
 library(magrittr)
 library(onekp)
-library(plotly)
 library(knitr)
 ```
 
@@ -122,12 +121,6 @@ strata <- strata %>%
 ```{r, at_proteome_stats, cache=TRUE}
 prot <- proteome_stats_table(strata)
 strata2 <- strata_convert(strata, target='all', to='name')
-```
-
-```{r at_prot_stat, eval=FALSE}
-# You can explore the proteome stats interactively with plotly:
-plotly::ggplotly(plot_proteome_stats(strata2))
-plotly::ggplotly(plot_proteome_lengths(strata2))
 ```
 
 ```{r prot_table, at_protreport, cache=FALSE}
@@ -268,7 +261,7 @@ dcast(strata_summary, mrca_name ~ group, value.var='count') %>%
     knitr::kable()
 ```
 
-`r tab_caption("at_tips_summary", "A comparison between (Arendsee et al., 2014, 'a2014') and this study's ('a2018') stratification of *A. thaliana* genes.")`
+`r tab_caption("at_tips_summary", "A comparison between (Arendsee et al., 2014, 'a2014') and this study's ('a2018') stratification of *A. thaliana* genes. The gene counts include all gene models that are shared between the Araport11 (2018) and older TAIR10 (2014) annotations of the *A.thaliana* genome. In cases where one study has representatives in a phylostratum and other does not (e.g.  the 2014 study had a representative from the Brassicales stratum), the genes are merged into the older strata as needed.")`
 
 
 ```{r, orphan_diff}
@@ -291,11 +284,61 @@ sigresults = merge(evalue2, evalue5, by='qseqid')[, c(4,7)]
 names(sigresults) <- c("evalue2", "evalue5")
 ```
 
+```{r, cache=TRUE}
+# Get the strata from the current analysis
+a2018 <- stratify(hittable=results, classifier=default_classifier)
+# Get and clean the (Arendsee et al., 2014) data (stored in phylostratr package)
+a2014 <- readr::read_tsv(system.file('extdata', 'arendsee2014_strata.tab', package='phylostratr'))
+# Add NCBI taxonomy ID to tips data
+a2014$mrca <- taxizedb::name2taxid(a2014$name)
+# match column naming conventions
+a2014 <- dplyr::select(a2014, .data$qseqid, .data$mrca, .data$ps, mrca_name=.data$name)
+# underscores to spaces 
+a2014$mrca_name <- sub('_', ' ', a2014$mrca_name)
+# get a lineage map for Arabidopsis
+strata_map <- taxizedb::classification('3702')[[1]]
+# factor the backbone
+a2014$mrca_name <- droplevels(factor(a2014$mrca_name, levels=strata_map$name))
+
+# convert TAIR IDs from models (transcripts) to loci (genes)
+to_locus <- function(d){
+    d$qseqid <- sub("\\.\\d+$", "", d$qseqid)
+    dplyr::group_by(d, qseqid) %>%
+        # select the model from the oldest stratum
+        dplyr::filter(ps == min(ps)) %>%
+        dplyr::distinct()
+}
+a2018 <- to_locus(a2018)
+a2014 <- to_locus(a2014)
+
+ps <- standardize_strata(list(
+  a2014 = a2014,
+  a2018 = a2018
+))
+ps <- lapply(ps, function(x) x[c('qseqid', 'mrca_name')])
+
+species2018 <- strata %>% strata_fold(function(s) taxizedb::taxid2name(s@tree$tip.label)) %>%
+{ names(.) <- taxizedb::taxid2name(names(.)); . } %>%
+reshape2::melt() %>%
+dplyr::select(phylostratum = .data$L1, species = .data$value)
+
+species2014 <- readr::read_tsv(system.file('case-studies', 'tips-ages.tab', package='phylostratr'))
+
+d <- merge(ps[[1]], ps[[2]], by="qseqid", suffixes=paste0(".", names(ps)))
+
+versus_TIPS <- make_matrix_from_two_strata(d[, -1])
+```
+
+```{r, echo=FALSE, eval=FALSE}
+# To get a proper phylostrata table for this 2018
+a2018$qseqid <- sub("\\.\\d+$", "", a2018$qseqid)
+a2018 %>% unique %$% mrca_name %>% table %>% knitr::kable()
+```
 
 ```{r, plot-significance-figures}
 d <- list()
 d$sigmats <- make_significance_matrices(sigresults)
-d$versus_TIPS <- make_TIPS_comparison_matrix(strata, results, default_classifier)
+d$versus_TIPS <- versus_TIPS
 d$jmpmat <- make_jump_matrix(results[is_present, c('qseqid', 'ps')], labels=strata_levels)
 
 d$sigmats[[1]][[1]]@xlab = "Phylostratum (E-value < 1e-5)"
@@ -325,5 +368,3 @@ plot(t(d$jmpmat)) +
 ```
 
 `r fig_caption("signif3", "Number of genes with each skip pattern")`
-
-
