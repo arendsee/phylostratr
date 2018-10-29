@@ -159,7 +159,7 @@ leafs <- function(x, ...){
 #' @rdname leafs
 #' @export
 leafs.Strata <- function(x, ...){
-  # BAD THINGS happen if you pass byname=TRUE on 
+  # For Strata, only return leaf names, since indices are a phylo thing.
   .fmap(x, leafs, fout=.name, ..., byname=FALSE)
 }
 
@@ -718,8 +718,6 @@ make_tree_relative_to.phylo <- function(x, focal_id){
   }
   ape::rotateConstr(x, tip_vector)
 }
-
-
 
 
 

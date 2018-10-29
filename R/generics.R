@@ -54,14 +54,18 @@ t.CountMatrix <- function(x){
 #' @export
 plot.CountMatrix <- function(x, y=NULL,
   value_trans = identity,
-  normalize   = normalize_matrix_by_row,
-  scheme      = ggplot2::scale_fill_gradient(low = "grey", high = "red", labels=scales::percent),
+  normalize = normalize_matrix_by_row,
+  scheme = ggplot2::scale_fill_gradient(
+    low = "grey",
+    high = "red",
+    labels = scales::percent
+  ),
   ...
 ){
   cnt <- x@x
   m <- normalize(cnt)
 
-  cnt <- reshape2::melt(cnt) %>% dplyr::filter(value > 0)
+  cnt <- reshape2::melt(cnt) %>% dplyr::filter(.data$value > 0)
   m <- reshape2::melt(m)
 
   names(m)[1:3] <- c("a", "b", "value")
@@ -71,7 +75,8 @@ plot.CountMatrix <- function(x, y=NULL,
   cnt$value <- value_trans(cnt$value)
 
   ggplot2::ggplot() +
-    ggplot2::geom_tile(data=m, ggplot2::aes(b,a, fill=value)) +
+    ggplot2::geom_tile(data=m,
+                       ggplot2::aes(.data$b, .data$a, fill=.data$value)) +
     ggplot2::xlab(x@xlab) +
     ggplot2::ylab(x@ylab) +
     scheme +
@@ -79,6 +84,9 @@ plot.CountMatrix <- function(x, y=NULL,
         axis.text.x = ggplot2::element_text(angle=270, hjust=0, vjust=1),
         legend.title = ggplot2::element_blank()
     ) +
-    ggplot2::geom_text(data=cnt, mapping=ggplot2::aes(x=b, y=a, label=n), size=2)
-
+    ggplot2::geom_text(
+      data    = cnt,
+      mapping = ggplot2::aes(x=.data$b, y=.data$a, label=.data$n),
+      size    = 2
+    )
 }

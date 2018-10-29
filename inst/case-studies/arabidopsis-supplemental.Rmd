@@ -70,10 +70,9 @@ strata@data$faa[['3702']] <- 'Araport11_genes.201606.pep.fasta'
 The next step is to BLAST the *A. thaliana* proteins against each target
 proteome.
 
-This will probably take a long time to finish. We strongly recommend running it
-on a cluster with the search against each target proteome as a separate job or
-using [GNU Parallel](http://www.gnu.org/software/parallel) to speed up the
-process ([see
+This will take a long time to finish. We recommend running it on a cluster with
+the search against each target proteome as a separate job or using [GNU
+Parallel](http://www.gnu.org/software/parallel) to speed up the process ([see
 guide](https://gif.biotech.iastate.edu/running-blast-jobs-parallel)).
 `phylostratr` expects one tabular file of BLAST results for each comparison
 against each species. The files should head headers and should contain the

@@ -9,8 +9,5 @@ before_install:
   - sudo apt-get install alien
   - sudo alien -i blast.rpm
   - rm blast.rpm
-after_install:
-  # needed to install system files for tests
-  - Rscript -e 'install()'
 after_success:
   - Rscript -e 'covr::codecov()'
