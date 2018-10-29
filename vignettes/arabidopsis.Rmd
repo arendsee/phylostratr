@@ -96,6 +96,9 @@ strata <-
 ## of the gene models, raising to 89135 genes. Since `A. thaliana` is the focal
 ## species, it is important to be very explicit about version of the proteome.
 strata@data$faa[['3702']] <- '/db/araport11/Araport11_genes.201606.pep.fasta'
+
+## For the vignette, use only a small subset (1/100) of the sequences:
+strata@data$faa[['3702']] <- thin_fasta(strata@data$faa[['3702']], 100)
 ```
 
 ```{r, remove-k_nitens, eval=FALSE}
