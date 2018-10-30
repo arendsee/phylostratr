@@ -30,7 +30,7 @@ subset_fasta <- function(f, ids, prefix="zzz_"){
 #'
 #' @param f filename of FASTA protein sequence file
 #' @param n integer number of entries to extract
-#' @param prefix a file basename prefix for the output FASTA file
+#' @param ... arguments passed to subset_fasta
 #' @return filename
 #' @export
 thin_fasta <- function(f, n, ...){
