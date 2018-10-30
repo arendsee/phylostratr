@@ -11,7 +11,7 @@ thin_fasta(f, n, ...)
 
 \item{n}{integer number of entries to extract}
 
-\item{prefix}{a file basename prefix for the output FASTA file}
+\item{...}{arguments passed to subset_fasta}
 }
 \value{
 filename
