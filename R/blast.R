@@ -192,7 +192,7 @@ strata_besthits <- function(strata){
 merge_besthits <- function(strata){
   is_valid_strata(strata, required='besthit')
 
-  strata_fold(strata, function(s){
+  strata_map(strata, function(s){
     do.call(what=rbind, s@data$besthit)
   }) %>%
   tuplify %>%

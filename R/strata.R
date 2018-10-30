@@ -127,7 +127,7 @@ diverse_subtree <- function(tree, n, weights=NULL, collapse=FALSE, FUN=.algo1, .
 #' @return Strata object
 #' @export
 strata_apply <- function(strata, f, ...){
-  outgroups <- strata_fold(strata, f, ...)
+  outgroups <- strata_map(strata, f, ...)
 
   merge_trees <- function(trees){
     lapply(trees, tree2edgelist) %>%
@@ -171,7 +171,7 @@ strata_apply <- function(strata, f, ...){
 #' @param ... Additional arguments passed to f
 #' @return A named list, with names corresponding to phylostrata 
 #' @export
-strata_fold <- function(strata, f, ...){
+strata_map <- function(strata, f, ...){
   is_valid_strata(strata)
 
   # Get list of internal IDs
