@@ -454,7 +454,7 @@ partial_id_to_name <- function(x){
 #' a factor of phylostrata with levels ordered by age
 #' @export
 get_phylostrata_map <- function(strata){
-  map <- strata_fold(strata, leafs) %>%
+  map <- strata_map(strata, leafs) %>%
     tuplify %>%
     lapply(function(x){
       tibble::data_frame(
