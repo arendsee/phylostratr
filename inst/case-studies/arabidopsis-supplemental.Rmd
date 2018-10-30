@@ -115,7 +115,7 @@ strata <- strata %>%
     add_organelle_proteins
 ```
 
-## Proteome stats tables
+## **Table S1**: Proteome stats tables
 
 ```{r, at_proteome_stats, cache=TRUE}
 prot <- proteome_stats_table(strata)
@@ -133,7 +133,7 @@ proteome_report_table(strata2) %>%
 `r tab_caption("prot_table", "Proteome statistics for all proteomes in the *A. thaliana* analysis. **N**: total number of proteins in the UniProt proteome (these may be redundant). **ps**: phylostratum level, where 1 is *cellular organisms*. **min**, **q25**, **median**, **q75**, **max**: summaries of the protein lengths in each proteome.")`
 
 
-## Identification of organelle proteins 
+## **Table S2**: Identification of organelle proteins 
 
 
 ```{r strata_table}
@@ -151,7 +151,7 @@ subtree(strata, name2taxid('Viridiplantae')) %>%
 `r tab_caption("strata_table", "Number of organelle-encoded proteins appearing in each plant target species. Currently, organelle proteins can only be counted for sequeces retrieved from UniProt (which have UniProt IDs in their FASTA headers). Thus *A. thaliana* and *Ginkgo biloba* are each listed as having no organellar sequences.")`
 
 
-## Finding genes that skip strata
+## **Table S3-5**: Finding genes that skip strata
 
 ```{r}
 # Set the classifier for determining statistical significance
@@ -208,7 +208,7 @@ revenants %>%
 `r tab_caption("revenant_table_3", "The number of *A. thaliana* genes that have no hits to any species in a given phylostratum but do have hits to older strata. Strata may have unexpectedly high number of \"missing genes\" for interesting biological reasons, for example, the branch may include degenerate intracellular parasites. But more likely, it is due to poor annotations of the stratum representatives; this is the case for the Spermatophyta stratum, which is represented only by *Picea glauca*.")`
 
 
-## Compare to phylostratigraphy results from 2014 
+## **Table S6**: Compare to phylostratigraphy results from 2014 
 
 Here I will load the phylostratigraphy results from (Arendsee et al., 2014) and
 compare them to the new results from the `phylostratr` algorithm. The
@@ -283,6 +283,8 @@ sigresults = merge(evalue2, evalue5, by='qseqid')[, c(4,7)]
 names(sigresults) <- c("evalue2", "evalue5")
 ```
 
+### **Figure S1**: E-value cutoff comparisons 
+
 ```{r, echo=FALSE, eval=FALSE}
 # To get a proper phylostrata table for this 2018
 a2018$qseqid <- sub("\\.\\d+$", "", a2018$qseqid)
@@ -304,6 +306,7 @@ plot(d$sigmats[[1]][[1]])
 
 `r fig_caption("signif1", "The phylostratigraphic assignment across *Arabidopsis thaliana* genes under BLAST different E-value cutoffs.")`
 
+### **Figure S2**: phylostrata classifications comparison to 2014 study 
 
 ```{r signif2, fig.width=6, dpi=300, fig.height=6, fig.cap=NULL}
 plot(t(d$versus_TIPS)) +
@@ -313,6 +316,7 @@ plot(t(d$versus_TIPS)) +
 
 `r fig_caption("signif2", "A comparison of phylostrata classifications between this study and a similar one from 2014.")`
 
+### **Figure S3**: skipped strata comparisons
 
 ```{r signif3, fig.width=6, dpi=300, fig.height=6, fig.cap=NULL}
 plot(t(d$jmpmat)) +

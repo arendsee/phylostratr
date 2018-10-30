@@ -1,7 +1,7 @@
 
 # Yeast case study
 
-Build tree and collect proteomes
+## Build tree
 
 ```{r, message=FALSE}
 require(phylostratr)
@@ -67,6 +67,8 @@ Next we replace the Saccharomyces genus with our own tree describing the
 phylogenetic relationships between the species. We also provide our own
 proteome sequence.
 
+### **Figure S4**: Saccharomyces family tree
+
 ```{r sc_custom_tree, dpi=300, fig.cap=NULL}
 saccharomyces <- Strata(
     tree = ape::read.tree(system.file('extdata', 'yeast', 'tree', package='phylostratr')),
@@ -87,6 +89,7 @@ plot(saccharomyces@tree, show.node.label=TRUE)
 
 `r fig_caption("sc_custom_tree", "Custom tree for Saccharomyces genus. The internal nodes s1-s5 are arbitrary names for the new internal nodes that are absent from the NCBI common tree.")`
 
+## Run BLAST
 
 ```{r, eval=FALSE}
 # Convert names to NCBI taxon IDs
@@ -109,7 +112,7 @@ strata  <- strata %>%
     add_proteome_stats
 ```
 
-## Proteome stats tables
+## **Table S7**: Proteome stats tables
 
 ```{r sc_proteome_stats}
 strata2 <- strata_convert(strata, target='all', FUN=partial_id_to_name)
@@ -123,7 +126,20 @@ proteome_report_table(strata2) %>%
 `r tab_caption("sc_proteome_stats", "Proteome statistics for all proteomes in the *S. cerevisiae* analysis.  **N**: total number of proteins in the UniProt proteome (these may be redundant). **ps**: phylostratum level, where 1 is *cellular organisms*.  **min**, **q25**, **median**, **q75**, **max**: summaries of the protein lengths in each proteome.")`
 
 
-## Finding genes that skip strata
+## **Figure S5**: Plotting top scores across target species
+
+The top hits across target species for each gene in the focal species can be
+plotted as a heat map. For example:
+
+```{r heatmaps, echo=TRUE, eval=FALSE}
+plot_heatmaps(results, "heatmap.pdf")
+```
+
+![heatmap](figure/fig_heatmap.png)
+
+`r fig_caption("heatmaps", 'phylostratr gene by clade tree-heat map for *Saccharomyces cerevisiae*.  The figure (page **6** of a total of **234** pages) shows the degree of similarly of each protein encoded by the focal species (far left column) to that of its closest homolog in each species in the clade tree.  Proteins encoded by consecutive *S. cereviciae* genes (NM_001178687.1 - NM_001178743.1), sorted by phylostratum membership, are compared to the proteomes of 133 species. The designated phylostratum membership (1-15) is indicated on the far left.  Red wedge: This gene has homologs in the fungal phylostrata, but not in other eukaryotes, and also has bacterial homologs; it is potentially associated with a horizontal transfer event. Orange wedge: A gene with skiped strata, possibly due to lateral transfer or false positive matches to prokaryotes.  Magenta wedge: a gene present in eukaryotes and archaea but not in bacteria.  Black arrowhead: The nine "missing" homologs in *S. arboricola* could be absent due to an interesting biological phenomenon such as a rapidly evolving genome or massive gene loss or due to an incomplete genome annotation; the gene annotation statistics for the *S. arboricola* genome assembly at NCBI support the latter explanation.')`
+
+## **Table S8-10**: Finding genes that skip strata
 
 Since the code is identical to that in the Arabidopsis study, it is not
 printed.
@@ -171,7 +187,7 @@ revenants %>%
 `r tab_caption("sc_revenants_3", "The number of *S. cerevisiae* genes that have no hits to any species in a given stratum ('mrca' but do have hits to older strata. In the table below, we see that 's2', a stratum represented by *S. arboricola*, has skipped far more often than the surrounding strata.")`
 
 
-## Steps in building the tree 
+## **Figure S6-8**: Steps in building the tree 
 
 ```{r, cache=TRUE}
 # just the order
@@ -258,6 +274,8 @@ a2018 <- select(a2018, qseqid, ps)
 a2018$group <- 'a2018'
 ```
 
+### **Table S11**: Phylostrata comparison to 2012 results
+
 ```{r strata_table}
 map <- get_phylostrata_map(strata) %>% select(mrca, ps) %>% distinct
 rbind(c2012, a2018) %>%
@@ -275,6 +293,7 @@ rbind(c2012, a2018) %>%
 
 `r tab_caption("strata_table", "Distribution across strata of genes common to the current *S. cerevisiae* analysis and the youngest 3 strata from (Carvunis et al. 2012).")`
 
+### **Figure S9**: E-value threshold classification comparison 
 
 ```{r fig2, fig.width=6, fig.height=6, dpi=300, fig.cap=NULL}
 default_classifier <- classify_by_adjusted_pvalue(threshold=0.001)
