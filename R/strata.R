@@ -171,6 +171,10 @@ strata_apply <- function(strata, f, ...){
 #' @param ... Additional arguments passed to f
 #' @return A named list, with names corresponding to phylostrata 
 #' @export
+#' @examples
+#' data(arabidopsis_strata)
+#' # count the number of species in each stratum
+#' unlist(strata_map(arabidopsis_strata, nleafs))
 strata_map <- function(strata, f, ...){
   is_valid_strata(strata)
 

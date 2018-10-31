@@ -19,3 +19,8 @@ A named list, with names corresponding to phylostrata
 \description{
 Apply f to each outgroup branch ascending node id, returning a list
 }
+\examples{
+data(arabidopsis_strata)
+# count the number of species in each stratum
+unlist(strata_map(arabidopsis_strata, nleafs))
+}
