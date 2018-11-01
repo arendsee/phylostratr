@@ -13,24 +13,6 @@ library(onekp)
 library(knitr)
 ```
 
-```{r, echo=FALSE, message=FALSE}
-library(captioner)
-fig_caption <- captioner(
-    prefix       = "Figure S",
-    suffix       = ": ",
-    style        = "b",
-    style_prefix = TRUE,
-    auto_space   = FALSE
-)
-tab_caption <- captioner(
-    prefix       = "Table S",
-    suffix       = ": ",
-    style        = "b",
-    style_prefix = TRUE,
-    auto_space   = FALSE
-)
-```
-
 ```{r at_prep, cache=TRUE}
 # First get core uniprot proteomes 
 weights=uniprot_weight_by_ref()
@@ -122,21 +104,19 @@ prot <- proteome_stats_table(strata)
 strata2 <- strata_convert(strata, target='all', to='name')
 ```
 
-```{r prot_table, at_protreport, cache=FALSE}
+```{r prot_table, at_protreport, cache=FALSE, results='asis'}
 proteome_report_table(strata2) %>%
   merge(get_phylostrata_map(strata2)) %>%
   dplyr::arrange(-ps) %>%
   dplyr::select(species, ps, N, min, q25, median, q75, max) %>%
-  knitr::kable()
+  knitr::kable(format='pandoc', caption="Proteome statistics for all proteomes in the *A. thaliana* analysis. **N**: total number of proteins in the UniProt proteome (these may be redundant). **ps**: phylostratum level, where 1 is *cellular organisms*. **min**, **q25**, **median**, **q75**, **max**: summaries of the protein lengths in each proteome.")
 ```
-
-`r tab_caption("prot_table", "Proteome statistics for all proteomes in the *A. thaliana* analysis. **N**: total number of proteins in the UniProt proteome (these may be redundant). **ps**: phylostratum level, where 1 is *cellular organisms*. **min**, **q25**, **median**, **q75**, **max**: summaries of the protein lengths in each proteome.")`
 
 
 ## **Table S2**: Identification of organelle proteins 
 
 
-```{r strata_table}
+```{r strata_table, results='asis'}
 # Select just the plant species 
 subtree(strata, name2taxid('Viridiplantae')) %>%
     # replace the taxon IDs with scientific names
@@ -145,10 +125,8 @@ subtree(strata, name2taxid('Viridiplantae')) %>%
     organelle_table %>%
     # sort by ascending phylostratum age
     dplyr::arrange(-.data$ps, .data$species) %>%
-    knitr::kable()
+    knitr::kable(format='pandoc', caption="Number of organelle-encoded proteins appearing in each plant target species. Currently, organelle proteins can only be counted for sequeces retrieved from UniProt (which have UniProt IDs in their FASTA headers). Thus *A. thaliana* and *Ginkgo biloba* are each listed as having no organellar sequences.")
 ```
-
-`r tab_caption("strata_table", "Number of organelle-encoded proteins appearing in each plant target species. Currently, organelle proteins can only be counted for sequeces retrieved from UniProt (which have UniProt IDs in their FASTA headers). Thus *A. thaliana* and *Ginkgo biloba* are each listed as having no organellar sequences.")`
 
 
 ## **Table S3-5**: Finding genes that skip strata
@@ -167,20 +145,18 @@ revenants <- find_revenants(results, classifier=default_classifier)
 (subset(revenants, ps - 1 == basal_ps)$qseqid %>% unique %>% length)
 ```
 
-```{r revenant_table, cache=TRUE}
+```{r revenant_table, cache=TRUE, results='asis'}
 # Summarize of the number of genes that skip $n\_skipped$ strata.
 revenants %>%
     dplyr::distinct(qseqid, n) %>%
     dplyr::group_by(n) %>%
     dplyr::count() %>%
     dplyr::select(n_skipped=n, n_total=nn) %>%
-    knitr::kable()
+    knitr::kable(format='pandoc', caption="A summary of the number of *A. thaliana* genes (**n_total**) where a given number (**n_skipped**) of strata are passed before the oldest stratum with a predicted homolog is reached.")
 ```
 
-`r tab_caption("revenant_table", "A summary of the number of *A. thaliana* genes (**n_total**) where a given number (**n_skipped**) of strata are passed before the oldest stratum with a predicted homolog is reached.")`
 
-
-```{r revenant_table_2, cache=TRUE}
+```{r revenant_table_2, cache=TRUE, results='asis'}
 # Show the skipped phylostrata for genes skipping more than 4 
 revenants %>%
     dplyr::filter(n > 4) %>%
@@ -189,23 +165,19 @@ revenants %>%
     dplyr::group_by(qseqid) %>%
     dplyr::summarize(basal_ps=basal_ps[1], skipped_ps = paste(ps, collapse=",")) %>%
     dplyr::arrange(-basal_ps) %>%
-    knitr::kable()
+    knitr::kable(format='pandoc', caption="Here we identify which strata were skipped for each of the *A. thaliana* genes that skipped more than 4 strata.")
 ```
 
-`r tab_caption("revenant_table_2", "Here we identify which strata were skipped for each of the *A. thaliana* genes that skipped more than 4 strata.")`
 
-
-```{r revenant_table_3, cache=TRUE}
+```{r revenant_table_3, cache=TRUE, results='asis'}
 revenants %>%
     dplyr::group_by(mrca) %>%
     dplyr::summarize(missing_genes = n(), ps=ps[1]) %>%
     dplyr::arrange(-ps) %>%
     dplyr::mutate(mrca = partial_id_to_name(mrca)) %>%
     dplyr::select(Phylostratum = mrca, Level = ps, missing_genes) %>%
-    knitr::kable()
+    knitr::kable(format='pandoc', caption="The number of *A. thaliana* genes that have no hits to any species in a given phylostratum but do have hits to older strata. Strata may have unexpectedly high number of \"missing genes\" for interesting biological reasons, for example, the branch may include degenerate intracellular parasites. But more likely, it is due to poor annotations of the stratum representatives; this is the case for the Spermatophyta stratum, which is represented only by *Picea glauca*.")
 ```
-
-`r tab_caption("revenant_table_3", "The number of *A. thaliana* genes that have no hits to any species in a given phylostratum but do have hits to older strata. Strata may have unexpectedly high number of \"missing genes\" for interesting biological reasons, for example, the branch may include degenerate intracellular parasites. But more likely, it is due to poor annotations of the stratum representatives; this is the case for the Spermatophyta stratum, which is represented only by *Picea glauca*.")`
 
 
 ## **Table S6**: Compare to phylostratigraphy results from 2014 
@@ -261,15 +233,13 @@ Arabidopsis, I will take the intersection. The model IDs shared between the
 annotations refer to the same models, phylostratr has a dedicated
 function for this:
 
-```{r, at_tips_summary}
+```{r, at_tips_summary, results='asis'}
 # # Compare the counts between the two studies:
 data.frame(
     a2014 = ps[[1]]$mrca_name %>% summary
   , a2018 = ps[[2]]$mrca_name %>% summary
-) %>% knitr::kable()
+) %>% knitr::kable(format='pandoc', caption="A comparison between (Arendsee et al., 2014, 'a2014') and this study's ('a2018') stratification of *A. thaliana* genes. The gene counts include all gene models that are shared between the Araport11 (2018) and older TAIR10 (2014) annotations of the *A.thaliana* genome. In cases where one study has representatives in a phylostratum and other does not (e.g.  the 2014 study had a representative from the Brassicales stratum), the genes are merged into the older strata as needed.")
 ```
-
-`r tab_caption("at_tips_summary", "A comparison between (Arendsee et al., 2014, 'a2014') and this study's ('a2018') stratification of *A. thaliana* genes. The gene counts include all gene models that are shared between the Araport11 (2018) and older TAIR10 (2014) annotations of the *A.thaliana* genome. In cases where one study has representatives in a phylostratum and other does not (e.g.  the 2014 study had a representative from the Brassicales stratum), the genes are merged into the older strata as needed.")`
 
 
 ```{r, dataprep-for-significance-figures}
@@ -285,10 +255,10 @@ names(sigresults) <- c("evalue2", "evalue5")
 
 ### **Figure S1**: E-value cutoff comparisons 
 
-```{r, echo=FALSE, eval=FALSE}
+```{r, echo=FALSE, eval=FALSE, results='asis'}
 # To get a proper phylostrata table for this 2018
 a2018$qseqid <- sub("\\.\\d+$", "", a2018$qseqid)
-a2018 %>% unique %$% mrca_name %>% table %>% knitr::kable()
+a2018 %>% unique %$% mrca_name %>% table %>% knitr::kable(format='pandoc', )
 ```
 
 ```{r, plot-significance-figures}
@@ -300,31 +270,26 @@ d$sigmats[[1]][[1]]@xlab = "Phylostratum (E-value < 1e-5)"
 d$sigmats[[1]][[1]]@ylab = "Phylostratum (E-value < 0.01)"
 ```
 
-```{r signif1, fig.width=6, dpi=300, fig.height=6, fig.cap=NULL}
+```{r signif1, fig.width=6, dpi=300, fig.height=6, fig.cap="The phylostratigraphic assignment across *Arabidopsis thaliana* genes under BLAST different E-value cutoffs."}
 plot(d$sigmats[[1]][[1]])
 ```
 
-`r fig_caption("signif1", "The phylostratigraphic assignment across *Arabidopsis thaliana* genes under BLAST different E-value cutoffs.")`
-
 ### **Figure S2**: phylostrata classifications comparison to 2014 study 
 
-```{r signif2, fig.width=6, dpi=300, fig.height=6, fig.cap=NULL}
+```{r signif2, fig.width=6, dpi=300, fig.height=6, fig.cap="A comparison of phylostrata classifications between this study and a similar one from 2014."}
 plot(t(d$versus_TIPS)) +
   ggplot2::ylab("Classification with phylostratr dataset") +
   ggplot2::xlab("Classification with 2014 dataset")
 ```
 
-`r fig_caption("signif2", "A comparison of phylostrata classifications between this study and a similar one from 2014.")`
-
 ### **Figure S3**: skipped strata comparisons
 
-```{r signif3, fig.width=6, dpi=300, fig.height=6, fig.cap=NULL}
+```{r signif3, fig.width=6, dpi=300, fig.height=6, fig.cap="Number of genes with each skip pattern"}
 plot(t(d$jmpmat)) +
   ggplot2::ylab("Phylostratum with homolog (E-value = 0.001)") +
   ggplot2::xlab("Next youngest with homolog (E-value = 0.001)")
 ```
 
-`r fig_caption("signif3", "Number of genes with each skip pattern")`
 
 ```{r save, echo=FALSE}
 saveRDS(results, 'results.rds')
