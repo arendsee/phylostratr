@@ -88,8 +88,8 @@ clean_phyid <- function(x, id, len=NULL, type='auto'){
       as.integer(id)
     }
     if(!(is.null(id_name) || is.null(id_index))){
-      stop("Cannot automatically resolve tree id.",
-           "It could be either a phylo object index or a taxon name.",
+      stop("Cannot automatically resolve tree id. ",
+           "It could be either a phylo object index or a taxon name. ",
            "Please specify the type.")
     } else if(!is.null(id_name)){
       id_name
