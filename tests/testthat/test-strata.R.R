@@ -67,3 +67,10 @@ test_that("strata_apply over identity changes nothing", {
   # Focal species is unchanged
   expect_equal(strata_apply(strata, ident)@focal_species, strata@focal_species)
 })
+
+test_that("GitHub issue #6", {
+  taxids=c("4362", "16681", "1194090", "1142394")
+  tree <- phylostratr::lineages_to_phylo(taxizedb::classification(taxids))
+  strata <- phylostratr::Strata(focal_species=16681, tree)
+  expect_success(phylostratr::strata_map(strata, identity))
+})
