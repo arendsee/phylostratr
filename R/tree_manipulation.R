@@ -591,7 +591,7 @@ sisters.phylo <- function(x, id, type='auto', ...){
   if(is_root(x, id, type='index')){
     integer(0)
   } else {
-    setdiff(children(x, parent(x, id)), id)
+    setdiff(children(x, parent(x, id, type=type), type=type), id)
   }
 }
 

@@ -72,5 +72,5 @@ test_that("GitHub issue #6", {
   taxids=c("4362", "16681", "1194090", "1142394")
   tree <- phylostratr::lineages_to_phylo(taxizedb::classification(taxids))
   strata <- phylostratr::Strata(focal_species=16681, tree)
-  expect_success(phylostratr::strata_map(strata, identity))
+  expect_equal(names(phylostratr::strata_map(strata, identity)), c("131567", "4360", "16681"))
 })
