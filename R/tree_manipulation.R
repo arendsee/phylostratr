@@ -88,8 +88,8 @@ clean_phyid <- function(x, id, len=NULL, type='auto'){
       as.integer(id)
     }
     if(!(is.null(id_name) || is.null(id_index))){
-      stop("Cannot automatically resolve tree id.",
-           "It could be either a phylo object index or a taxon name.",
+      stop("Cannot automatically resolve tree id. ",
+           "It could be either a phylo object index or a taxon name. ",
            "Please specify the type.")
     } else if(!is.null(id_name)){
       id_name
@@ -591,7 +591,7 @@ sisters.phylo <- function(x, id, type='auto', ...){
   if(is_root(x, id, type='index')){
     integer(0)
   } else {
-    setdiff(children(x, parent(x, id)), id)
+    setdiff(children(x, parent(x, id, type=type), type=type), id)
   }
 }
 
