@@ -4,14 +4,18 @@
 \alias{read_blast}
 \title{Read a blast result of the form expected by phylostratr}
 \usage{
-read_blast(x, with_taxid = TRUE, col_names = TRUE)
+read_blast(x, with_taxid = is.null(taxid), col_names = TRUE,
+  taxid = NULL)
 }
 \arguments{
 \item{x}{filename}
 
-\item{with_taxid}{If TRUE, expect the staxid column to be in the table}
+\item{with_taxid}{logical: If TRUE, expect the staxid column to be in the table}
 
-\item{col_names}{col_names argument from readr::read_tsv}
+\item{col_names}{logical: col_names argument from readr::read_tsv}
+
+\item{taxid}{character: NCBI taxonomy ID, only needed if the table does not
+have an staxid column.}
 }
 \description{
 Read a blast result of the form expected by phylostratr

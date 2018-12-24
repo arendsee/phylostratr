@@ -59,10 +59,12 @@ make_blast_database <- function(
 #' Read a blast result of the form expected by phylostratr
 #'
 #' @param x filename
-#' @param with_taxid If TRUE, expect the staxid column to be in the table
-#' @param col_names col_names argument from readr::read_tsv
+#' @param with_taxid logical: If TRUE, expect the staxid column to be in the table
+#' @param col_names logical: col_names argument from readr::read_tsv
+#' @param taxid character: NCBI taxonomy ID, only needed if the table does not
+#' have an staxid column.
 #' @export
-read_blast <- function(x, with_taxid=TRUE, col_names=TRUE){
+read_blast <- function(x, with_taxid=is.null(taxid), col_names=TRUE, taxid=NULL){
   col_types = readr::cols(
     qseqid = readr::col_character(),
     sseqid = readr::col_character(),
@@ -74,13 +76,26 @@ read_blast <- function(x, with_taxid=TRUE, col_names=TRUE){
     score  = readr::col_double()
   )
   if(with_taxid){
-    col_types[['staxid']] <- readr::col_character()
+    col_types$cols[['staxid']] <- readr::col_character()
   }
-  if(col_names){
+  out <- if(col_names){
     readr::read_tsv(x, col_names=col_names, col_types=col_types)
   } else {
     readr::read_tsv(x, col_names=names(col_types$cols), col_types=col_types)
   }
+  if(!("staxid" %in% names(out)) && !is.null(taxid)){
+    if(length(taxid) != 1){
+      stop("read_blast: please give a single ID for the taxid argument")
+    }
+    out$staxid <- as.character(taxid)
+  }
+  # ensure the absolutely required columns are present
+  .validate_table(out, "read_blast", c("qseqid", "sseqid", "evalue"))
+  # if with_taxid=TRUE and no staxid column exists, die
+  if(with_taxid){
+    .validate_table(out, "read_blast", "staxid")
+  }
+  out
 }
 
 #' BLAST query protein FASTA file against a subject species 
@@ -163,8 +178,14 @@ strata_blast <- function(
 #' }
 get_besthit <- function(strata, taxid){
   is_valid_strata(strata, required=c('faa', 'blast_result'))
-  blast_file <- strata@data$blast_result[[taxid]]
-  read_blast(blast_file, col_names=TRUE, with_taxid=TRUE) %>% get_max_hit
+  get_max_hit(
+    read_blast(
+      strata@data$blast_result[[taxid]], # blast tabular filename
+      col_names  = TRUE, # expect a header
+      with_taxid = TRUE, # expect an staxid column
+      taxid      = taxid # if no staxid column, create one from this taxid
+    )
+  )
 }
 
 #' Load each blast result and filter out the best hit against each query gene
