@@ -96,7 +96,7 @@ strata  <- strata %>%
 
 ## **Table S7**: Proteome stats tables
 
-```{r sc_proteome_stats, results='asis'}
+```{r sc_proteome_stats, results='asis', echo=FALSE}
 strata2 <- strata_convert(strata, target='all', FUN=partial_id_to_name)
 proteome_report_table(strata2) %>%
   merge(get_phylostrata_map(strata2)) %>%
@@ -240,9 +240,9 @@ a2018$group <- 'a2018'
 
 ### **Table S11**: Phylostrata comparison to 2012 results
 
-```{r strata_table, results='asis'}
+```{r strata_table}
 map <- get_phylostrata_map(strata) %>% select(mrca, ps) %>% distinct
-rbind(c2012, a2018) %>%
+c2012_a2018_comp <- rbind(c2012, a2018) %>%
   dplyr::group_by(group, ps) %>%
   dplyr::summarize(count = n()) %>%
   dcast(ps ~ group, value.var='count') %>%
@@ -252,6 +252,8 @@ rbind(c2012, a2018) %>%
     mrca = partial_id_to_name(as.character(mrca))
   ) %>%
   select(Phylostratum = mrca, Level = ps, a2018, c2012) %>%
+```
+```{r strata_table_show, results='asis', echo=FALSE}
   knitr::kable(format='pandoc', caption="Distribution across strata of genes common to the current *S. cerevisiae* analysis and the youngest 3 strata from (Carvunis et al. 2012).")
 ```
 

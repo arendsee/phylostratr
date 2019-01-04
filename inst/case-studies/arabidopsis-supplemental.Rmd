@@ -13,7 +13,15 @@ library(onekp)
 library(knitr)
 ```
 
-```{r at_prep, cache=TRUE}
+```{r load_cached, eval=TRUE, echo=FALSE}
+if(file.exists('strata.rds')){
+    strata <- readRDS('strata.rds')
+}
+if(file.exists('results.rds')){
+    results <- readRDS('results.rds')
+}
+```
+```{r at_prep, eval=FALSE}
 # First get core uniprot proteomes 
 weights=uniprot_weight_by_ref()
 focal_taxid <- '3702'
@@ -32,7 +40,8 @@ strata <-
 kp <- onekp::retrieve_onekp()
 # get the ginkgo proteome from 1KP
 ginkgo_taxid <- taxizedb::name2taxid("Ginkgo biloba")
-ginkgo_proteome <- onekp::filter_by_species(kp, ginkgo_taxid) %>% onekp::download_peptides(dir="custom-seqs")
+ginkgo_proteome <- onekp::filter_by_species(kp, ginkgo_taxid) %>%
+  onekp::download_peptides(dir="custom-seqs")
 strata <- add_taxa(strata, ginkgo_taxid)
 strata@data$faa[[as.character(ginkgo_taxid)]] <- as.vector(ginkgo_proteome)
 
@@ -104,7 +113,13 @@ prot <- proteome_stats_table(strata)
 strata2 <- strata_convert(strata, target='all', to='name')
 ```
 
-```{r prot_table, at_protreport, cache=FALSE, results='asis'}
+```{r prot_table_dummy, at_protreport, eval=FALSE}
+proteome_report_table(strata2) %>%
+  merge(get_phylostrata_map(strata2)) %>%
+  dplyr::arrange(-ps) %>%
+  dplyr::select(species, ps, N, min, q25, median, q75, max)
+```
+```{r prot_table, at_protreport, cache=FALSE, echo=FALSE, results='asis'}
 proteome_report_table(strata2) %>%
   merge(get_phylostrata_map(strata2)) %>%
   dplyr::arrange(-ps) %>%
@@ -112,11 +127,10 @@ proteome_report_table(strata2) %>%
   knitr::kable(format='pandoc', caption="Proteome statistics for all proteomes in the *A. thaliana* analysis. **N**: total number of proteins in the UniProt proteome (these may be redundant). **ps**: phylostratum level, where 1 is *cellular organisms*. **min**, **q25**, **median**, **q75**, **max**: summaries of the protein lengths in each proteome.")
 ```
 
-
 ## **Table S2**: Identification of organelle proteins 
 
 
-```{r strata_table, results='asis'}
+```{r strata_table_dummy, eval=FALSE}
 # Select just the plant species 
 subtree(strata, name2taxid('Viridiplantae')) %>%
     # replace the taxon IDs with scientific names
@@ -124,6 +138,12 @@ subtree(strata, name2taxid('Viridiplantae')) %>%
     # summarize the numbers of organelle genes present per species
     organelle_table %>%
     # sort by ascending phylostratum age
+    dplyr::arrange(-.data$ps, .data$species)
+```
+```{r strata_table, results='asis', echo=FALSE}
+subtree(strata, name2taxid('Viridiplantae')) %>%
+    strata_convert(target='all', to='name') %>%
+    organelle_table %>%
     dplyr::arrange(-.data$ps, .data$species) %>%
     knitr::kable(format='pandoc', caption="Number of organelle-encoded proteins appearing in each plant target species. Currently, organelle proteins can only be counted for sequeces retrieved from UniProt (which have UniProt IDs in their FASTA headers). Thus *A. thaliana* and *Ginkgo biloba* are each listed as having no organellar sequences.")
 ```
@@ -145,8 +165,15 @@ revenants <- find_revenants(results, classifier=default_classifier)
 (subset(revenants, ps - 1 == basal_ps)$qseqid %>% unique %>% length)
 ```
 
-```{r revenant_table, cache=TRUE, results='asis'}
+```{r revenant_table_dummy, eval=FALSE}
 # Summarize of the number of genes that skip $n\_skipped$ strata.
+revenants %>%
+    dplyr::distinct(qseqid, n) %>%
+    dplyr::group_by(n) %>%
+    dplyr::count() %>%
+    dplyr::select(n_skipped=n, n_total=nn)
+```
+```{r revenant_table, cache=FALSE, echo=FALSE, results='asis'}
 revenants %>%
     dplyr::distinct(qseqid, n) %>%
     dplyr::group_by(n) %>%
@@ -156,7 +183,17 @@ revenants %>%
 ```
 
 
-```{r revenant_table_2, cache=TRUE, results='asis'}
+```{r revenant_table_2_dummy, eval=FALSE}
+# Show the skipped phylostrata for genes skipping more than 4 
+revenants %>%
+    dplyr::filter(n > 4) %>%
+    dplyr::select(qseqid, ps, basal_ps, n) %>%
+    dplyr::arrange(-ps) %>%
+    dplyr::group_by(qseqid) %>%
+    dplyr::summarize(basal_ps=basal_ps[1], skipped_ps = paste(ps, collapse=",")) %>%
+    dplyr::arrange(-basal_ps)
+```
+```{r revenant_table_2, cache=TRUE, echo=FALSE, results='asis'}
 # Show the skipped phylostrata for genes skipping more than 4 
 revenants %>%
     dplyr::filter(n > 4) %>%
@@ -169,7 +206,15 @@ revenants %>%
 ```
 
 
-```{r revenant_table_3, cache=TRUE, results='asis'}
+```{r revenant_table_3_dummy, eval=FALSE}
+revenants %>%
+    dplyr::group_by(mrca) %>%
+    dplyr::summarize(missing_genes = n(), ps=ps[1]) %>%
+    dplyr::arrange(-ps) %>%
+    dplyr::mutate(mrca = partial_id_to_name(mrca)) %>%
+    dplyr::select(Phylostratum = mrca, Level = ps, missing_genes)
+```
+```{r revenant_table_3, cache=FALSE, echo=FALSE, results='asis'}
 revenants %>%
     dplyr::group_by(mrca) %>%
     dplyr::summarize(missing_genes = n(), ps=ps[1]) %>%
@@ -225,7 +270,7 @@ ps <- lapply(ps, function(x) x[c('qseqid', 'mrca_name')])
 versus_TIPS <-
     merge(ps[[1]], ps[[2]], by="qseqid", suffixes=paste0(".", names(ps))) %>%
     dplyr::select(-qseqid) %>%
-    make_matrix_from_two_strata() %>% t
+    make_matrix_from_two_strata()
 ```
 
 Now, since the two phylostratigraphy experiments used different annotations of
@@ -233,8 +278,14 @@ Arabidopsis, I will take the intersection. The model IDs shared between the
 annotations refer to the same models, phylostratr has a dedicated
 function for this:
 
-```{r, at_tips_summary, results='asis'}
+```{r, at_tips_summary_dummy, eval=FALSE}
 # # Compare the counts between the two studies:
+data.frame(
+    a2014 = ps[[1]]$mrca_name %>% summary
+  , a2018 = ps[[2]]$mrca_name %>% summary
+)
+```
+```{r, at_tips_summary, echo=FALSE, results='asis'}
 data.frame(
     a2014 = ps[[1]]$mrca_name %>% summary
   , a2018 = ps[[2]]$mrca_name %>% summary
@@ -258,7 +309,7 @@ names(sigresults) <- c("evalue2", "evalue5")
 ```{r, echo=FALSE, eval=FALSE, results='asis'}
 # To get a proper phylostrata table for this 2018
 a2018$qseqid <- sub("\\.\\d+$", "", a2018$qseqid)
-a2018 %>% unique %$% mrca_name %>% table %>% knitr::kable(format='pandoc', )
+a2018 %>% unique %$% mrca_name %>% table %>% knitr::kable(format='pandoc')
 ```
 
 ```{r, plot-significance-figures}
