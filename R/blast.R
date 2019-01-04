@@ -98,6 +98,32 @@ read_blast <- function(x, with_taxid=is.null(taxid), col_names=TRUE, taxid=NULL)
   out
 }
 
+#' Build a Strata object from a directory of BLAST results
+#'
+#' The directory must contain one file for each search of the focal species
+#' against a target species. The format of the filenames must be
+#' <taxon_id>.<ext>. The species must all have NCBI taxonomy IDs. The files
+#' must have headers and the columns expected by \code{read_blast}.
+#'
+#' @param focal_species character: the taxonomy ID of the species that was used in the BLAST
+#' @param blastdir filename: the directory containing the BLAST results
+#' @param ext character: the file extension (e.g. 'tab' or 'blast.tab')
+#' @param ... additional arguments sent to \code{strata_from_taxids}
+#' @return Strata object wrapping a NCBI tree built from the target species.
+#' @export
+strata_from_blast_dir <- function(focal_species, blastdir='.', ext='tab', ...){
+  extpat = paste0('\\.', ext, '$')
+  blastfiles <- list.files(blastdir, pattern=extpat, full.names=TRUE)
+  taxids <- sub(pattern=extpat, replacement="", x=basename(blastfiles))
+  if(any(is.na(fs))){
+    stop("Expected all files in the BLAST directory to have names of form <taxid>.<ext> (e.g. '3702.tab')")
+  }
+  strata <- strata_from_taxids(focal_species, taxids, ...)
+  strata@data$blast_result <- blastfiles
+  names(strata@data$blast_result) <- taxids
+  strata
+}
+
 #' BLAST query protein FASTA file against a subject species 
 #'
 #' @param query_fastafile A protein FASTA file for the focal species
@@ -177,7 +203,7 @@ strata_blast <- function(
 #' strata@data$besthits[["Unicorn"]] <- get_besthit(strata, "Unicorn")
 #' }
 get_besthit <- function(strata, taxid){
-  is_valid_strata(strata, required=c('faa', 'blast_result'))
+  is_valid_strata(strata, required='blast_result')
   get_max_hit(
     read_blast(
       strata@data$blast_result[[taxid]], # blast tabular filename
@@ -197,7 +223,7 @@ get_besthit <- function(strata, taxid){
 #' blast result
 #' @export
 strata_besthits <- function(strata){
-  is_valid_strata(strata, required=c('faa', 'blast_result'))
+  is_valid_strata(strata, required='blast_result')
   taxa <- names(strata@data$blast_result)
   strata@data$besthit <- lapply(taxa, get_besthit, strata=strata)
   names(strata@data$besthit) <- taxa

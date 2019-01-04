@@ -327,6 +327,27 @@ stratify <- function(
     dplyr::mutate(mrca_name = strata_names[.data$ps])
 }
 
+#' Make a Strata object from a list of taxon ids
+#'
+#' 
+#' @param focal_species character: the taxonomy ID of the species that was used in the BLAST
+#' @param taxids character: list of NCBI taxonomy IDs
+#' @param clean logical: Should leafs with descendents be removed? This can occur when
+#' both a species and a descendent subspecies are in the lineage set.
+#' @return Strata object
+#' @export
+strata_from_taxids <- function(focal_species, taxids, clean=TRUE){
+  lineages <- taxizedb::classification(taxids)
+  tree <- lineages_to_phylo(lineages, clean=clean)
+  if(! setequal(taxids, tree$tip.label)){
+    warning("The following subspecies taxa where removed: ",
+            setdiff(taxids, tree$tip.label))
+    blastfiles <- blastfiles[taxids %in% tree$tip.label] 
+    taxids <- tree$tip.label
+  }
+  Strata(focal_species=focal_species, tree=tree)
+}
+
 #' Given a strata table, remove given strata 
 #'
 #' The genes in a stratum that is removed will be reassigned to the parent
