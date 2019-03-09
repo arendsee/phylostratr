@@ -6,8 +6,9 @@ test_that("Can access uniprot downstream IDs", {
     ids <- uniprot_downstream_ids(3700)  
     # As UniProt grows, the number of species will increase, so I just test for
     # the species present as of 2017.
+    # NOTE: this test may need to be updated as UniProt content changes 
     is.integer(ids) &&
-    all( c(81972L, 3702L, 50452L, 3708L, 109376L, 51351L, 81985L, 72664L) %in% ids)
+    all( c(81972L, 3702L, 3708L, 109376L, 51351L, 81985L, 72664L) %in% ids)
   })
 })
 
