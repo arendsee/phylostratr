@@ -1,96 +1,3 @@
-scheme1 <- list(
-  cutoff = c(1e-20, 1e-5, 1e-3, 1), 
-  color  = c('blue', 'green', 'yellow', 'darkorange1', 'darkred')
-)
-
-scheme2 = list(
-  cutoff = c(1e-100, 1e-20, 1e-5, 1e-1),
-  color = c('#0000FF', '#14A9FF', '#7AFDFF', '#CC9500', '#FF1E00')
-)
-
-eval_bins <- function(d, scheme=scheme2){
-  stopifnot((length(scheme$cutoff)+1) == length(scheme$color))
-  # treat NA as maximally insignificant
-  evalue <- d$evalue
-  evalue[is.na(evalue)] <- Inf
-  .bincode(evalue, c(-Inf, scheme$cutoff, Inf))
-}
-
-#' Normalize a matrix such that rows sum to 1
-#'
-#' @param m A matrix
-#' @return matrix
-#' @export
-normalize_matrix_by_row <- function(m){
-  apply(m, 1, function(x) x / sum(x)) %>% t
-}
-
-#' Normalize a matrix such that columns sum to 1
-#'
-#' @param m A matrix
-#' @return matrix
-#' @export
-normalize_matrix_by_col <- function(m){
-  apply(m, 2, function(x) x / sum(x))
-}
-
-plot_one_obo_tree <- function(
-  tree,
-  stat,
-  phylostrata = NULL,
-  scheme=scheme2
-){
-  d <- stat
-  d$evalue_bin <- factor(eval_bins(stat, scheme))
-  # if(!is.null(phylostrata)){
-  #   id_levels <- dplyr::select(phylostrata, .data$qseqid, .data$ps)
-  #   d <- d %>%
-  #     merge(id_levels) %>%
-  #     dplyr::arrange(-.data$ps, .data$qseqid) %>%
-  #     dplyr::select(-.data$ps)
-  # }
-  name_order <- unique(d$qseqid) 
-  d <- reshape2::dcast(d, staxid ~ qseqid, value.var='evalue_bin', fill=5)
-  rownames(d) <- d[, 1]
-  d <- d[, -1]  
-  d <- d[, name_order]
-  g <- ggtree::ggtree(tree, layout='slanted', ladderize=FALSE) +
-    ggtree::geom_tiplab(size=1, color="black")
-  g <- ggtree::gheatmap(g, d, offset=14, width=6, colnames=TRUE,
-                   colnames_angle=-90, hjust=0,
-                   font.size=1) +
-    ggplot2::scale_fill_manual(
-      values = scheme$color,
-      labels = c(scheme$cutoff, paste0(tail(scheme$cutoff,1), '+'))
-    )
-  g
-}
-
-# Do not use directly, wrapped by plot_heatmaps
-plot_obo_trees <- function(hits, tree=NULL, n=50, focal_id=NULL, to_name=TRUE, scheme=scheme2){
-  dat <- base::split(hits, f=factor(hits$qseqid))
-
-  if(is.null(tree)){
-    tree <- lineages_to_phylo(taxizedb::classification(dat[[1]]$staxid))
-  }
-  if(!is.null(focal_id)){
-    tree <- make_tree_relative_to(tree, focal_id)
-  }
-  if(to_name){
-    tree$tip.label <- partial_id_to_name(tree$tip.label)
-  }
-  N <- length(dat)
-
-  lapply(seq(0, N, by=n), function(i){
-    indices <- i:min(i+n-1, N)
-    stat <- do.call(what=rbind, dat[indices])
-    if(to_name){
-      stat$staxid <- partial_id_to_name(stat$staxid)
-    }
-    plot_one_obo_tree(tree=tree, stat=stat, scheme=scheme)
-  })
-}
-
 #' Plots for the hit distribution of all genes
 #'
 #' @param hits A table of best hits
@@ -117,8 +24,9 @@ plot_obo_trees <- function(hits, tree=NULL, n=50, focal_id=NULL, to_name=TRUE, s
 #' plot_heatmaps(hits, "heatmaps.pdf", tree=strata@tree, scheme=funky_scheme)
 #' }
 plot_heatmaps <- function(hits, filename, tree=NULL, n=50, focal_id=NULL, to_name=TRUE, scheme=scheme2){
+  # This is a wrapper for making the whole PDF
   pdf(filename)
-  print(plot_obo_trees(
+  print(plot_phyloheatmap(
     hits     = hits,
     tree     = tree,
     n        = n,
@@ -129,117 +37,95 @@ plot_heatmaps <- function(hits, filename, tree=NULL, n=50, focal_id=NULL, to_nam
   dev.off()
 }
 
-#' Plot the max hit scores against each species for one gene
-#'
-#' This is an internal method, a user would normally use \code{plot_obo} or
-#' \code{make_obo_pdf}.
-#'
-#' @param stats A data.frame with the columns [index, score, eval_bins]
-#' @param qseqid The query gene ID
-#' @param xlines A table specifying where the phylostrata lines should be drawn
-#' @return ggplot2 object
-plot_one_obo <- function(stats, qseqid, xlines){
-  stats$index = 1:nrow(stats)
-  ggplot2::ggplot(stats) +
-    ggplot2::geom_point(ggplot2::aes_string(x='index', y='score', color='eval_bins'), size=0.5) +
-    ggplot2::scale_color_manual(values=c('darkred', 'red', 'orange', 'green', 'blue')) +
-    ggplot2::geom_vline(data=xlines, ggplot2::aes_string(xintercept='xlines'), alpha=0.4) +
-    ggplot2::xlim(1, nrow(stats)) +
-    ggplot2::theme_minimal() +
-    ggplot2::ggtitle(qseqid) +
-    ggplot2::theme(
-      legend.position = 'none',
-      axis.title      = ggplot2::element_blank(),
-      axis.ticks      = ggplot2::element_blank(),
-      axis.text       = ggplot2::element_blank(),
-      panel.grid      = ggplot2::element_blank()
-    )
-}
+# Do not use directly, wrapped by plot_heatmaps
+# Preps data for building individual heat maps, partitions data to pages
+plot_phyloheatmap <- function(hits, tree=NULL, n=50, focal_id=NULL, to_name=TRUE, ...){
+  dat <- base::split(hits, f=factor(hits$qseqid))
 
-
-# @param lower.bound A lower bound at which to truncate scores
-# @param upper.bound An upper bound at which to truncate scores
-.common <- function(d, lower.bound=0, upper.bound=Inf){
-  if(!is.null(upper.bound))
-    d$score <- ifelse(d$score > upper.bound, upper.bound, d$score)
-  if(!is.null(lower.bound))
-    d$score <- ifelse(d$score < lower.bound, lower.bound, d$score)
-
-  taxidmap <- d %>%
-    dplyr::select(.data$staxid, .data$ps) %>%
-    dplyr::distinct() %>%
-    dplyr::arrange(-.data$ps)
-
-  d <- dplyr::arrange(d, -.data$ps, .data$staxid)
-  # It is essential to turn the taxon IDs into ordered factors, otherwise they
-  # will be interpreted as numbers, and plotted accordingly.
-  d$staxid <- factor(as.character(d$staxid), levels=as.character(taxidmap$staxid))
-
-  stat <- d %>%
-    dplyr::select(.data$qseqid, .data$score, .data$evalue, .data$staxid) %>%
-    merge(taxidmap, by='staxid') %>%
-    dplyr::group_by(.data$qseqid) %>%
-    dplyr::mutate(index=seq_along(.data$qseqid)) %>%
-    dplyr::ungroup() %>%
-    dplyr::mutate(eval_bins=eval_bins(.data$evalue)) %>%
-    {
-      base::split(., f=factor(.$qseqid))
-    } %>%
-    lapply(dplyr::arrange, -.data$ps, .data$staxid)
-
-  list(d=d, stat=stat, taxidmap=taxidmap)
-}
-
-
-#' Plot the max hit scores against each species
-#'
-#' @param d data.frame of the best hits of focal genes against subject species.
-#' It must have the columns [staxid, qseqid, evalue, score, mrca, ps]
-#' @param ... Additional arguments sent to .arrange_hits
-#' @return A named list of ggplot2 objects, with names being the qseqid
-#' @export
-plot_obo <- function(d, ...){
-
-  dat <- .common(d)
-
-  nspecies <- length(unique(dat$d$staxid))
-
-  xlines <- dat$taxidmap %>%
-    dplyr::group_by(.data$ps) %>%
-    dplyr::summarize(n = length(.data$ps)) %>%
-    dplyr::arrange(-.data$ps) %>%
-    { Reduce(sum, .$n, accumulate=TRUE) } %>%
-    { .[-length(.)] } %>%
-    { . + 0.5 } %>%
-    as.data.frame %>%
-    magrittr::set_names('xlines')
-
-  lapply(
-    names(dat$stats), 
-    function(qseqid) {
-      plot_one_obo(dat$stats[[qseqid]], qseqid, xlines)
-    }
-  ) %>% magrittr::set_names(dat$stats$qseqid)
-}
-
-#' Make PDf with multiple obo plots per page
-#'
-#' @param d Besthits table
-#' @param file Filename for output PDF
-#' @param width Integer number of plots per row
-#' @param height Integer number of plots per column
-#' @param ... Additional arguments for \code{plot_obo}
-#' @export
-make_obo_pdf <- function(d, file='obo.pdf', width=1, height=5, ...){
-  plots <- plot_obo(d, ...)
-  nloci <- length(unique(d$qseqid))
-  pdf(file)
-  for(page.num in 0:((nloci - 1) %/% (width * height))){
-    i <- width * height * page.num + 1
-    j <- min(width * height * page.num + (width*height), length(plots))
-    gridExtra::grid.arrange(grobs=plots[i:j], ncol=width)
+  if(is.null(tree)){
+    tree <- lineages_to_phylo(taxizedb::classification(dat[[1]]$staxid))
   }
-  dev.off()
+  if(!is.null(focal_id)){
+    tree <- make_tree_relative_to(tree, focal_id)
+  }
+  if(to_name){
+    tree$tip.label <- partial_id_to_name(tree$tip.label)
+  }
+  N <- length(dat)
+
+  lapply(seq(1, N, by=n), function(i){
+    indices <- i:min(i+n-1, N)
+    stat <- do.call(what=rbind, dat[indices])
+    if(to_name){
+      stat$staxid <- partial_id_to_name(stat$staxid)
+    }
+    plot_one_phyloheatmap(tree=tree, stat=stat, ...)
+  })
+}
+
+# @param scheme - set the color scheme
+# @ggtree_args - named list of arguments sent to ggtree::ggtree
+# @ggtree_heatmap_args - named list of arguments sent to ggtree::heatmap
+# @ggtree_tiplab - a ggtree::geom_tiplab object
+plot_one_phyloheatmap <- function(
+  tree,
+  stat,
+  phylostrata = NULL,
+  scheme              = scheme2,
+  ggtree_args         = list(),
+  ggtree_heatmap_args = list(),
+  ggtree_tiplab       = ggtree::geom_tiplab(size=1, color="black")
+){
+  set <- function(x, ...){
+    defaults <- list(...)
+    for(n in names(x)){
+      defaults[[n]] <- x[[n]]
+    }
+    defaults
+  }
+  # set ggtree arguments with defaults
+  ggtree_args = set(ggtree_args, layout='slanted', ladderize=FALSE)
+  # set heatmpa arguments
+  ggtree_heatmap_args = set(ggtree_heatmap_args, offset=14, width=6,
+                            colnames=TRUE, colnames_angle=-90, hjust=0,
+                            font.size=1)
+  stat$evalue_bin <- factor(eval_bins(stat$evalue, scheme))
+  # if(!is.null(phylostrata)){
+  #   id_levels <- dplyr::select(phylostrata, .data$qseqid, .data$ps)
+  #   d <- d %>%
+  #     merge(id_levels) %>%
+  #     dplyr::arrange(-.data$ps, .data$qseqid) %>%
+  #     dplyr::select(-.data$ps)
+  # }
+  name_order <- unique(stat$qseqid)
+  stat <- reshape2::dcast(stat, staxid ~ qseqid, value.var='evalue_bin', fill=5)
+  rownames(stat) <- stat[, 1]
+  stat <- stat[, -1]  
+  stat <- stat[, name_order]
+  g <- do.call(ggtree::ggtree, append(list(tr=tree), ggtree_args)) + ggtree_tiplab
+  g <- do.call(ggtree::gheatmap, append(list(p=g, data=as.matrix(stat)), ggtree_heatmap_args)) +
+    ggplot2::scale_fill_manual(
+      values = scheme$color,
+      labels = c(scheme$cutoff, paste0(tail(scheme$cutoff,1), '+'))
+    )
+  g
+}
+
+scheme1 <- list(
+  cutoff = c(1e-20, 1e-5, 1e-3, 1), 
+  color  = c('blue', 'green', 'yellow', 'darkorange1', 'darkred')
+)
+
+scheme2 = list(
+  cutoff = c(1e-100, 1e-20, 1e-5, 1e-1),
+  color = c('#0000FF', '#14A9FF', '#7AFDFF', '#CC9500', '#FF1E00')
+)
+
+eval_bins <- function(evalue, scheme=scheme2){
+  stopifnot((length(scheme$cutoff)+1) == length(scheme$color))
+  # treat NA as maximally insignificant
+  evalue[is.na(evalue)] <- Inf
+  .bincode(evalue, c(-Inf, scheme$cutoff, Inf))
 }
 
 #' Plot the ordered lengths of all proteins in all proteomes
@@ -291,27 +177,112 @@ plot_proteome_stats <- function(strata){
     ggplot2::ggtitle(sprintf("Lengths of proteomes used in %s phylostratigraph", strata@focal_species))
 }
 
-plot_revenant <- function(
-  d,
-  cutoff      = 40,
-  title       = 'revenant.pdf',
-  strange     = TRUE,
-  lower.bound = NULL,
-  upper.bound = NULL
-){
-  # FIXME: STUB
-}
 
-# plot_constriction <- function(d, max_score=100, min_score=0, ...){
-#   m <- constrict(d, ...)
-#   m$mrca_name <- get_mrca_names(m)[m$ps] %>% unname
-#   m$score <- ifelse(m$score > max_score, max_score, m$score)
-#   m$score <- ifelse(m$score > min_score, min_score, m$score)
-#   m$species <-
-#   ggplot(m) +
-#     geom_line(aes(x=species, y=score, group=qseqid, color=mrca))
+###### I need to sort through this old code and figure why it was duplicated ...
+# #' Plot the max hit scores against each species
+# #'
+# #' @param d data.frame of the best hits of focal genes against subject species.
+# #' It must have the columns [staxid, qseqid, evalue, score, mrca, ps]
+# #' @param ... Additional arguments sent to .arrange_hits
+# #' @return A named list of ggplot2 objects, with names being the qseqid
+# #' @export
+# plot_phyloheatmap <- function(d, ...){
+#
+#   # A lower bound at which to truncate scores
+#   lower.bound=0
+#   # An upper bound at which to truncate scores
+#   upper.bound=Inf
+#   if(!is.null(upper.bound))
+#     d$score <- ifelse(d$score > upper.bound, upper.bound, d$score)
+#   if(!is.null(lower.bound))
+#     d$score <- ifelse(d$score < lower.bound, lower.bound, d$score)
+#
+#   taxidmap <- d %>%
+#     dplyr::select(.data$staxid, .data$ps) %>%
+#     dplyr::distinct() %>%
+#     dplyr::arrange(-.data$ps)
+#
+#   d <- dplyr::arrange(d, -.data$ps, .data$staxid)
+#   # It is essential to turn the taxon IDs into ordered factors, otherwise they
+#   # will be interpreted as numbers, and plotted accordingly.
+#   d$staxid <- factor(as.character(d$staxid), levels=as.character(taxidmap$staxid))
+#
+#   stat <- d %>%
+#     dplyr::select(.data$qseqid, .data$score, .data$evalue, .data$staxid) %>%
+#     merge(taxidmap, by='staxid') %>%
+#     dplyr::group_by(.data$qseqid) %>%
+#     dplyr::mutate(index=seq_along(.data$qseqid)) %>%
+#     dplyr::ungroup() %>%
+#     dplyr::mutate(eval_bins=eval_bins(.data$evalue)) %>%
+#     {
+#       base::split(., f=factor(.$qseqid))
+#     } %>%
+#     lapply(dplyr::arrange, -.data$ps, .data$staxid)
+#
+#   nspecies <- length(unique(d$staxid))
+#
+#   xlines <- taxidmap %>%
+#     dplyr::group_by(.data$ps) %>%
+#     dplyr::summarize(n = length(.data$ps)) %>%
+#     dplyr::arrange(-.data$ps) %>%
+#     { Reduce(sum, .$n, accumulate=TRUE) } %>%
+#     { .[-length(.)] } %>%
+#     { . + 0.5 } %>%
+#     as.data.frame %>%
+#     magrittr::set_names('xlines')
+#
+#   lapply(
+#     names(stat),
+#     function(qseqid) {
+#       plot_one_phyloheatmap(stat[[qseqid]], qseqid, xlines)
+#     }
+#   ) %>% magrittr::set_names(stat$qseqid)
+# }
+#
+# #' Make PDf with multiple phyloheatmap plots per page
+# #'
+# #' @param d Besthits table
+# #' @param file Filename for output PDF
+# #' @param width Integer number of plots per row
+# #' @param height Integer number of plots per column
+# #' @param ... Additional arguments for \code{plot_phyloheatmap}
+# #' @export
+# make_phyloheatmap_pdf <- function(d, file='phyloheatmap.pdf', width=1, height=5, ...){
+#   plots <- plot_phyloheatmap(d, ...)
+#   nloci <- length(unique(d$qseqid))
+#   pdf(file)
+#   for(page.num in 0:((nloci - 1) %/% (width * height))){
+#     i <- width * height * page.num + 1
+#     j <- min(width * height * page.num + (width*height), length(plots))
+#     gridExtra::grid.arrange(grobs=plots[i:j], ncol=width)
+#   }
+#   dev.off()
+# }
+#
+# #' Plot the max hit scores against each species for one gene
+# #'
+# #' This is an internal method, a user would normally use \code{plot_phyloheatmap} or
+# #' \code{make_phyloheatmap_pdf}.
+# #'
+# #' @param stats A data.frame with the columns [index, score, eval_bins]
+# #' @param qseqid The query gene ID
+# #' @param xlines A table specifying where the phylostrata lines should be drawn
+# #' @return ggplot2 object
+# plot_one_phyloheatmap <- function(stats, qseqid, xlines){
+#   stats$index = 1:nrow(stats)
+#   ggplot2::ggplot(stats) +
+#     ggplot2::geom_point(ggplot2::aes_string(x='index', y='score', color='eval_bins'), size=0.5) +
+#     ggplot2::scale_color_manual(values=c('darkred', 'red', 'orange', 'green', 'blue')) +
+#     ggplot2::geom_vline(data=xlines, ggplot2::aes_string(xintercept='xlines'), alpha=0.4) +
+#     ggplot2::xlim(1, nrow(stats)) +
+#     ggplot2::theme_minimal() +
+#     ggplot2::ggtitle(qseqid) +
+#     ggplot2::theme(
+#       legend.position = 'none',
+#       axis.title      = ggplot2::element_blank(),
+#       axis.ticks      = ggplot2::element_blank(),
+#       axis.text       = ggplot2::element_blank(),
+#       panel.grid      = ggplot2::element_blank()
+#     )
 # }
 
-plot_noise <- function(){
-  # FIXME: STUB
-}
