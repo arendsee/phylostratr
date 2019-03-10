@@ -4,6 +4,20 @@ blastresult <- 'a-vs-b.tab'
 unlink(blastresult)
 unlink('blastdb', recursive=TRUE)
 
+test_that("Can convert BLAST filenames to Strata objects", {
+  # test handling of good data
+  data(arabidopsis_strata)
+  tree <- subtree(arabidopsis_strata, "3700")@tree
+  files <- paste0(tree$tip.label, '.tab')
+  names(files) <- tree$tip.label
+  x <- .filenames_to_phylo(files, "3702")
+  expect_true(all.equal(tree, x@tree))
+  expect_equal(x@focal_species, "3702")
+  expect_equal(x@data, list(blast_result = files))
+  # test handling of bad data (die screaming)
+  expect_error(.filenames_to_phylo(c("troll.tab")))
+})
+
 test_that("Can make and run blast", {
   expect_equal(
     {

@@ -114,15 +114,23 @@ read_blast <- function(x, with_taxid=is.null(taxid), col_names=TRUE, taxid=NULL)
 strata_from_blast_dir <- function(focal_species, blastdir='.', ext='tab', ...){
   extpat = paste0('\\.', ext, '$')
   blastfiles <- list.files(blastdir, pattern=extpat, full.names=TRUE)
-  taxids <- sub(pattern=extpat, replacement="", x=basename(blastfiles))
-  if(any(is.na(fs))){
-    stop("Expected all files in the BLAST directory to have names of form <taxid>.<ext> (e.g. '3702.tab')")
+  strata <- .filenames_to_phylo(blastfiles, focal_species, ...)
+  # TODO: check BLAST file format
+  return(strata)
+}
+# pure helper function for `strata_from_blast_dir`
+.filenames_to_phylo <- function(blastfiles, focal_species, ...){
+  taxids <- sub(pattern="\\..*", replacement="", x=basename(blastfiles))
+  if(!all(grepl("^[0-9]+$", taxids))){
+    stop("Expected all files in the BLAST directory to have names ",
+         "with the form <taxid>.<ext> (e.g. '3702.tab')")
   }
   strata <- strata_from_taxids(focal_species, taxids, ...)
   strata@data$blast_result <- blastfiles
   names(strata@data$blast_result) <- taxids
   strata
 }
+
 
 #' BLAST query protein FASTA file against a subject species 
 #'
