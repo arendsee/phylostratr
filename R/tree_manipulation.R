@@ -529,11 +529,13 @@ subtree.phylo <- function(x, id, collapse=TRUE, descend=TRUE, type='auto', ...){
 #' @param node The name of a node in x where y will be placed
 #' @export
 #' @examples
-#' data(saccharomyces)
-#' x = saccharomyces
-#' y = subtree(saccharomyces, 's2')
-#' y = strata_convert(y, target='tip', to='name')
-#' x = replace_branch(x, y, "s2")
+#' \dontrun{
+#'   data(saccharomyces)
+#'   x = saccharomyces
+#'   y = subtree(saccharomyces, 's2')
+#'   y = strata_convert(y, target='tip', to='name')
+#'   x = replace_branch(x, y, "s2")
+#' }
 replace_branch <- function(x, y, node){
   #### TODO: generalize this to work with phylo objects as well
   if(!(class(y) == 'Strata')){
