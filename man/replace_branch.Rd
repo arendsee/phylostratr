@@ -17,9 +17,11 @@ replace_branch(x, y, node)
 Replace a branch on a Strata
 }
 \examples{
-data(saccharomyces)
-x = saccharomyces
-y = subtree(saccharomyces, 's2')
-y = strata_convert(y, target='tip', to='name')
-x = replace_branch(x, y, "s2")
+\dontrun{
+  data(saccharomyces)
+  x = saccharomyces
+  y = subtree(saccharomyces, 's2')
+  y = strata_convert(y, target='tip', to='name')
+  x = replace_branch(x, y, "s2")
+}
 }

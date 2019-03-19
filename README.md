@@ -27,8 +27,7 @@ install_github("arendsee/phylostratr")
 ## Citation
 
     Zebulun Arendsee, Jing Li, Urminder Singh, Arun Seetharam, Karin Dorman,
-    Eve Syrkin Wurtele (2018) phylostratr: A framework for phylostratigraphy.
-    bioRxiv doi: https://doi.org/10.1101/360164
+    Eve Syrkin Wurtele (2019) "phylostratr: A framework for phylostratigraphy." Bioinformatics. https://doi.org/10.1093/bioinformatics/btz171
 
 ## Funding
 
