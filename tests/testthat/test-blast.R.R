@@ -5,6 +5,7 @@ unlink(blastresult)
 unlink('blastdb', recursive=TRUE)
 
 test_that("Can convert BLAST filenames to Strata objects", {
+  skip_on_travis()
   # test handling of good data
   data(arabidopsis_strata)
   tree <- subtree(arabidopsis_strata, "3700")@tree

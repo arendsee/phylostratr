@@ -205,6 +205,7 @@ test_that("backbone trees are cool", {
 })
 
 test_that("replace_branch works", {
+  skip_on_travis()
   expect_true({
     data(saccharomyces)
     x = saccharomyces

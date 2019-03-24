@@ -33,6 +33,7 @@ test_that("is_valid_strata catches problems", {
 })
 
 test_that("strata_convert works", {
+  skip_on_travis()
   # name-->id-->name is not guaranteed to result in an identical strata,
   # since more than one name may be associated with a given id.
   # in this case, I get the same names back but without the underscores
@@ -69,6 +70,7 @@ test_that("strata_apply over identity changes nothing", {
 })
 
 test_that("GitHub issue #6", {
+  skip_on_travis()
   taxids=c("4362", "16681", "1194090", "1142394")
   tree <- phylostratr::lineages_to_phylo(taxizedb::classification(taxids))
   strata <- phylostratr::Strata(focal_species=16681, tree)
