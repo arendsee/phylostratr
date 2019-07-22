@@ -156,8 +156,22 @@ uniprot_fill_strata <- function(strata, ...){
 #' @return Strata object
 #' @export
 uniprot_strata <- function(taxid, from=2){
+
+  # ensure the focal gene is included, even if not in uniprot (fix #10)
+  add_focal <- function(xs){
+    if(!(taxid %in% xs)){
+      message("The focal species is not present in UniProt. ",
+              "You may add it after retrieving uniprot sequences ",
+              "(i.e. with 'uniprot_fill_strata') with a command such as: ",
+              "strata_obj@data$faa[[focal_taxid]] <- '/path/to/your/focal-species.faa'")
+      xs <- c(taxid, xs)
+    }
+    xs
+  }
+
   taxizedb::classification(taxid)[[1]]$id[from] %>%
     uniprot_downstream_ids %>%
+    add_focal %>%
     taxizedb::classification() %>%
     Filter(f=is.data.frame) %>%
     lineages_to_phylo(clean=TRUE) %>%

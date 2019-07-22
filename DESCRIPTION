@@ -1,6 +1,6 @@
 Package: phylostratr
 Title: Analyze phylostratigraphic data
-Version: 0.2.0
+Version: 0.2.1
 Authors@R: person("Zebulun", "Arendsee", email = "zbwrnz@gmail.com", role = c("aut", "cre"))
 Description:
     Infer the age of genes using phylostratigraphic methods. 
