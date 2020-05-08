@@ -34,3 +34,49 @@ test_that("strata_diamond", {
     )
   )
 })
+
+test_that("strata_besthits", {
+  expect_true(
+    # results must be a list of lists
+    strata_besthits(strata_results)@data$besthit %>% sapply(is.list) %>% all
+  )
+  expect_true(
+    # results must be a list of lists of data.frames
+    strata_besthits(strata_results)@data$besthit %>% sapply(is.data.frame) %>% all
+  )
+})
+
+test_that("merge_besthits", {
+  expect_true({
+    besthits <- strata_besthits(strata_results) %>% merge_besthits
+    # the columns are correct
+    all(c('staxid', 'qseqid', 'evalue', 'score', 'mrca', 'ps') %in% names(besthits)) &&
+      # all staxa are represented
+      setequal(letters[1:5], unique(besthits$staxid))
+  })
+})
+
+test_that("check_hit_table works", {
+  expect_error(check_hit_table(5))
+  expect_error({
+    strata_besthits(strata_results) %>% merge_besthits %>%
+      dplyr::select(-qseqid) %>% check_hit_table
+  })
+  expect_error({
+    strata_besthits(strata_results) %>% merge_besthits %>%
+      dplyr::select(-mrca) %>%
+      check_hit_table(has_mrca=TRUE)
+  })
+  expect_error({
+    strata_besthits(strata_results) %>% merge_besthits %>%
+      dplyr::select(-ps) %>%
+      check_hit_table(has_ps=TRUE)
+  })
+})
+
+unlink('a.tab')
+unlink('b.tab')
+unlink('c.tab')
+unlink('d.tab')
+unlink('e.tab')
+unlink('blastdb', recursive=TRUE)
