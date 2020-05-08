@@ -262,7 +262,7 @@ merge_besthits <- function(strata){
 
 
 ##
-#author UrMi
+#' author urmi
 #' Blast strata using diamond blastp
 #'
 #' @param strata Strata object where the 'faa' vector is included in the data slot
@@ -270,7 +270,7 @@ merge_besthits <- function(strata){
 #' @param blast_args Additional arguments passed to \code{run_diamond_blastp}
 #' @return named list of phylostrata, where each element is a vector of blast result filenames 
 #' @export
-strata_blast <- function(
+strata_diamond <- function(
   strata,
   makedb_args=list(),
   blast_args=list()
@@ -291,6 +291,7 @@ strata_blast <- function(
 
 
 #' Build a diamond database for one species
+#' author urmi
 #'
 #' @param fastafile The path to a protein FASTA file
 #' @param blastdb The directory in which the diamond database should be stored
@@ -319,7 +320,8 @@ make_diamond_database <- function(
   out
 }
 
-#' BLAST query protein FASTA file against a subject species 
+#' BLAST query protein FASTA file against a subject species
+#' author urmi
 #'
 #' @param query_fastafile A protein FASTA file for the focal species
 #' @param subject_taxid The subject NCBI taxon ID
