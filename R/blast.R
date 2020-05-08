@@ -353,11 +353,13 @@ run_diamond_blastp <- function(
       args=c('blastp', '--more-sensitive',
         '-d', blastdb,
         '-q', query_fastafile,
-        '--outfmt', '"6 qseqid sseqid qstart qend sstart send evalue score"',
+        '--outfmt', '6', 'qseqid', 'sseqid', 'qstart', 'qend', 'sstart', 'send', 'evalue', 'score',
         '-p', nthreads,
         '--masking', if(seg) {'1'} else {'0'}
       )
     )
+    
+    
     # Add the subject taxon ID, name and order columns, write with header
     read_blast(blastresult, with_taxid=FALSE, col_names=FALSE) %>%
       dplyr::mutate(staxid = as.character(subject_taxid)) %>%
