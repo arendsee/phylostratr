@@ -10,8 +10,7 @@ subtree(x, id, ...)
 
 \method{subtree}{Strata}(x, id, type = "name", ...)
 
-\method{subtree}{phylo}(x, id, collapse = TRUE, descend = TRUE,
-  type = "auto", ...)
+\method{subtree}{phylo}(x, id, collapse = TRUE, descend = TRUE, type = "auto", ...)
 }
 \arguments{
 \item{x}{phylo object}

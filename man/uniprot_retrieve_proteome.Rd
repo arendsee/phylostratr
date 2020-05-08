@@ -4,8 +4,13 @@
 \alias{uniprot_retrieve_proteome}
 \title{Download a UniProt proteome}
 \usage{
-uniprot_retrieve_proteome(taxid, keep_isoforms = FALSE,
-  dir = "uniprot-seqs", dryrun = FALSE, verbose = FALSE)
+uniprot_retrieve_proteome(
+  taxid,
+  keep_isoforms = FALSE,
+  dir = "uniprot-seqs",
+  dryrun = FALSE,
+  verbose = FALSE
+)
 }
 \arguments{
 \item{taxid}{An NCBI taxonomy id}

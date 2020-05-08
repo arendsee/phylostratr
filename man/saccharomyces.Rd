@@ -4,7 +4,9 @@
 \name{saccharomyces}
 \alias{saccharomyces}
 \title{A custom Strata object for the Saccharomyces genus}
-\format{Strata}
+\format{
+Strata
+}
 \usage{
 saccharomyces
 }

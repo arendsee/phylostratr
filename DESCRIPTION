@@ -30,7 +30,7 @@ Remotes:
     GuangchuangYu/ggtree
 License: GPL-3 + file LICENSE
 LazyData: true
-RoxygenNote: 6.1.1
+RoxygenNote: 7.1.0
 Suggests:
     covr,
     knitr,

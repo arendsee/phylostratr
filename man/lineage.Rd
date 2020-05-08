@@ -9,8 +9,7 @@
 \usage{
 lineage(x, ...)
 
-\method{lineage}{Strata}(x, id = x@focal_species, type = "name",
-  use_name = TRUE, ...)
+\method{lineage}{Strata}(x, id = x@focal_species, type = "name", use_name = TRUE, ...)
 
 \method{lineage}{phylo}(x, id, use_name = FALSE, type = "auto", ...)
 
