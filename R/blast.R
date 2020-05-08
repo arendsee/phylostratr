@@ -302,6 +302,8 @@ make_diamond_database <- function(
   blastdb = 'blastdb',
   verbose = FALSE
 ){
+  #create outdir, diamond doesnt create itself
+  dir.create(file.path(blastdb), showWarnings = FALSE)
   out <- file.path(blastdb, basename(fastafile))
   if(!.blastdb_exists(out)){
     maybe_message("%s: making diamond database ...", verbose, basename(fastafile))
@@ -312,8 +314,9 @@ make_diamond_database <- function(
       args   = c('makedb','--in', fastafile, '-d', out)
     )
     out<-paste(out,'.dmnd',sep="")
+    #check diamond db exists
     maybe_message(dbmsg, verbose)
-    if(!.blastdb_exists(out)){
+    if(!file.exists(out)){
       stop(sprintf("Failed to make diamond database %s", out))
     }
   }
