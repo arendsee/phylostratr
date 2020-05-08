@@ -345,7 +345,7 @@ run_diamond_blastp <- function(
   } else {
     maybe_message("%s: Diamond blasting ...", verbose, subject_taxid)
     system2(
-      'diamond blastp',
+      'diamond blastp --more-sensitive',
       stdout=blastresult,
       args=c(
         '-d', blastdb,
