@@ -306,10 +306,10 @@ make_diamond_database <- function(
   if(!.blastdb_exists(out)){
     maybe_message("%s: making diamond database ...", verbose, basename(fastafile))
     dbmsg <- system2(
-      'diamond makedb',
+      'diamond',
       stderr = TRUE,
       stdout = TRUE,
-      args   = c('--in', fastafile, '-d', out)
+      args   = c('makedb','--in', fastafile, '-d', out)
     )
     out<-paste(out,'.dmnd',sep="")
     maybe_message(dbmsg, verbose)
@@ -345,9 +345,9 @@ run_diamond_blastp <- function(
   } else {
     maybe_message("%s: Diamond blasting ...", verbose, subject_taxid)
     system2(
-      'diamond blastp --more-sensitive',
+      'diamond',
       stdout=blastresult,
-      args=c(
+      args=c('blastp', '--more-sensitive',
         '-d', blastdb,
         '-q', query_fastafile,
         '--outfmt', '"6 qseqid sseqid qstart qend sstart send evalue score"',
