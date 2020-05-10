@@ -9,5 +9,10 @@ before_install:
   - sudo apt-get install alien
   - sudo alien -i blast.rpm
   - rm blast.rpm
+  #install diamond
+  - wget https://github.com/bbuchfink/diamond/releases/download/v0.9.30/diamond-linux64.tar.gz -O /tmp/diamond.tar.gz
+  - mkdir -p diamond
+  - tar -xvzf /tmp/diamond.tar.gz -C diamond
+  - sudo cp $PWD/diamond/* /usr/bin
 after_success:
   - Rscript -e 'covr::codecov()'
