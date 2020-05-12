@@ -372,7 +372,6 @@ is_root.phylo <- function(x, id=1:tree_size(x), type='auto', ...){
 #' find all of them.
 #'
 #' @param x phylo object
-#' @param ... Arguments passed to \code{is_root}
 #' @return index of the root node (or nodes if there are more than one)
 #' @export
 #' @name get_root
