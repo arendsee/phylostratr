@@ -4,7 +4,9 @@
 \name{atree}
 \alias{atree}
 \title{A simple, bifurcating tree for use in util examples}
-\format{phylo}
+\format{
+phylo
+}
 \usage{
 atree
 }

@@ -4,7 +4,9 @@
 \name{arabidopsis_strata}
 \alias{arabidopsis_strata}
 \title{An Arabidopsis thaliana based Strata object}
-\format{Strata}
+\format{
+Strata
+}
 \usage{
 arabidopsis_strata
 }

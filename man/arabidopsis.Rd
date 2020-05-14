@@ -4,7 +4,9 @@
 \name{arabidopsis}
 \alias{arabidopsis}
 \title{Arabidopsis thaliana vignette data}
-\format{data.frame}
+\format{
+data.frame
+}
 \usage{
 arabidopsis
 }

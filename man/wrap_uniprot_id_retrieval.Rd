@@ -4,8 +4,13 @@
 \alias{wrap_uniprot_id_retrieval}
 \title{Internal funcion for wrapping ID retrieval from UniProt}
 \usage{
-wrap_uniprot_id_retrieval(db, query, date = NULL, delay = FALSE,
-  cast = identity)
+wrap_uniprot_id_retrieval(
+  db,
+  query,
+  date = NULL,
+  delay = FALSE,
+  cast = identity
+)
 }
 \arguments{
 \item{db}{UniProt database to search}

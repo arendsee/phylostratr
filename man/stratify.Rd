@@ -4,8 +4,11 @@
 \alias{stratify}
 \title{Get the phylostratum of each query gene}
 \usage{
-stratify(hittable, classifier = classify_by_adjusted_pvalue(0.001),
-  strata_names = get_mrca_names(hittable))
+stratify(
+  hittable,
+  classifier = classify_by_adjusted_pvalue(0.001),
+  strata_names = get_mrca_names(hittable)
+)
 }
 \arguments{
 \item{hittable}{data.frame with the columns 'qseqid', 'mrca', 'ps', and

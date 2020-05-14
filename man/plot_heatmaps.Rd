@@ -4,8 +4,15 @@
 \alias{plot_heatmaps}
 \title{Plots for the hit distribution of all genes}
 \usage{
-plot_heatmaps(hits, filename, tree = NULL, n = 50, focal_id = NULL,
-  to_name = TRUE, scheme = scheme2)
+plot_heatmaps(
+  hits,
+  filename,
+  tree = NULL,
+  n = 50,
+  focal_id = NULL,
+  to_name = TRUE,
+  scheme = scheme2
+)
 }
 \arguments{
 \item{hits}{A table of best hits}

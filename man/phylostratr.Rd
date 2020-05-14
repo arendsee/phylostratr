@@ -3,7 +3,6 @@
 \docType{package}
 \name{phylostratr}
 \alias{phylostratr}
-\alias{phylostratr-package}
 \title{phylostratr: Phylostratigraphy execution and analysis}
 \description{
 This is a stub
