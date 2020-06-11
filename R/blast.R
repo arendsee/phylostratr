@@ -25,7 +25,12 @@
       args   = c('-info', '-dbtype', 'prot', '-db', db)
     )
   )
-  any(grepl('([0-9,]+) sequences; ([0-9,]+) total residues', msg, perl=TRUE))
+  if(grepl("error", msg)){
+    cat(msg, "\n", stderr()) 
+    return FALSE    
+  } else {
+    any(grepl('([0-9,]+) sequences; ([0-9,]+) total residues', msg, perl=TRUE))
+  }
 }
 
 #' Build a blast database for one species
