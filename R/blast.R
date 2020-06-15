@@ -27,7 +27,7 @@
   )
   if(grepl("error", msg)){
     cat(msg, "\n", stderr()) 
-    return FALSE    
+    return(FALSE)    
   } else {
     any(grepl('([0-9,]+) sequences; ([0-9,]+) total residues', msg, perl=TRUE))
   }
