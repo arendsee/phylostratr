@@ -25,7 +25,7 @@
       args   = c('-info', '-dbtype', 'prot', '-db', db)
     )
   )
-  if(grepl("error", msg)){
+  if(any(grepl("error", msg))){
     cat(msg, "\n", stderr()) 
     return(FALSE)    
   } else {
