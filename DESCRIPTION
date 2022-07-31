@@ -19,7 +19,6 @@ Imports:
     purrr,
     readr,
     reshape2,
-    rhmmer,
     rlang (>= 0.1.2),
     tibble,
     taxizedb,
@@ -37,6 +36,7 @@ Suggests:
     rmarkdown,
     ggtree (>= 1.11.2),
     onekp,
+    rhmmer,
     testthat
 VignetteBuilder: knitr
 BiocViews: 
