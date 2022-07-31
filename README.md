@@ -20,6 +20,8 @@ install_github("arendsee/phylostratr")
 
 ## Dependencies
 
+ * R packages from CRAN (see DESCRIPTION)
+ * `Biostrings` from Bioconductor, install with `devtools::install_bioc("Biostrings")`
  * `NCBI BLAST+` - `blastp` (the protein BLAST command) must be in `PATH`. You
    can tell if `blastp` is properly installed by calling `blastp -help` from
    the command line.

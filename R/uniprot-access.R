@@ -24,11 +24,11 @@ uniprot_downstream_ids <- function(taxid, reference_only=FALSE, ...){
 #' @return A numeric vector of NCBI taxon ids
 #' @export
 uniprot_organelle_ids <- function(taxid, organelle='Mitochondrion', ...){
-  query <- glue::glue('organelle:{organelle}+organism:{taxid}')
-  wrap_uniprot_id_retrieval(db='uniprot', query=query, ...)
+  query <- glue::glue('organelle:{organelle}+organism_id:{taxid}')
+  wrap_uniprot_id_retrieval(db='uniprotkb', query=query, ...)
 }
 
-#' Internal funcion for wrapping ID retrieval from UniProt
+#' Internal function for wrapping ID retrieval from UniProt
 #'
 #' @param db UniProt database to search
 #' @param query UniProt query string
@@ -42,7 +42,8 @@ wrap_uniprot_id_retrieval <- function(db, query, date=NULL, delay=FALSE, cast=id
   } else {
     glue::glue("created%3A%5B19860101+TO+{date}%5D+AND+")
   }
-  url <- glue::glue('https://www.uniprot.org/{db}/?query={date}{query}&format=list')
+  url <- glue::glue('https://rest.uniprot.org/{db}/search?query={date}{query}&format=list')
+  message(glue::glue("Accessing uniprot: {url}"))
   if(delay)
     Sys.sleep(0.3)
   con <- curl::curl(url)
@@ -119,8 +120,9 @@ uniprot_retrieve_proteome <- function(
     maybe_message("Skipping %s - already retrieved", verbose, taxid)
   } else {
     url_str <- glue::glue(
-      "http://www.uniprot.org/uniprot/?query=organism:{taxid}&{for_str}&{inc_str}"
+      "https://rest.uniprot.org/uniprotkb/search?query=organism_id:{taxid}&{for_str}&{inc_str}"
     )
+    message(glue::glue("Retrieving proteome from uniprot with: {url_str}"))
     if(dryrun){
       message(sprintf("Checking %s ...", taxid))
       message(sprintf("  url: %s", url_str))
@@ -188,10 +190,11 @@ uniprot_strata <- function(taxid, from=2){
 #' @return A data.frame with columns 'uniprotID' and 'pfamID'
 #' @export
 uniprot_map2pfam <- function(taxid){
-  base='http://www.uniprot.org/uniprot/'
-  format='format=tab'
-  columns='columns=id,database(PFAM)'
-  url <- glue::glue('{base}?query=organism:{taxid}&{format}&{columns}')
+  base='https://rest.uniprot.org/uniprotkb'
+  format='format=tsv'
+  columns='fields=accession,xref_pfam' # see https://www.uniprot.org/help/return_fields for new field list
+  url <- glue::glue('{base}/search?query=organism_id:{taxid}&{format}&{columns}')
+  message(glue::glue("uniprot_map2pfam url: {url}"))
   con <- curl::curl(url)
   d <- readr::read_tsv(con)
   if(nrow(d) == 0){

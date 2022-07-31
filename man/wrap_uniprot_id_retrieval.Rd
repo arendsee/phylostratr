@@ -2,7 +2,7 @@
 % Please edit documentation in R/uniprot-access.R
 \name{wrap_uniprot_id_retrieval}
 \alias{wrap_uniprot_id_retrieval}
-\title{Internal funcion for wrapping ID retrieval from UniProt}
+\title{Internal function for wrapping ID retrieval from UniProt}
 \usage{
 wrap_uniprot_id_retrieval(
   db,
@@ -27,5 +27,5 @@ wrap_uniprot_id_retrieval(
 vector of IDs or other literals (nothing structured)
 }
 \description{
-Internal funcion for wrapping ID retrieval from UniProt
+Internal function for wrapping ID retrieval from UniProt
 }
