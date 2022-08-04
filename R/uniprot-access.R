@@ -28,6 +28,29 @@ uniprot_organelle_ids <- function(taxid, organelle='Mitochondrion', ...){
   wrap_uniprot_id_retrieval(db='uniprotkb', query=query, ...)
 }
 
+list_content <- function(con){
+  stringi::stri_split_lines(stringi::stri_trim_both(httr::content(con, encoding="UTF-8")))[[1]]
+}
+
+paginate <- function(url, parser, reducer){
+  con <- httr::GET(url)
+  values <- list()
+  values[[1]] <- parser(con)
+  while(TRUE){
+    link_str <- con$all_headers[[1]]$headers$link
+    if(is.null(link_str)){
+      break
+    } else {
+      link_url <- sub(x=link_str, pattern="<(.*)>.*", replacement="\\1", perl=TRUE)
+      con <- httr::GET(link_url)
+      new_values <- list()
+      new_values[[1]] <- parser(con)
+      values <- append(values, new_values)
+    }
+  }
+  Reduce(reducer, values)
+}
+
 #' Internal function for wrapping ID retrieval from UniProt
 #'
 #' @param db UniProt database to search
@@ -42,14 +65,11 @@ wrap_uniprot_id_retrieval <- function(db, query, date=NULL, delay=FALSE, cast=id
   } else {
     glue::glue("created%3A%5B19860101+TO+{date}%5D+AND+")
   }
-  url <- glue::glue('https://rest.uniprot.org/{db}/search?query={date}{query}&format=list')
+  url <- glue::glue('https://rest.uniprot.org/{db}/search?query={date}{query}&format=list&size=500')
   message(glue::glue("Accessing uniprot: {url}"))
   if(delay)
     Sys.sleep(0.3)
-  con <- curl::curl(url)
-  ids <- readLines(con) %>% cast
-  close(con)
-  ids
+  cast(paginate(url, parser=list_content, reducer=c))
 }
 
 #' Parse a UniProt ID from a FASTA file
@@ -113,15 +133,30 @@ uniprot_retrieve_proteome <- function(
   if(!dir.exists(dir) && !dryrun){
     dir.create(dir, recursive=TRUE)
   }
-  inc_str <- if(keep_isoforms){ 'include=yes' } else { 'include=no' }
+
+  if(! keep_isoforms){
+    warning("You asked to remove isoforms from the proteome, but I'm afraid I don't know how to do that under Uniprot's new API.")
+  }
+
   for_str <- 'format=fasta'
   fastafile <- file.path(dir, paste0(taxid, '.faa'))
   if(file.exists(fastafile)){
     maybe_message("Skipping %s - already retrieved", verbose, taxid)
   } else {
+
     url_str <- glue::glue(
-      "https://rest.uniprot.org/uniprotkb/search?query=organism_id:{taxid}&{for_str}&{inc_str}"
+      "https://rest.uniprot.org/proteomes/search?query=organism_id:{taxid}+proteome_type:1"
     )
+
+    # This object contains a lot of potentially useful data
+    proteome_data <- httr::content(httr::GET(url_str, httr::accept_json()))
+    # After downloading, we can check that the proper number of items have been retrieved
+    proteome_size <- proteome_data[[1]][[1]]$proteinCount
+    # The proteome id, for example "UP000006548"
+    proteome_id <- proteome_data[[1]][[1]]$id
+
+    url_str <- glue::glue("https://rest.uniprot.org/uniprotkb/search?format=fasta&query=proteome:{proteome_id}")
+
     message(glue::glue("Retrieving proteome from uniprot with: {url_str}"))
     if(dryrun){
       message(sprintf("Checking %s ...", taxid))
@@ -129,10 +164,28 @@ uniprot_retrieve_proteome <- function(
       message(sprintf("  destination: %s", fastafile))
     } else {
       maybe_message("Retrieving %s ...", verbose, taxid)
-      # FIXME: if the ID is not in UniProt, no warning is emitted and an empty
-      # file is created
-      curl::curl_download(url_str, fastafile)
-      Sys.sleep(1) # for good manner
+      url_str <- glue::glue("{url_str}&size=500")
+
+      if(verbose){
+        progress <- txtProgressBar(min = 0, max = ceiling(proteome_size / 500), style=3)
+        progress_index <- 0
+      }
+
+      parse_fasta <- function(con){
+        fasta <- httr::content(con, encoding="UTF-8")
+        if(verbose){
+          progress_index <<- progress_index + 1
+          setTxtProgressBar(pb=progress, value=progress_index)
+        }
+        fasta
+      }
+
+      fasta_entries <- paginate(url=url_str, parser=parse_fasta, reducer=c)
+
+      if(verbose){
+        close(progress)
+      }
+      cat(fasta_entries, file=fastafile, sep = "")
     }
   }
   fastafile
@@ -193,20 +246,20 @@ uniprot_map2pfam <- function(taxid){
   base='https://rest.uniprot.org/uniprotkb'
   format='format=tsv'
   columns='fields=accession,xref_pfam' # see https://www.uniprot.org/help/return_fields for new field list
-  url <- glue::glue('{base}/search?query=organism_id:{taxid}&{format}&{columns}')
+  url <- glue::glue('{base}/search?query=organism_id:{taxid}&{format}&{columns}&size=500')
   message(glue::glue("uniprot_map2pfam url: {url}"))
-  con <- curl::curl(url)
-  d <- readr::read_tsv(con)
-  if(nrow(d) == 0){
-    warning("Could not find Uniprot info for NCBI taxon ID: '", taxid, "'")
-    tibble::data_frame(uniprotID=character(0), pfamID=character(0))
-  } else if(ncol(d) != 2) {
-    stop("Expected data.frame with 2 columns") 
-  } else {
-    names(d) <- c('uniprotID', 'pfamID')
-    dplyr::mutate(d, pfamID = sub(';$', '', .data$pfamID)) %>%
-      tidyr::separate_rows(.data$pfamID, sep=';')
+
+  csv_content <- function(x) {
+    readr::read_tsv(
+      I(httr::content(x, encoding="UTF-8")),
+      col_names=c("uniprotID", "pfamID"),
+      col_types="cc"
+    ) %>%
+    dplyr::mutate(pfamID = sub(';$', '', .data$pfamID)) %>%
+    tidyr::separate_rows(.data$pfamID, sep=';')
   }
+
+  paginate(url, parser=csv_content, reducer=rbind)
 }
 
 
