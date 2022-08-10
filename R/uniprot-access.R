@@ -83,7 +83,7 @@ extract_uniprot_id_from_fasta <- function(fastafile){
 #' (Eukaryota).
 #' @export
 uniprot_weight_by_ref <- function(weight=1.05, clade=2759){
-  refs <- uniprot_downstream_ids(clade, reference_only=TRUE)
+  refs <- uniprot_downstream_ids(clade)
   weights <- rep(1.1, length(refs))
   names(weights) <- refs
   weights 
@@ -96,12 +96,13 @@ uniprot_weight_by_ref <- function(weight=1.05, clade=2759){
 #'
 #' @param taxid An NCBI taxonomy id
 #' @param dir Directory in which to write all FASTA files
+#' @param verbose Be super chatty
 #' @export
 #' @examples
 #' \dontrun{
 #' # uniprot_retrieve_proteome(3702)
 #' }
-uniprot_retrieve_proteome <- function(taxid, dir = 'uniprot-seqs'){
+uniprot_retrieve_proteome <- function(taxid, dir = 'uniprot-seqs', verbose = TRUE){
   if(!dir.exists(dir)){
     dir.create(dir, recursive=TRUE)
   }
@@ -120,7 +121,9 @@ uniprot_retrieve_proteome <- function(taxid, dir = 'uniprot-seqs'){
 
 #' Retrieve UniProt proteome table
 #'
-#' Retrieve all proteins in a "representative" proteome for the given species.
+#' Tries to retrieve all proteins in a "representative" proteome for the given
+#' species. If the species does not have a representative proteome, retrieve
+#' all proteins for the species.
 #'
 #' @param taxid An NCBI taxonomy id
 #' @export
@@ -132,6 +135,14 @@ uniprot_retrieve_proteome_table <- function(taxid){
   template <- system.file("sparql", "get-representative-proteome-sequences.rq", package="phylostratr")
   macros <- c(TAXID=as.character(taxid))
   rows <- query_sparql(template, macros)
+
+  if(nrow(rows) == 0){
+    warning(glue::glue("Could not find representative proteome for {taxid}, retrieving all records, may be incomplete or contain redundant entries"))
+    template <- system.file("sparql", "get-all-taxid-sequences.rq", package="phylostratr")
+    macros <- c(TAXID=as.character(taxid))
+    rows <- query_sparql(template, macros)
+  }
+
   rows$uniprot_uid <- sub("http.*/", "", rows$uniprot_uid)
   rows
 }
@@ -210,14 +221,14 @@ uniprot_sample_prokaryotes <- function(downto='class', remake=FALSE){
   # Get all uniprot reference genomes for each bacterial class
   bacteria_class_reps <- lapply(
       prokaryote_classes$eubacteria$childtaxa_id,
-      uniprot_downstream_ids, reference_only=TRUE, delay=TRUE
+      uniprot_downstream_ids
     )
   names(bacteria_class_reps) <- prokaryote_classes$eubacteria$childtaxa_id
 
   # Get all uniprot reference genomes for each bacterial class
   archaea_class_reps <- lapply(
       prokaryote_classes$Archaea$childtaxa_id,
-      uniprot_downstream_ids, reference_only=TRUE, delay=TRUE
+      uniprot_downstream_ids
     )
   names(archaea_class_reps) <- prokaryote_classes$Archaea$childtaxa_id
 

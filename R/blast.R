@@ -26,7 +26,7 @@
     )
   )
   if(any(grepl("error", msg))){
-    cat(msg, "\n", stderr()) 
+    # cat(msg, "\n", stderr()) # -- too spammy
     return(FALSE)    
   } else {
     any(grepl('([0-9,]+) sequences; ([0-9,]+) total residues', msg, perl=TRUE))
@@ -39,12 +39,14 @@
 #' @param blastdb The directory in which the blast database should be stored
 #' @param verbose Print progress messages
 #' @return path to blast database (without extension)
+#' @export
 make_blast_database <- function(
   fastafile,
   blastdb = 'blastdb',
   verbose = FALSE
 ){
   out <- file.path(blastdb, basename(fastafile))
+
   if(!.blastdb_exists(out)){
     maybe_message("%s: making blast database ...", verbose, basename(fastafile))
     dbmsg <- system2(
@@ -147,6 +149,7 @@ strata_from_blast_dir <- function(focal_species, blastdir='.', ext='tab', ...){
 #' @param seg Whether to mask the query protein sequences
 #' @param verbose Print progress messages
 #' @return The path to the tabular BLAST result output 
+#' @export
 run_blastp <- function(
   query_fastafile,
   subject_taxid,

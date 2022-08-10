@@ -10,7 +10,9 @@ uniprot_retrieve_proteome_table(taxid)
 \item{taxid}{An NCBI taxonomy id}
 }
 \description{
-Retrieve all proteins in a "representative" proteome for the given species.
+Tries to retrieve all proteins in a "representative" proteome for the given
+species. If the species does not have a representative proteome, retrieve
+all proteins for the species.
 }
 \examples{
 \dontrun{

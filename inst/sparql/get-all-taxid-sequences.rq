@@ -1,0 +1,11 @@
+PREFIX taxon: <http://purl.uniprot.org/taxonomy/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX up: <http://purl.uniprot.org/core/>
+
+SELECT ?uniprot_uid ?aa_sequence
+WHERE
+{
+    ?uniprot_uid a up:Protein .
+    ?uniprot_uid up:organism taxon:TAXID . # enter organism id (e.g., 3702)
+    ?uniprot_uid up:sequence/rdf:value ?aa_sequence .
+}

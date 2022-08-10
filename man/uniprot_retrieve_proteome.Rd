@@ -4,12 +4,14 @@
 \alias{uniprot_retrieve_proteome}
 \title{Retrieve UniProt proteome}
 \usage{
-uniprot_retrieve_proteome(taxid, dir = "uniprot-seqs")
+uniprot_retrieve_proteome(taxid, dir = "uniprot-seqs", verbose = TRUE)
 }
 \arguments{
 \item{taxid}{An NCBI taxonomy id}
 
 \item{dir}{Directory in which to write all FASTA files}
+
+\item{verbose}{Be super chatty}
 }
 \description{
 The proteome is written to a file with the name '<taxid>.faa', for example,
