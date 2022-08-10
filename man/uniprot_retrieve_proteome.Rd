@@ -2,29 +2,17 @@
 % Please edit documentation in R/uniprot-access.R
 \name{uniprot_retrieve_proteome}
 \alias{uniprot_retrieve_proteome}
-\title{Download a UniProt proteome}
+\title{Retrieve UniProt proteome}
 \usage{
-uniprot_retrieve_proteome(
-  taxid,
-  keep_isoforms = FALSE,
-  dir = "uniprot-seqs",
-  dryrun = FALSE,
-  verbose = FALSE
-)
+uniprot_retrieve_proteome(taxid, dir = "uniprot-seqs")
 }
 \arguments{
 \item{taxid}{An NCBI taxonomy id}
 
-\item{keep_isoforms}{Should all isoforms of each protein be included?}
-
 \item{dir}{Directory in which to write all FASTA files}
-
-\item{dryrun}{If TRUE, do not download genomes, just print the URLs and destination files}
-
-\item{verbose}{If TRUE, print progress messages}
 }
 \description{
-Thre proteome is written to a file with the name '<taxid>.faa', for example,
+The proteome is written to a file with the name '<taxid>.faa', for example,
 Arabidopsis thaliana, which has the id 3702, will be written the '3702.faa'.
 }
 \examples{

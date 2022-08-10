@@ -4,17 +4,15 @@
 \alias{uniprot_organelle_ids}
 \title{Get the uniprot ids for organelle proteins of a given taxid}
 \usage{
-uniprot_organelle_ids(taxid, organelle = "Mitochondrion", ...)
+uniprot_organelle_ids(taxid, organelle = "Mitochondrion")
 }
 \arguments{
 \item{taxid}{Taxon ID for species of interest}
 
 \item{organelle}{string, one of 'mitochondrion', 'chloroplast'}
-
-\item{...}{Additional args (the logical 'delay', currently)}
 }
 \value{
-A numeric vector of NCBI taxon ids
+A numeric vector of Uniprot ids
 }
 \description{
 Get the uniprot ids for organelle proteins of a given taxid

@@ -1,0 +1,11 @@
+PREFIX taxon: <http://purl.uniprot.org/taxonomy/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX up: <http://purl.uniprot.org/core/>
+
+SELECT DISTINCT ?protein
+WHERE
+{
+    ?protein a up:Protein .
+    ?protein up:organism taxon:TAXID . # e.g., 9606
+    ?protein up:encodedIn up:ORGANELLE . # Mitochondrion | Chloroplast
+}

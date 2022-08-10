@@ -1,0 +1,17 @@
+PREFIX taxon: <http://purl.uniprot.org/taxonomy/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX up: <http://purl.uniprot.org/core/>
+
+SELECT distinct ?uniprotID ?pfamID
+WHERE
+{
+    ?proteome_ref a up:Representative_Proteome .
+    ?proteome_ref up:organism taxon:TAXID .
+    ?protein_attr up:source ?proteome_ref .
+
+    ?uniprotID a up:Protein .
+    ?uniprotID up:attribution ?protein_attr .
+
+    ?uniprotID rdfs:seeAlso ?pfamID .
+    ?pfamID up:database <http://purl.uniprot.org/database/Pfam> .
+}

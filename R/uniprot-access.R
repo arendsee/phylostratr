@@ -1,75 +1,56 @@
+#' Execute a SPARQL query
+#'
+#' @param template filename A SPARQL query file that may contain variables that will be replaced with values from `macros`
+#' @param macros named vector where names are macros that occur in the template SPARQL query and values are what will replace the macro
+#' @return table containing the rows of data returned from the query
+query_sparql <- function(template, macros){
+  query <- readLines(template) %>%
+    stringr::str_replace_all(macros) %>%
+    paste0(collapse="\n") %>%
+    URLencode %>%
+  {
+    httr::content(httr::POST(
+      url = 'https://sparql.uniprot.org/sparql',
+      httr::accept('text/csv'),
+      httr::content_type("application/x-www-form-urlencoded"),
+      body = glue::glue("query={.}")
+    ), show_col_types = FALSE)
+  }
+}
+
 #' Get the uniprot ids downstream of a node
 #'
 #' @param taxid Ancestral node of clade of interest
-#' @param reference_only Should only reference proteomes be considered?
-#' @param ... Additional args (the logical 'delay', currently)
 #' @return A numeric vector of NCBI taxon ids listing all species in this clade
 #' for which Uniprot has a complete proteome.
 #' @export
-uniprot_downstream_ids <- function(taxid, reference_only=FALSE, ...){
-  ref_str <- if(reference_only){
-    'reference:yes'
-  } else {
-    '*'
-  }
-  query <- glue::glue('ancestor:{taxid}&fil=proteome:({ref_str})')
-  wrap_uniprot_id_retrieval(db='taxonomy', query=query, cast=as.integer, ...)
+uniprot_downstream_ids <- function(taxid){
+
+  template <- system.file("sparql", "get-representative-proteome-taxids.rq", package="phylostratr")
+
+  rows <- query_sparql(template, macros=c("TAXID" = as.character(taxid)))
+
+  # The taxon ids are stored as UIDs, e.g., "http://purl.uniprot.org/taxonomy/3711"
+  # So we need to strip out everything but the number and convert to int
+  sub("http.*/", "", rows$taxon) %>% as.integer
 }
 
 #' Get the uniprot ids for organelle proteins of a given taxid
 #'
 #' @param taxid Taxon ID for species of interest 
 #' @param organelle string, one of 'mitochondrion', 'chloroplast'
-#' @param ... Additional args (the logical 'delay', currently)
-#' @return A numeric vector of NCBI taxon ids
+#' @return A numeric vector of Uniprot ids
 #' @export
-uniprot_organelle_ids <- function(taxid, organelle='Mitochondrion', ...){
-  query <- glue::glue('organelle:{organelle}+organism_id:{taxid}')
-  wrap_uniprot_id_retrieval(db='uniprotkb', query=query, ...)
+uniprot_organelle_ids <- function(taxid, organelle='Mitochondrion'){
+  template <- system.file("sparql", "get-all-mitochondrial-uniprot-ids.rq", package="phylostratr")
+  macros <- c(TAXID=taxid, ORGANELLE=organelle)
+  rows <- query_sparql(template, macros)
+  sub("http.*/", "", rows$protein)
 }
+
 
 list_content <- function(con){
   stringi::stri_split_lines(stringi::stri_trim_both(httr::content(con, encoding="UTF-8")))[[1]]
-}
-
-paginate <- function(url, parser, reducer){
-  con <- httr::GET(url)
-  values <- list()
-  values[[1]] <- parser(con)
-  while(TRUE){
-    link_str <- con$all_headers[[1]]$headers$link
-    if(is.null(link_str)){
-      break
-    } else {
-      link_url <- sub(x=link_str, pattern="<(.*)>.*", replacement="\\1", perl=TRUE)
-      con <- httr::GET(link_url)
-      new_values <- list()
-      new_values[[1]] <- parser(con)
-      values <- append(values, new_values)
-    }
-  }
-  Reduce(reducer, values)
-}
-
-#' Internal function for wrapping ID retrieval from UniProt
-#'
-#' @param db UniProt database to search
-#' @param query UniProt query string
-#' @param delay Sleep for 0.3 seconds before retrieving (polite in loops)
-#' @param cast A function for type casting the resulting IDs (e.g. as_integer)
-#' @param date Retrieve only IDs last modified before this date (e.g. "20180601")
-#' @return vector of IDs or other literals (nothing structured)
-wrap_uniprot_id_retrieval <- function(db, query, date=NULL, delay=FALSE, cast=identity){
-  date <- if(is.null(date)){
-    ""
-  } else {
-    glue::glue("created%3A%5B19860101+TO+{date}%5D+AND+")
-  }
-  url <- glue::glue('https://rest.uniprot.org/{db}/search?query={date}{query}&format=list&size=500')
-  message(glue::glue("Accessing uniprot: {url}"))
-  if(delay)
-    Sys.sleep(0.3)
-  cast(paginate(url, parser=list_content, reducer=c))
 }
 
 #' Parse a UniProt ID from a FASTA file
@@ -108,88 +89,53 @@ uniprot_weight_by_ref <- function(weight=1.05, clade=2759){
   weights 
 }
 
-#' Download a UniProt proteome
+#' Retrieve UniProt proteome
 #'
-#' Thre proteome is written to a file with the name '<taxid>.faa', for example,
+#' The proteome is written to a file with the name '<taxid>.faa', for example,
 #' Arabidopsis thaliana, which has the id 3702, will be written the '3702.faa'.
 #'
 #' @param taxid An NCBI taxonomy id
-#' @param keep_isoforms Should all isoforms of each protein be included?
 #' @param dir Directory in which to write all FASTA files
-#' @param dryrun If TRUE, do not download genomes, just print the URLs and destination files
-#' @param verbose If TRUE, print progress messages
 #' @export
 #' @examples
 #' \dontrun{
 #' # uniprot_retrieve_proteome(3702)
 #' }
-uniprot_retrieve_proteome <- function(
-  taxid,
-  keep_isoforms = FALSE,
-  dir           = 'uniprot-seqs',
-  dryrun        = FALSE,
-  verbose       = FALSE
-){
-  if(!dir.exists(dir) && !dryrun){
+uniprot_retrieve_proteome <- function(taxid, dir = 'uniprot-seqs'){
+  if(!dir.exists(dir)){
     dir.create(dir, recursive=TRUE)
   }
-
-  if(! keep_isoforms){
-    warning("You asked to remove isoforms from the proteome, but I'm afraid I don't know how to do that under Uniprot's new API.")
-  }
-
-  for_str <- 'format=fasta'
   fastafile <- file.path(dir, paste0(taxid, '.faa'))
   if(file.exists(fastafile)){
     maybe_message("Skipping %s - already retrieved", verbose, taxid)
   } else {
-
-    url_str <- glue::glue(
-      "https://rest.uniprot.org/proteomes/search?query=organism_id:{taxid}+proteome_type:1"
-    )
-
-    # This object contains a lot of potentially useful data
-    proteome_data <- httr::content(httr::GET(url_str, httr::accept_json()))
-    # After downloading, we can check that the proper number of items have been retrieved
-    proteome_size <- proteome_data[[1]][[1]]$proteinCount
-    # The proteome id, for example "UP000006548"
-    proteome_id <- proteome_data[[1]][[1]]$id
-
-    url_str <- glue::glue("https://rest.uniprot.org/uniprotkb/search?format=fasta&query=proteome:{proteome_id}")
-
-    message(glue::glue("Retrieving proteome from uniprot with: {url_str}"))
-    if(dryrun){
-      message(sprintf("Checking %s ...", taxid))
-      message(sprintf("  url: %s", url_str))
-      message(sprintf("  destination: %s", fastafile))
-    } else {
-      maybe_message("Retrieving %s ...", verbose, taxid)
-      url_str <- glue::glue("{url_str}&size=500")
-
-      if(verbose){
-        progress <- txtProgressBar(min = 0, max = ceiling(proteome_size / 500), style=3)
-        progress_index <- 0
-      }
-
-      parse_fasta <- function(con){
-        fasta <- httr::content(con, encoding="UTF-8")
-        if(verbose){
-          progress_index <<- progress_index + 1
-          setTxtProgressBar(pb=progress, value=progress_index)
-        }
-        fasta
-      }
-
-      fasta_entries <- paginate(url=url_str, parser=parse_fasta, reducer=c)
-
-      if(verbose){
-        close(progress)
-      }
-      cat(fasta_entries, file=fastafile, sep = "")
-    }
+    uniprot_retrieve_proteome_table(taxid) %>%
+    {
+      paste0(">", .$uniprot_uid, "\n", .$aa_sequence, collapse="\n")
+    } %>%
+      writeLines(fastafile)
   }
   fastafile
 }
+
+#' Retrieve UniProt proteome table
+#'
+#' Retrieve all proteins in a "representative" proteome for the given species.
+#'
+#' @param taxid An NCBI taxonomy id
+#' @export
+#' @examples
+#' \dontrun{
+#' x <- uniprot_retrieve_proteome_table(3702)
+#' }
+uniprot_retrieve_proteome_table <- function(taxid){
+  template <- system.file("sparql", "get-representative-proteome-sequences.rq", package="phylostratr")
+  macros <- c(TAXID=as.character(taxid))
+  rows <- query_sparql(template, macros)
+  rows$uniprot_uid <- sub("http.*/", "", rows$uniprot_uid)
+  rows
+}
+
 
 #' Download sequence data for each species in a UniProt-based strata
 #'
@@ -243,25 +189,13 @@ uniprot_strata <- function(taxid, from=2){
 #' @return A data.frame with columns 'uniprotID' and 'pfamID'
 #' @export
 uniprot_map2pfam <- function(taxid){
-  base='https://rest.uniprot.org/uniprotkb'
-  format='format=tsv'
-  columns='fields=accession,xref_pfam' # see https://www.uniprot.org/help/return_fields for new field list
-  url <- glue::glue('{base}/search?query=organism_id:{taxid}&{format}&{columns}&size=500')
-  message(glue::glue("uniprot_map2pfam url: {url}"))
-
-  csv_content <- function(x) {
-    readr::read_tsv(
-      I(httr::content(x, encoding="UTF-8")),
-      col_names=c("uniprotID", "pfamID"),
-      col_types="cc"
-    ) %>%
-    dplyr::mutate(pfamID = sub(';$', '', .data$pfamID)) %>%
-    tidyr::separate_rows(.data$pfamID, sep=';')
-  }
-
-  paginate(url, parser=csv_content, reducer=rbind)
+  template <- system.file("sparql", "get-representative-proteome-pfam-map.rq", package="phylostratr")
+  query_sparql(template, macros=c("TAXID" = as.character(taxid))) %>%
+    dplyr::mutate(
+      uniprotID = sub("http.*/", "", uniprotID),
+      pfamID = sub("http.*/", "", pfamID)
+    )
 }
-
 
 uniprot_sample_prokaryotes <- function(downto='class', remake=FALSE){
 

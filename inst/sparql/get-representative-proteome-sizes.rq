@@ -1,0 +1,20 @@
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX taxon: <http://purl.uniprot.org/taxonomy/>
+PREFIX up: <http://purl.uniprot.org/core/>
+
+SELECT ?taxon ?name (COUNT(DISTINCT ?isoform) as ?count)
+WHERE
+{
+    ?proteome_ref a up:Representative_Proteome .
+	?proteome_ref up:organism ?taxon .
+    ?taxon a up:Taxon .
+    ?taxon up:scientificName ?name .
+    ?taxon rdfs:subClassOf taxon:TAXID . # enter ancestral taxon (e.g., 3700)
+
+    ?protein_attr up:source ?proteome_ref .
+    ?protein a up:Protein .
+    ?protein up:attribution ?protein_attr .
+    ?protein up:sequence ?isoform .
+}
+GROUP BY ?taxon ?name
