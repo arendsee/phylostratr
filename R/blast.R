@@ -177,7 +177,7 @@ run_blastp <- function(
     # Add the subject taxon ID, name and order columns, write with header
     read_blast(blastresult, with_taxid=FALSE, col_names=FALSE) %>%
       dplyr::mutate(staxid = as.character(subject_taxid)) %>%
-      readr::write_tsv(path=blastresult)
+      readr::write_tsv(file=blastresult)
   }
   blastresult
 }
@@ -371,7 +371,7 @@ run_diamond_blastp <- function(
     # Add the subject taxon ID, name and order columns, write with header
     read_blast(blastresult, with_taxid=FALSE, col_names=FALSE) %>%
       dplyr::mutate(staxid = as.character(subject_taxid)) %>%
-      readr::write_tsv(path=blastresult)
+      readr::write_tsv(file=blastresult)
   }
   blastresult
 }
