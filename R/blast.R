@@ -208,6 +208,17 @@ strata_blast <- function(
   strata
 }
 
+#' Ensure the first line of a file has contains all of the expected columns.
+#' 
+#' The order is not checked and the file may contain additional columns.
+#'
+#' @param filename A file that may or may not have a header
+#' @param expected_columns A character vector of one or more strings that should appear in a header
+#' @return TRUE is the header looks OK, FALSE otherwise
+has_header <- function(filename, expected_columns){
+  all(sapply(expected_columns, grepl, x=readLines(filename, n=1)))
+}
+
 #' Get the "besthit" table for a given species
 #'
 #' @param strata Strata object
@@ -220,10 +231,15 @@ strata_blast <- function(
 #' }
 get_besthit <- function(strata, taxid){
   is_valid_strata(strata, required='blast_result')
+
+  blast_filename <- strata@data$blast_result[[taxid]]
+
+  has_column <- has_header(blast_filename, c("qseqid", "sseqid"))
+
   get_max_hit(
     read_blast(
-      strata@data$blast_result[[taxid]], # blast tabular filename
-      col_names  = TRUE, # expect a header
+      blast_filename, # blast tabular filename
+      col_names  = has_column, # expect a header
       with_taxid = TRUE, # expect an staxid column
       taxid      = taxid # if no staxid column, create one from this taxid
     )
