@@ -49,6 +49,12 @@ make_blast_database <- function(
 
   if(!.blastdb_exists(out)){
     maybe_message("%s: making blast database ...", verbose, basename(fastafile))
+    if(! file.exists(fastafile)){
+        stop(paste("Cannot find file", fastafile))
+    }
+    if(file.size(fastafile) == 0){
+        stop(paste(fastafile, "is empty"))
+    }
     dbmsg <- system2(
       'makeblastdb',
       stderr = TRUE,
@@ -331,6 +337,12 @@ make_diamond_database <- function(
   out <- file.path(blastdb, basename(fastafile))
   if(!.blastdb_exists(out)){
     maybe_message("%s: making diamond database ...", verbose, basename(fastafile))
+    if(! file.exists(fastafile)){
+        stop(paste("Cannot find file", fastafile))
+    }
+    if(file.size(fastafile) == 0){
+        stop(paste(fastafile, "is empty"))
+    }
     dbmsg <- system2(
       'diamond',
       stderr = TRUE,
