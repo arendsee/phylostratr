@@ -45,6 +45,7 @@ make_blast_database <- function(
   blastdb = 'blastdb',
   verbose = FALSE
 ){
+  dir.create(file.path(blastdb), recursive = TRUE, showWarnings = FALSE)
   out <- file.path(blastdb, basename(fastafile))
 
   if(!.blastdb_exists(out)){
@@ -55,15 +56,11 @@ make_blast_database <- function(
     if(file.size(fastafile) == 0){
         stop(paste(fastafile, "is empty"))
     }
-    dbmsg <- system2(
-      'makeblastdb',
-      stderr = TRUE,
-      stdout = TRUE,
-      args   = c('-dbtype', 'prot', '-in', fastafile, '-out', out)
-    )
-    maybe_message(dbmsg, verbose)
-    if(!.blastdb_exists(out)){
-      stop(sprintf("Failed to make blast database %s", out))
+
+    exit_code <- system(paste('makeblastdb -dbtype prot -in', fastafile, '-out', out))
+
+    if(exit_code != 0 || ! .blastdb_exists(out)) {
+      warning(sprintf("Failed to make blast database %s", out))
     }
   }
   out
