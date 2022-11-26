@@ -213,8 +213,8 @@ uniprot_map2pfam <- function(taxid){
 #' This function was used to select the prokaryotes used in the paper. I do not
 #' recommend using it now though. It can select unclassified taxa.
 #'
-#' @downto the lowest phylogenetic rank that shoul be sampled
-#' @remake whether to replace an existing file
+#' @param downto the lowest phylogenetic rank that shoul be sampled
+#' @param remake whether to replace an existing file
 #' @return phylo object containing the prokaryptic sample tree
 uniprot_sample_prokaryotes <- function(downto='class', remake=FALSE){
 

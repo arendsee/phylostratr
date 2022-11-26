@@ -37,8 +37,19 @@ plot_heatmaps <- function(hits, filename, tree=NULL, n=50, focal_id=NULL, to_nam
   dev.off()
 }
 
-# Do not use directly, wrapped by plot_heatmaps
-# Preps data for building individual heat maps, partitions data to pages
+#' Build a phylostratigraphic heatmap
+#' 
+#' @param hits A table of best hits
+#' @param tree An optional phylo object, if it is not given, a tree will be
+#' infrerred from the taxon IDs in the 'staxid' column. This will work only if
+#' all these IDs are valid NCBI taxonomy IDs.
+#' @param n The number of genes to display per page
+#' @param focal_id The focal taxonomy ID (if given, this will be used to order
+#' the tree relative with the focal species on top)
+#' @param to_name If TRUE, then the tip labels will be converted from taxonomy
+#' IDs to scientific names
+#' @return ggtree object
+#' @export
 plot_phyloheatmap <- function(hits, tree=NULL, n=50, focal_id=NULL, to_name=TRUE, ...){
   dat <- base::split(hits, f=factor(hits$qseqid))
 
