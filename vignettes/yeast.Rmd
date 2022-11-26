@@ -89,7 +89,7 @@ strata <- strata %>%
 results <- merge_besthits(strata)
 
 pdf('all-yeast.pdf')
-plot_heatmap(results, tree=strata@tree, focal_id=focal_taxid)
+plot_heatmaps(results, tree=strata@tree, focal_id=focal_taxid)
 dev.off()
 ```
 
