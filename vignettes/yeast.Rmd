@@ -88,9 +88,7 @@ strata <- strata %>%
 
 results <- merge_besthits(strata)
 
-pdf('all-yeast.pdf')
-plot_heatmaps(results, tree=strata@tree, focal_id=focal_taxid)
-dev.off()
+plot_heatmaps(results, filename='all-yeast.pdf', tree=strata@tree, focal_id=focal_taxid)
 ```
 
 We can perform a domain analysis
@@ -106,7 +104,7 @@ strata <- strata %>%
     add_organelle_proteins
 
 prot <- proteome_stats_table(strata)
-strata2 <- strata_convert(strata, target='all', to='name'
+strata2 <- strata_convert(strata, target='all', to='name')
 g1 <- plot_proteome_stats(strata2)
 g2 <- plot_proteome_lengths(strata2)
 # make interactive in browser 
