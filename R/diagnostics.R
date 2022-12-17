@@ -56,7 +56,7 @@ add_organelle_proteins <- function(strata, overwrite=FALSE){
 
   get_organelle_ids <- function(id, ...){
     intersect(
-      uniprot_organelle_ids(id, delay=TRUE, ...),
+      uniprot_organelle_ids(id, ...),
       extract_uniprot_id_from_fasta(strata@data$faa[[id]])
     )
   }
