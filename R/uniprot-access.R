@@ -182,7 +182,7 @@ uniprot_strata <- function(taxid, from=2){
   }
 
   # edited by LTC Dec 9 2024 to make this function work when from = 1
-  if (from=1) {
+  if (from==1) {
     # using the "celluar organisms" taxon id (131567) doesn't work in the sparql query for sublcasses
     # instead, just manually search the downstream ids of each of the 3 sub-classes of cellular organisms:
      c(uniprot_downstream_ids("2"), # bacteria
