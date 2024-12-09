@@ -181,6 +181,24 @@ uniprot_strata <- function(taxid, from=2){
     xs
   }
 
+  # edited by LTC Dec 9 2024 to make this function work when from = 1
+  if (from=1) {
+    # using the "celluar organisms" taxon id (131567) doesn't work in the sparql query for sublcasses
+    # instead, just manually search the downstream ids of each of the 3 sub-classes of cellular organisms:
+     c(uniprot_downstream_ids("2"), # bacteria
+      uniprot_downstream_ids("2157"), # archaea
+      uniprot_downstream_ids("2759") # eukarya
+      ) %>%
+      add_focal %>%
+      taxizedb::classification() %>%
+      Filter(f=is.data.frame) %>%
+      lineages_to_phylo(clean=TRUE) %>%
+      Strata(
+        focal_species = taxid,
+        tree       = .,
+        data       = list()
+      )
+  } else {
   taxizedb::classification(taxid)[[1]]$id[from] %>%
     uniprot_downstream_ids %>%
     add_focal %>%
@@ -192,6 +210,7 @@ uniprot_strata <- function(taxid, from=2){
       tree       = .,
       data       = list()
     )
+  }
 }
 
 #' Map UniProt IDs for an organism to PFAM IDs
