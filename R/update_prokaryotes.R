@@ -93,7 +93,7 @@ use_custom_prokaryote_tree <- function(x, # x is a eukaryotic tree
   # bind the prokaryotes to 'cellular_organism'
   prokaryote.phylo <- ape::bind.tree(root, pro.tree)
   # bind the eukaryote input tree to 'Eukaryota'
-  prokaryote.phylo <- ape::bind.tree(prokaryote.phylo, x@tree, where=which(tree_names(y) == '2759'))
+  prokaryote.phylo <- ape::bind.tree(prokaryote.phylo, x@tree, where=which(tree_names(prokaryote.phylo) == '2759'))
   x@tree <- prokaryote.phylo
   x
 }
