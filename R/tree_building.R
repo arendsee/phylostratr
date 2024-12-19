@@ -25,7 +25,7 @@ tree2edgelist <- function(tree){
 #' @return phylo object with node names and no branch lengths
 #' @export
 lineages_to_phylo <- function(lineages, clean=FALSE){
-  to_edge <- function(xs){
+  to_edge <- function(xs){    # LTC comment: this makes a data table with all the unique connections between e.g., genus (col 1) and sp (col 2), order (col 1) to family (col 2) etc
     # build edge list based on taxonomy IDs
     lapply(xs, function(x){
       matrix(c(head(x$id, -1), tail(x$id, -1)), ncol=2)

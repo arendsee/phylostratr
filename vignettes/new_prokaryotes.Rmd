@@ -1,0 +1,77 @@
+---
+title: "Updating prokaryote trees"
+author: "Laura Tibbs-Cortes"
+date: "2024-12-16"
+output: html_document
+---
+
+## Adding new prokaryote trees
+
+As of December 2024, there are issues with the hard-coded `use_recommended_prokaryotes` function having out-of-date UniProt ids and resulting in 30 out of 85 prokaryotes having warnings. (see https://github.com/arendsee/phylostratr/issues/34) 
+
+This markdown shows an example of using my new functions `generate_prokaryote_tree` and `use_custom_prokaryote_tree`, as well as an updated `uniprot_strata`, to make a new prokaryote tree with custom size and weights.
+
+```{r echo=T, results='hide'}
+# load libraries
+library(tidyverse)
+library(data.table)
+library(ape) # this library is used within phylostratr
+
+# library(devtools)
+# install_github('ltibbs/phylostratr', force=T)
+library(phylostratr)
+
+source("R/update_prokaryotes.R")
+```
+
+Set focal species and weights for tree:
+You will likely want to set some weights based on proteome quality to improve results.
+```{r}
+# Set focal species (eukaryote)
+focal_taxid <- '4577' # zea mays focal species example
+
+# set weights
+# initial weights: reference proteomes are 1.1
+# CAREFUL: uniprot_weight_by_ref apparently requires clade to be provided
+# as a numeral rather than as a character like in other functions
+my.weights <- c(uniprot_weight_by_ref(clade=2), #bacteria
+                uniprot_weight_by_ref(clade=2157), # archaea
+                uniprot_weight_by_ref(clade=2759)) # eukarya
+my.weights['3702'] <- 1.5 # example custom weighting, increasing weight for Arabidopsis
+my.weights['83333'] <- 1.5 # example custom weighting, increasing weight for E coli
+```
+
+Gnerate diverse subtrees of bacteria and archaea based on current UniProt with custom weights and desired numbers of species. This makes use of the `diverse_subtree` function of phylostratr:
+```{r}
+bac.tree <- generate_prokaryote_tree(weights=my.weights, 
+                                     current.domain="2", #2=UniProt taxonomy id for bacteria
+                                     domain.n=70) # ~70 bacterial species used in original paper
+arc.tree <- generate_prokaryote_tree(weights=my.weights, 
+                                     current.domain="2157", #2157=UniProt taxonomy id for archaea
+                                     domain.n=15) # ~15 archaeal species used in original paper
+
+# combine the prokaryotic trees 
+# keep them in phylo format because Strata format 
+# had issues when joining more than 1 branch onto a tree
+pro.tree=bind.tree(bac.tree, arc.tree)  
+```
+
+Now, build the full strata tree by adding the prokaryotes to the focused eukaryote tree:
+```{r}
+# Make focused tree around taxon of interest
+strata.cellular.organisms <- uniprot_strata(focal_taxid,  # get stratified relatives in UniProt
+                                            from=1) %>% # stratum to begin from, where 1 is 'cellular organisms' (2 is default). Updated function as of Dec 2024 to enable it to work with from=1
+  strata_apply(f=diverse_subtree, 
+               n=5, 
+               weights=my.weights) %>%
+  use_custom_prokaryote_tree(prokaryote.phylo=pro.tree) # add the custom prokaryote tree to the focused tree
+```
+
+Visualize resulting tree:
+
+```{r}
+plot(strata.cellular.organisms%>%
+       # strata_convert(target='all', to='name') %>% 
+       sort_strata)
+```
+
