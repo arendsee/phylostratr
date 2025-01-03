@@ -167,7 +167,8 @@ uniprot_fill_strata <- function(strata, ...){
 #' @param from stratum to begin from, where 1 is 'cellular organisms'
 #' @return Strata object
 #' @export
-uniprot_strata <- function(taxid, from=2){
+uniprot_strata <- function(taxid, from=2, 
+                           drop.names=NULL){ # Jan 3 2025, LTC: add drop.names, a character vector containing taxa ids to completely exclude
 
   # ensure the focal gene is included, even if not in uniprot (fix #10)
   add_focal <- function(xs){
@@ -193,6 +194,7 @@ uniprot_strata <- function(taxid, from=2){
       taxizedb::classification() %>%
       Filter(f=is.data.frame) %>%
       lineages_to_phylo(clean=TRUE) %>%
+      drop.tip.phylo(drop.names) %>% # completely remove some taxa
       Strata(
         focal_species = taxid,
         tree       = .,
@@ -205,6 +207,7 @@ uniprot_strata <- function(taxid, from=2){
     taxizedb::classification() %>%
     Filter(f=is.data.frame) %>%
     lineages_to_phylo(clean=TRUE) %>%
+    drop.tip.phylo(drop.names) %>% # completely remove some taxa
     Strata(
       focal_species = taxid,
       tree       = .,
