@@ -238,45 +238,77 @@ uniprot_map2pfam <- function(taxid){
 #' @param downto the lowest phylogenetic rank that shoul be sampled
 #' @param remake whether to replace an existing file
 #' @return phylo object containing the prokaryptic sample tree
-uniprot_sample_prokaryotes <- function(downto='class', remake=FALSE){
-
-  old.file <- system.file('extdata', 'prokaryote_sample.rda', package='phylostratr')
-  if(!remake && file.exists(old.file)){
-    return(readRDS(old.file))
-  }
-
+# add weights to uniprot_sample_prokaryotes: Jan 6 2025, LTC
+uniprot_sample_prokaryotes <- function(downto='class', weights=NULL){
+  
   # Get all bacterial and Archael classes (class is one level below phylum)
   prokaryote_classes <- taxizedb::downstream(c('eubacteria', 'Archaea'), downto=downto, db='ncbi')
-
+  
   # Get all uniprot reference genomes for each bacterial class
   bacteria_class_reps <- lapply(
-      prokaryote_classes$eubacteria$childtaxa_id,
-      uniprot_downstream_ids
-    )
+    prokaryote_classes$eubacteria$childtaxa_id,
+    uniprot_downstream_ids
+  )
   names(bacteria_class_reps) <- prokaryote_classes$eubacteria$childtaxa_id
-
+  
   # Get all uniprot reference genomes for each bacterial class
   archaea_class_reps <- lapply(
-      prokaryote_classes$Archaea$childtaxa_id,
-      uniprot_downstream_ids
-    )
+    prokaryote_classes$Archaea$childtaxa_id,
+    uniprot_downstream_ids
+  )
   names(archaea_class_reps) <- prokaryote_classes$Archaea$childtaxa_id
-
+  
+  clean_reps <- function(taxa){
+    # taxa should be a list of clades (class level by default) that each have
+    # a list of NCBI taxonomy ids that have representative uniprot proteomes
+    taxa %>%
+      # remove any clades that have no representative
+      Filter(f = function(x) length(x) > 0) %>%
+      # get the lineage for each representative
+      lapply(taxizedb::classification) %>%
+      # remove any cases where lineage was missing
+      lapply(Filter, f = function(x) is.data.frame(x)) %>%
+      # remove all unclassified entries
+      lapply(function(x) Filter(f = function(lineage){ ! any(grepl("unclassified", lineage$name)) }, x)) %>%
+      # # remove any clades where all representatives are unclassified
+      Filter(f = function(x) length(x) > 0) %>%
+      # convert back from classification table to species/strain taxonomy id
+      lapply(function(xs) sapply(xs, function(x) x$id[nrow(x)]) %>% unname)
+  }
+  
   # From each class, randomly select a single uniprot reference genome
   sample_taxids <- function(x, ...){
-      # This is required, because R is evil. If x is of length 1 and is numeric,
-      # then `sample` treats it as the upperbound of a discrete distribution
-      # between 1 and x. Otherwise it is treated as a set to be sampled from.
-      sample(as.character(x), ...) %>% as.integer
   }
-  bacteria_taxids <- bacteria_class_reps %>%
-      Filter(f = function(x){ length(x) > 0}) %>%
+  
+  # Use this to choose from each clade using provided weights
+  sample_taxids <- function(x, ...){
+    # This is required, because R is evil. If x is of length 1 and is numeric,
+    # then `sample` treats it as the upperbound of a discrete distribution
+    # between 1 and x. Otherwise it is treated as a set to be sampled from.
+    sample(as.character(x), ...) %>% as.integer
+  }
+  
+  if(is.null(weights)) {
+    # if no weights provided, just choose at random
+    bacteria_taxids <- bacteria_class_reps %>%
+      clean_reps %>%
       lapply(sample_taxids, size=1) %>% unlist
-  archaea_taxids <- archaea_class_reps %>%
-      Filter(f = function(x){ length(x) > 0}) %>%
-      lapply(as.character) %>%
+    
+    archaea_taxids <- archaea_class_reps %>%
+      clean_reps %>%
       lapply(sample_taxids, size=1) %>% unlist
-
+    
+  } else {
+    # otherwise, incorporate the provided weights
+    bacteria_taxids <- bacteria_class_reps %>%
+      clean_reps %>%
+      sample_taxids_weights(weights) %>% unlist
+    
+    archaea_taxids <- archaea_class_reps %>%
+      clean_reps %>%
+      sample_taxids_weights(weights) %>% unlist
+  }
+  
   c(bacteria_taxids, archaea_taxids) %>%
     taxizedb::classification() %>%
     lineages_to_phylo
