@@ -14,7 +14,8 @@
 generate_prokaryote_tree <- function(domain.n=50, # approximate number of species desired (may not give exactly this tree size due to rounding)
                                      weights=NULL, 
                                      focal_taxid="3702", # focal taxa just needed to convert to strata object; not used otherwise
-                                     current.domain) {  # use domain names from UniProt: '2' = bacteria, '2157' = archaea
+                                     current.domain,
+                                    drop.names=NULL) {  # use domain names from UniProt: '2' = bacteria, '2157' = archaea
   
   if(current.domain %in% c("2", "2157")) {errorCondition("Domain must be set to '2' (Bacteria) or '2157' (Archaea) ")}
 
