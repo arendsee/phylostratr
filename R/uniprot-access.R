@@ -239,7 +239,8 @@ uniprot_map2pfam <- function(taxid){
 #' @param remake whether to replace an existing file
 #' @return phylo object containing the prokaryptic sample tree
 # add weights to uniprot_sample_prokaryotes: Jan 6 2025, LTC
-uniprot_sample_prokaryotes <- function(downto='class', weights=NULL){
+# add ability to drop taxa entirely (e.g., with weights==0 by drop.names=names(my.weights)[my.weights==0]) Jan 29 2025 LTC
+uniprot_sample_prokaryotes <- function(downto='class', weights=NULL, drop.names=NULL){
   
   # Get all bacterial and Archael classes (class is one level below phylum)
   prokaryote_classes <- taxizedb::downstream(c('eubacteria', 'Archaea'), downto=downto, db='ncbi')
@@ -278,34 +279,38 @@ uniprot_sample_prokaryotes <- function(downto='class', weights=NULL){
   
   # From each class, randomly select a single uniprot reference genome
   sample_taxids <- function(x, ...){
-  }
-  
-  # Use this to choose from each clade using provided weights
-  sample_taxids <- function(x, ...){
     # This is required, because R is evil. If x is of length 1 and is numeric,
     # then `sample` treats it as the upperbound of a discrete distribution
     # between 1 and x. Otherwise it is treated as a set to be sampled from.
     sample(as.character(x), ...) %>% as.integer
   }
-  
+
+   # clean taxa and remove names to drop:
+  bacteria_taxids <- bacteria_class_reps %>%
+    clean_reps %>%
+    lapply(function(x) {x <- x[!(x %in% drop.names)]}) %>% # drop excluded taxa
+    Filter(f = function(x) length(x) > 0) # remove any clades where all representatives are excluded
+ 
+  archaea_taxids <- archaea_class_reps %>%
+    clean_reps %>%
+    lapply(function(x) {x <- x[!(x %in% drop.names)]}) %>% # drop excluded taxa
+    Filter(f = function(x) length(x) > 0) # remove any clades where all representatives are excluded
+                                 
+     # Use this to choose from each clade using provided weights
   if(is.null(weights)) {
     # if no weights provided, just choose at random
-    bacteria_taxids <- bacteria_class_reps %>%
-      clean_reps %>%
+    bacteria_taxids <- bacteria_taxis %>%
       lapply(sample_taxids, size=1) %>% unlist
     
-    archaea_taxids <- archaea_class_reps %>%
-      clean_reps %>%
+    archaea_taxids <- archaea_taxids %>%
       lapply(sample_taxids, size=1) %>% unlist
     
   } else {
     # otherwise, incorporate the provided weights
-    bacteria_taxids <- bacteria_class_reps %>%
-      clean_reps %>%
+    bacteria_taxids <- bacteria_taxis %>%
       sample_taxids_weights(weights) %>% unlist
     
-    archaea_taxids <- archaea_class_reps %>%
-      clean_reps %>%
+    archaea_taxids <- archaea_taxids %>%
       sample_taxids_weights(weights) %>% unlist
   }
   
