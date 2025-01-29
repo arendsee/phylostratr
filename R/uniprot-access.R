@@ -299,7 +299,7 @@ uniprot_sample_prokaryotes <- function(downto='class', weights=NULL, drop.names=
      # Use this to choose from each clade using provided weights
   if(is.null(weights)) {
     # if no weights provided, just choose at random
-    bacteria_taxids <- bacteria_taxis %>%
+    bacteria_taxids <- bacteria_taxids %>%
       lapply(sample_taxids, size=1) %>% unlist
     
     archaea_taxids <- archaea_taxids %>%
@@ -307,7 +307,7 @@ uniprot_sample_prokaryotes <- function(downto='class', weights=NULL, drop.names=
     
   } else {
     # otherwise, incorporate the provided weights
-    bacteria_taxids <- bacteria_taxis %>%
+    bacteria_taxids <- bacteria_taxids %>%
       sample_taxids_weights(weights) %>% unlist
     
     archaea_taxids <- archaea_taxids %>%
