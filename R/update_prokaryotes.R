@@ -60,7 +60,7 @@ class(tree) <- 'phylo'
 
 # completely remove specified taxa
 tree <- tree %>%
-  drop.tip.phylo(drop.names) 
+  ape::drop.tip.phylo(drop.names) 
 
   # convert to Strata object
 strata.tree <- tree %>%
