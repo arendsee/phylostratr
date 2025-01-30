@@ -285,6 +285,29 @@ uniprot_sample_prokaryotes <- function(downto='class', weights=NULL, drop.names=
     sample(as.character(x), ...) %>% as.integer
   }
 
+  # From each class, use weights to select a single uniprot reference genome
+sample_taxids_weights <- function(taxid_list, weights) {
+  # Use this to choose from each clade using weights
+  new.taxid_list <- vector("list", length=length(taxid_list))
+  for (i in 1:length(taxid_list)) {
+    # pull weights for this clade
+    current.taxid <- taxid_list[[i]]
+    current.weights <- weights[current.taxid]
+    
+    # if weight not available, default = 1
+    if(sum(is.na(current.weights))>0) {
+      na.ids <- is.na(current.weights)
+      current.weights[na.ids] <- 1
+      names(current.weights)[na.ids] <- current.taxid[na.ids]
+    }
+    
+    stopifnot(names(current.weights)==current.taxid)
+    
+    # and use them to "sample"
+    new.taxid_list[[i]] <- taxid_list[[i]][which.max(current.weights)]
+  }
+  return(new.taxid_list) 
+}
    # clean taxa and remove names to drop:
   bacteria_taxids <- bacteria_class_reps %>%
     clean_reps %>%
