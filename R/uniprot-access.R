@@ -194,7 +194,7 @@ uniprot_strata <- function(taxid, from=2,
       taxizedb::classification() %>%
       Filter(f=is.data.frame) %>%
       lineages_to_phylo(clean=TRUE) %>%
-      drop.tip.phylo(drop.names) %>% # completely remove some taxa
+      ape::drop.tip.phylo(drop.names) %>% # completely remove some taxa
       Strata(
         focal_species = taxid,
         tree       = .,
@@ -207,7 +207,7 @@ uniprot_strata <- function(taxid, from=2,
     taxizedb::classification() %>%
     Filter(f=is.data.frame) %>%
     lineages_to_phylo(clean=TRUE) %>%
-    drop.tip.phylo(drop.names) %>% # completely remove some taxa
+    ape::drop.tip.phylo(drop.names) %>% # completely remove some taxa
     Strata(
       focal_species = taxid,
       tree       = .,
