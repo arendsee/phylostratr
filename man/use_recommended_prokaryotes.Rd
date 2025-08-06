@@ -4,10 +4,13 @@
 \alias{use_recommended_prokaryotes}
 \title{Use the prokaryotic species that I use}
 \usage{
-use_recommended_prokaryotes(x)
+use_recommended_prokaryotes(x, version = 1)
 }
 \arguments{
 \item{x}{Strata object}
+
+\item{version}{integer: Prokaryote outgroup version (1 for the original values used in
+the paper, 2 for the 2024 update)}
 }
 \value{
 x Strata object with the basal stratum (ID=131567) replaced

@@ -2,6 +2,7 @@
 % Please edit documentation in R/phylostratr.R
 \docType{package}
 \name{phylostratr}
+\alias{phylostratr-package}
 \alias{phylostratr}
 \title{phylostratr: Phylostratigraphy execution and analysis}
 \description{
@@ -19,3 +20,7 @@ This sample is used as the root stratum in both the arabidopsis and yeast
 vignettes.
 }
 
+\author{
+\strong{Maintainer}: Zebulun Arendsee \email{zbwrnz@gmail.com}
+
+}

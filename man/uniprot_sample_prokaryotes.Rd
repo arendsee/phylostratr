@@ -4,17 +4,14 @@
 \alias{uniprot_sample_prokaryotes}
 \title{Randomly sample prokaryotic representatives}
 \usage{
-uniprot_sample_prokaryotes(downto = "class", remake = FALSE)
+uniprot_sample_prokaryotes(downto = "class")
 }
 \arguments{
 \item{downto}{the lowest phylogenetic rank that shoul be sampled}
-
-\item{remake}{whether to replace an existing file}
 }
 \value{
 phylo object containing the prokaryptic sample tree
 }
 \description{
-This function was used to select the prokaryotes used in the paper. I do not
-recommend using it now though. It can select unclassified taxa.
+Randomly sample prokaryotic representatives
 }

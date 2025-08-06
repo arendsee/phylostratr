@@ -137,10 +137,21 @@ uniprot_retrieve_proteome_table <- function(taxid){
   rows <- query_sparql(template, macros)
 
   if(nrow(rows) == 0){
-    warning(glue::glue("Could not find representative proteome for {taxid}, retrieving all records, may be incomplete or contain redundant entries"))
+    message(glue::glue("Could not find representative proteome for {taxid}, seeking alternative proteome"))
+    template <- system.file("sparql", "get-proteome-sequences.rq", package="phylostratr")
+    macros <- c(TAXID=as.character(taxid))
+    rows <- query_sparql(template, macros)
+  }
+
+  if(nrow(rows) == 0){
+    message(glue::glue("  Could not find alternative proteome for {taxid}, retrieving all protein records"))
     template <- system.file("sparql", "get-all-taxid-sequences.rq", package="phylostratr")
     macros <- c(TAXID=as.character(taxid))
     rows <- query_sparql(template, macros)
+  }
+
+  if(nrow(rows) == 0){
+    warning(glue::glue("  No protein records found for {taxid}"))
   }
 
   rows$uniprot_uid <- sub("http.*/", "", rows$uniprot_uid)
@@ -232,16 +243,13 @@ uniprot_map2pfam <- function(taxid){
 
 #' Randomly sample prokaryotic representatives
 #'
-#' This function was used to select the prokaryotes used in the paper. I do not
-#' recommend using it now though. It can select unclassified taxa.
-#'
-#' @param downto the lowest phylogenetic rank that shoul be sampled
-#' @param remake whether to replace an existing file
+#' @param downto the lowest phylogenetic rank that should be sampled
 #' @return phylo object containing the prokaryptic sample tree
+
 # add weights to uniprot_sample_prokaryotes: Jan 6 2025, LTC
 # add ability to drop taxa entirely (e.g., with weights==0 by drop.names=names(my.weights)[my.weights==0]) Jan 29 2025 LTC
 uniprot_sample_prokaryotes <- function(downto='class', weights=NULL, drop.names=NULL){
-  
+
   # Get all bacterial and Archael classes (class is one level below phylum)
   prokaryote_classes <- taxizedb::downstream(c('eubacteria', 'Archaea'), downto=downto, db='ncbi')
   
@@ -323,6 +331,7 @@ sample_taxids_weights <- function(taxid_list, weights) {
   if(is.null(weights)) {
     # if no weights provided, just choose at random
     bacteria_taxids <- bacteria_taxids %>%
+
       lapply(sample_taxids, size=1) %>% unlist
     
     archaea_taxids <- archaea_taxids %>%
@@ -348,14 +357,26 @@ sample_taxids_weights <- function(taxid_list, weights) {
 #' bacterial and archaeal species from each class in each domain.
 #'
 #' @param x Strata object
+#' @param version integer: Prokaryote outgroup version (1 for the original values used in
+#' the paper, 2 for the 2024 update)
 #' @return x Strata object with the basal stratum (ID=131567) replaced
 #' @export
-use_recommended_prokaryotes <- function(x){
-  prokaryote_sample <- readRDS(system.file(
-    'extdata',
-    'prokaryote_sample.rda',
-    package='phylostratr'
-  ))
+use_recommended_prokaryotes <- function(x, version=1){
+  if(version == 1){
+      prokaryote_sample <- readRDS(system.file(
+        'extdata',
+        'prokaryote_sample_v1.rda',
+        package='phylostratr'
+      ))
+  } else if(version == 2) {
+      prokaryote_sample <- readRDS(system.file(
+        'extdata',
+        'prokaryote_sample_v2.rda',
+        package='phylostratr'
+      ))
+  } else {
+    stop("Unexpected version number")
+  }
   # extract the Eukaryota branch
   x@tree <- subtree(x@tree, '2759', type='name')
   # get 'cellular_organism -> Eukaryota' tree (just these two nodes)
