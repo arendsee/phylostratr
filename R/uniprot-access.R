@@ -178,7 +178,8 @@ uniprot_fill_strata <- function(strata, ...){
 #' @param from stratum to begin from, where 1 is 'cellular organisms'
 #' @return Strata object
 #' @export
-uniprot_strata <- function(taxid, from=2){
+uniprot_strata <- function(taxid, from=2, 
+                           drop.names=NULL){ # Jan 3 2025, LTC: add drop.names, a character vector containing taxa ids to completely exclude
 
   # ensure the focal gene is included, even if not in uniprot (fix #10)
   add_focal <- function(xs){
@@ -192,17 +193,38 @@ uniprot_strata <- function(taxid, from=2){
     xs
   }
 
+  # edited by LTC Dec 9 2024 to make this function work when from = 1
+  if (from==1) {
+    # using the "celluar organisms" taxon id (131567) doesn't work in the sparql query for sublcasses
+    # instead, just manually search the downstream ids of each of the 3 sub-classes of cellular organisms:
+     c(uniprot_downstream_ids("2"), # bacteria
+      uniprot_downstream_ids("2157"), # archaea
+      uniprot_downstream_ids("2759") # eukarya
+      ) %>%
+      add_focal %>%
+      taxizedb::classification() %>%
+      Filter(f=is.data.frame) %>%
+      lineages_to_phylo(clean=TRUE) %>%
+      ape::drop.tip.phylo(drop.names) %>% # completely remove some taxa
+      Strata(
+        focal_species = taxid,
+        tree       = .,
+        data       = list()
+      )
+  } else {
   taxizedb::classification(taxid)[[1]]$id[from] %>%
     uniprot_downstream_ids %>%
     add_focal %>%
     taxizedb::classification() %>%
     Filter(f=is.data.frame) %>%
     lineages_to_phylo(clean=TRUE) %>%
+    ape::drop.tip.phylo(drop.names) %>% # completely remove some taxa
     Strata(
       focal_species = taxid,
       tree       = .,
       data       = list()
     )
+  }
 }
 
 #' Map UniProt IDs for an organism to PFAM IDs
@@ -223,59 +245,107 @@ uniprot_map2pfam <- function(taxid){
 #'
 #' @param downto the lowest phylogenetic rank that should be sampled
 #' @return phylo object containing the prokaryptic sample tree
-uniprot_sample_prokaryotes <- function(downto='class'){
+
+# add weights to uniprot_sample_prokaryotes: Jan 6 2025, LTC
+# add ability to drop taxa entirely (e.g., with weights==0 by drop.names=names(my.weights)[my.weights==0]) Jan 29 2025 LTC
+uniprot_sample_prokaryotes <- function(downto='class', weights=NULL, drop.names=NULL){
 
   # Get all bacterial and Archael classes (class is one level below phylum)
   prokaryote_classes <- taxizedb::downstream(c('eubacteria', 'Archaea'), downto=downto, db='ncbi')
-
+  
   # Get all uniprot reference genomes for each bacterial class
   bacteria_class_reps <- lapply(
-      prokaryote_classes$eubacteria$childtaxa_id,
-      uniprot_downstream_ids
-    )
+    prokaryote_classes$eubacteria$childtaxa_id,
+    uniprot_downstream_ids
+  )
   names(bacteria_class_reps) <- prokaryote_classes$eubacteria$childtaxa_id
-
+  
   # Get all uniprot reference genomes for each bacterial class
   archaea_class_reps <- lapply(
-      prokaryote_classes$Archaea$childtaxa_id,
-      uniprot_downstream_ids
-    )
+    prokaryote_classes$Archaea$childtaxa_id,
+    uniprot_downstream_ids
+  )
   names(archaea_class_reps) <- prokaryote_classes$Archaea$childtaxa_id
-
+  
   clean_reps <- function(taxa){
-      # taxa should be a list of clades (class level by default) that each have
-      # a list of NCBI taxonomy ids that have representative uniprot proteomes
-      taxa %>%
-          # remove any clades that have no representative
-          Filter(f = function(x) length(x) > 0) %>%
-          # get the lineage for each representative
-          lapply(taxizedb::classification) %>%
-          # remove any cases where lineage was missing
-          lapply(Filter, f = function(x) is.data.frame(x)) %>%
-          # remove all unclassified entries
-          lapply(function(x) Filter(f = function(lineage){ ! any(grepl("unclassified", lineage$name)) }, x)) %>%
-          # # remove any clades where all representatives are unclassified
-          Filter(f = function(x) length(x) > 0) %>%
-          # convert back from classification table to species/strain taxonomy id
-          lapply(function(xs) sapply(xs, function(x) x$id[nrow(x)]) %>% unname)
+    # taxa should be a list of clades (class level by default) that each have
+    # a list of NCBI taxonomy ids that have representative uniprot proteomes
+    taxa %>%
+      # remove any clades that have no representative
+      Filter(f = function(x) length(x) > 0) %>%
+      # get the lineage for each representative
+      lapply(taxizedb::classification) %>%
+      # remove any cases where lineage was missing
+      lapply(Filter, f = function(x) is.data.frame(x)) %>%
+      # remove all unclassified entries
+      lapply(function(x) Filter(f = function(lineage){ ! any(grepl("unclassified", lineage$name)) }, x)) %>%
+      # # remove any clades where all representatives are unclassified
+      Filter(f = function(x) length(x) > 0) %>%
+      # convert back from classification table to species/strain taxonomy id
+      lapply(function(xs) sapply(xs, function(x) x$id[nrow(x)]) %>% unname)
   }
-
+  
   # From each class, randomly select a single uniprot reference genome
   sample_taxids <- function(x, ...){
-      # This is required, because R is evil. If x is of length 1 and is numeric,
-      # then `sample` treats it as the upperbound of a discrete distribution
-      # between 1 and x. Otherwise it is treated as a set to be sampled from.
-      sample(as.character(x), ...) %>% as.integer
+    # This is required, because R is evil. If x is of length 1 and is numeric,
+    # then `sample` treats it as the upperbound of a discrete distribution
+    # between 1 and x. Otherwise it is treated as a set to be sampled from.
+    sample(as.character(x), ...) %>% as.integer
   }
 
+  # From each class, use weights to select a single uniprot reference genome
+sample_taxids_weights <- function(taxid_list, weights) {
+  # Use this to choose from each clade using weights
+  new.taxid_list <- vector("list", length=length(taxid_list))
+  for (i in 1:length(taxid_list)) {
+    # pull weights for this clade
+    current.taxid <- taxid_list[[i]]
+    current.weights <- weights[current.taxid]
+    
+    # if weight not available, default = 1
+    if(sum(is.na(current.weights))>0) {
+      na.ids <- is.na(current.weights)
+      current.weights[na.ids] <- 1
+      names(current.weights)[na.ids] <- current.taxid[na.ids]
+    }
+    
+    stopifnot(names(current.weights)==current.taxid)
+    
+    # and use them to "sample"
+    new.taxid_list[[i]] <- taxid_list[[i]][which.max(current.weights)]
+  }
+  return(new.taxid_list) 
+}
+   # clean taxa and remove names to drop:
   bacteria_taxids <- bacteria_class_reps %>%
-      clean_reps %>%
-      lapply(sample_taxids, size=1) %>% unlist
-
+    clean_reps %>%
+    lapply(function(x) {x <- x[!(x %in% drop.names)]}) %>% # drop excluded taxa
+    Filter(f = function(x) length(x) > 0) # remove any clades where all representatives are excluded
+ 
   archaea_taxids <- archaea_class_reps %>%
-      clean_reps %>%
-      lapply(sample_taxids, size=1) %>% unlist
+    clean_reps %>%
+    lapply(function(x) {x <- x[!(x %in% drop.names)]}) %>% # drop excluded taxa
+    Filter(f = function(x) length(x) > 0) # remove any clades where all representatives are excluded
+                                 
+     # Use this to choose from each clade using provided weights
+  if(is.null(weights)) {
+    # if no weights provided, just choose at random
+    bacteria_taxids <- bacteria_taxids %>%
 
+      lapply(sample_taxids, size=1) %>% unlist
+    
+    archaea_taxids <- archaea_taxids %>%
+      lapply(sample_taxids, size=1) %>% unlist
+    
+  } else {
+    # otherwise, incorporate the provided weights
+    bacteria_taxids <- bacteria_taxids %>%
+      sample_taxids_weights(weights) %>% unlist
+    
+    archaea_taxids <- archaea_taxids %>%
+      sample_taxids_weights(weights) %>% unlist
+  }
+  
   c(bacteria_taxids, archaea_taxids) %>%
     taxizedb::classification() %>%
     lineages_to_phylo
