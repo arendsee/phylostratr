@@ -241,11 +241,13 @@ uniprot_map2pfam <- function(taxid){
     )
 }
 
-#' Randomly sample prokaryotic representatives
+#' Randomly sample prokaryotic representatives, incorporating weights and the ability to drop desired taxa
 #'
 #' @param downto the lowest phylogenetic rank that should be sampled
-#' @return phylo object containing the prokaryptic sample tree
-
+#' @param weights optional named numeric vector of weights to use for sampling, names are Uniprot taxon IDs 
+#' @param drop.names optional character vector of taxa names (Uniprot taxon IDs) to drop entirely
+#' @return phylo object containing the prokaryotic sample tree
+#' @export
 # add weights to uniprot_sample_prokaryotes: Jan 6 2025, LTC
 # add ability to drop taxa entirely (e.g., with weights==0 by drop.names=names(my.weights)[my.weights==0]) Jan 29 2025 LTC
 uniprot_sample_prokaryotes <- function(downto='class', weights=NULL, drop.names=NULL){

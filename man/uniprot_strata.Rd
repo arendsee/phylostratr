@@ -4,7 +4,7 @@
 \alias{uniprot_strata}
 \title{Given a focal taxid, build a UniProt-based Strata object}
 \usage{
-uniprot_strata(taxid, from = 2)
+uniprot_strata(taxid, from = 2, drop.names = NULL)
 }
 \arguments{
 \item{taxid}{The focal species NCBI taxon id}
