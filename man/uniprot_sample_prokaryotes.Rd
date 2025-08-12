@@ -2,16 +2,20 @@
 % Please edit documentation in R/uniprot-access.R
 \name{uniprot_sample_prokaryotes}
 \alias{uniprot_sample_prokaryotes}
-\title{Randomly sample prokaryotic representatives}
+\title{Randomly sample prokaryotic representatives, incorporating weights and the ability to drop desired taxa}
 \usage{
-uniprot_sample_prokaryotes(downto = "class")
+uniprot_sample_prokaryotes(downto = "class", weights = NULL, drop.names = NULL)
 }
 \arguments{
-\item{downto}{the lowest phylogenetic rank that shoul be sampled}
+\item{downto}{the lowest phylogenetic rank that should be sampled}
+
+\item{weights}{optional named numeric vector of weights to use for sampling, names are Uniprot taxon IDs}
+
+\item{drop.names}{optional character vector of taxa names (Uniprot taxon IDs) to drop entirely}
 }
 \value{
-phylo object containing the prokaryptic sample tree
+phylo object containing the prokaryotic sample tree
 }
 \description{
-Randomly sample prokaryotic representatives
+Randomly sample prokaryotic representatives, incorporating weights and the ability to drop desired taxa
 }
