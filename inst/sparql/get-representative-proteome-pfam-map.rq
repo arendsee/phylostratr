@@ -5,7 +5,7 @@ PREFIX up: <http://purl.uniprot.org/core/>
 SELECT distinct ?uniprotID ?pfamID
 WHERE
 {
-    ?proteome_ref a up:Representative_Proteome .
+    ?proteome_ref a up:Reference_Proteome .
     ?proteome_ref up:organism taxon:TAXID .
     ?protein_attr up:source ?proteome_ref .
 

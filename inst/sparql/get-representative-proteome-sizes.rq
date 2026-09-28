@@ -6,7 +6,7 @@ PREFIX up: <http://purl.uniprot.org/core/>
 SELECT ?taxon ?name (COUNT(DISTINCT ?isoform) as ?count)
 WHERE
 {
-    ?proteome_ref a up:Representative_Proteome .
+    ?proteome_ref a up:Reference_Proteome .
 	?proteome_ref up:organism ?taxon .
     ?taxon a up:Taxon .
     ?taxon up:scientificName ?name .
